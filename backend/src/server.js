@@ -56,7 +56,8 @@ app.use(
       'http://localhost:5173',
       'http://127.0.0.1:5173',
       'https://tedx-kare.vercel.app',
-      /^https:\/\/.*\.vercel\.app$/
+      'https://tedx-kare-qxg9gjejs-hrishob0108s-projects.vercel.app', // Explicitly add the failing URL
+      /^https:\/\/.*\.vercel\.app$/ // Catch-all for Vercel
     ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
