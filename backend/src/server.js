@@ -51,7 +51,13 @@ app.use(express.urlencoded({ limit: '5mb', extended: true }));
 // CORS Configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://tedx-kare.vercel.app',
+      /^https:\/\/.*\.vercel\.app$/
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
