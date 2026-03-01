@@ -384,3 +384,5 @@ For issues or questions, please contact the TEDxKARE team.
 **Built with ❤️ for TEDxKARE - Ideas Worth Spreading**
 
 Last updated: January 2026
+
+bferibvgrfnblfjcdxsbgmklgbhxsgdhfcjgkjkgndjkfvbjshcvhjsdb vjxcbvjbdjhdshcn bvjkvdkvfbjkdvchdbcfsjkd
