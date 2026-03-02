@@ -29,7 +29,7 @@ const departments = [
 
 const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate', 'Faculty'];
 
-const availabilityOptions = ['0-5 hours', '5-10 hours', '10-15 hours', '15+ hours'];
+
 
 // ==================== APPLY PAGE ====================
 const Apply = () => {
@@ -49,13 +49,12 @@ const Apply = () => {
     department: '',
     year: '',
     linkedin: '',
-    portfolio: '',
+    resume: '',
     firstPreference: '',
     secondPreference: '',
     whyTedx: '',
     whyDomain: '',
     experience: '',
-    availability: '',
   };
 
   const onSubmit = async (values) => {
@@ -69,7 +68,7 @@ const Apply = () => {
 
       await request(() => applicantAPI.submitApplication(values));
       setSubmitSuccess(true);
-      
+
       // Redirect to thank you page after 2 seconds
       setTimeout(() => {
         navigate('/thank-you');
@@ -328,15 +327,15 @@ const Apply = () => {
             </div>
           </motion.div>
 
-          {/* ==================== SECTION 3: PORTFOLIO ====================*/}
+          {/* ==================== SECTION 3: LINKS ====================*/}
           <motion.div variants={itemVariants} className="card">
-            <h3 className="text-2xl font-bold mb-6 text-ted-red">Portfolio Links</h3>
+            <h3 className="text-2xl font-bold mb-6 text-ted-red">Important Links</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* LinkedIn */}
               <div className="form-group">
                 <label htmlFor="linkedin" className="form-label">
-                  LinkedIn URL
+                  LinkedIn URL *
                 </label>
                 <input
                   type="url"
@@ -348,27 +347,33 @@ const Apply = () => {
                   onChange={form.handleChange}
                   onBlur={form.handleBlur}
                   disabled={loading}
+                  required
                 />
-                <p className="form-hint">Optional but recommended</p>
+                {form.touched.linkedin && form.errors.linkedin && (
+                  <p className="form-error">{form.errors.linkedin}</p>
+                )}
               </div>
 
-              {/* Portfolio */}
+              {/* Resume */}
               <div className="form-group">
-                <label htmlFor="portfolio" className="form-label">
-                  Portfolio/Website
+                <label htmlFor="resume" className="form-label">
+                  Resume Link (Drive/Docs) *
                 </label>
                 <input
                   type="url"
-                  id="portfolio"
-                  name="portfolio"
-                  placeholder="https://yourportfolio.com"
+                  id="resume"
+                  name="resume"
+                  placeholder="https://your-resume-link.com"
                   className="input-field"
-                  value={form.values.portfolio}
+                  value={form.values.resume}
                   onChange={form.handleChange}
                   onBlur={form.handleBlur}
                   disabled={loading}
+                  required
                 />
-                <p className="form-hint">Optional</p>
+                {form.touched.resume && form.errors.resume && (
+                  <p className="form-error">{form.errors.resume}</p>
+                )}
               </div>
             </div>
           </motion.div>
@@ -542,36 +547,7 @@ const Apply = () => {
             </div>
           </motion.div>
 
-          {/* ==================== SECTION 6: AVAILABILITY ==================== */}
-          <motion.div variants={itemVariants} className="card">
-            <h3 className="text-2xl font-bold mb-6 text-ted-red">Availability</h3>
 
-            <div className="form-group">
-              <label htmlFor="availability" className="form-label">
-                Weekly Availability *
-              </label>
-              <select
-                id="availability"
-                name="availability"
-                className="input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
-                }}
-                value={form.values.availability}
-                onChange={form.handleChange}
-                onBlur={form.handleBlur}
-                disabled={loading}
-                required
-              >
-                <option value="">Select your availability</option>
-                {availabilityOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt} per week
-                  </option>
-                ))}
-              </select>
-            </div>
-          </motion.div>
 
           {/* ==================== SUBMIT BUTTON ==================== */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
