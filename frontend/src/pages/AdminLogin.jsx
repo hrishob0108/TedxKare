@@ -74,7 +74,7 @@ const AdminLogin = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-2">
-            TEDx<span className="text-ted-red">KARE</span>
+            <span className="text-ted-red">TED</span>xKARE
           </h1>
           <p className="text-gray-400">Admin Dashboard</p>
         </motion.div>
@@ -113,7 +113,7 @@ const AdminLogin = () => {
               type="email"
               id="email"
               name="email"
-              placeholder="admin@tedxkare.com"
+              placeholder="admin@gmail.com"
               className="input-field"
               value={form.values.email}
               onChange={form.handleChange}

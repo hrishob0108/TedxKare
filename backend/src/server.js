@@ -14,15 +14,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ==================== RATE LIMITING ====================
-// Limit 50 applications per hour per IP
-const applicationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // 50 requests per hour
-  message: 'Too many applications from this IP, please try again later',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // Limit 5 login attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
@@ -85,7 +76,7 @@ const connectDB = async () => {
 };
 
 // ==================== ROUTES ====================
-app.use('/api/applicants', applicationLimiter, applicantRoutes);
+app.use('/api/applicants', applicantRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/', apiLimiter); // General API protection
 

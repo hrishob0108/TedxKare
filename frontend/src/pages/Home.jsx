@@ -45,12 +45,18 @@ const domains = [
     icon: '🎭',
     description: 'Coordinate logistics and ensure every TEDx event runs flawlessly from start to finish.',
   },
+  {
+    name: 'Selection Committee',
+    icon: '⚖️',
+    description: 'Review and select the most impactful speakers for TEDxKARE events.',
+  },
 ];
 
 // ==================== HOME PAGE ====================
 const Home = () => {
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -84,12 +90,37 @@ const Home = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="container-flex flex items-center justify-between h-16">
           <h1 className="text-2xl font-bold"><span className="text-ted-red">TED</span>x<span className="text-white">KARE</span></h1>
-          <button
-            onClick={() => navigate('/apply')}
-            className="btn-primary text-sm"
-          >
-            Apply Now
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsHelpOpen(!isHelpOpen)}
+              className="btn-primary text-sm cursor-pointer"
+            >
+              Help
+            </button>
+            {isHelpOpen && (
+              <div className="absolute right-0 mt-2 bg-gray-900 border border-gray-800 rounded-lg shadow-xl p-4 w-64 z-50">
+                <div className="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                  <p className="text-white font-semibold text-sm">Contact Support</p>
+                  <button
+                    onClick={() => setIsHelpOpen(false)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                  </button>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <a href="tel:+918978442820" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Hrishob Pal</p>
+                    <p className="text-gray-400">+91 8978442820</p>
+                  </a>
+                  <a href="tel:+919490464582" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Trivikram</p>
+                    <p className="text-gray-400">+91 9490464582</p>
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -126,9 +157,8 @@ const Home = () => {
             variants={itemVariants}
             className="text-base md:text-lg text-gray-400 mb-12 max-w-2xl mx-auto"
           >
-            We are building an officially licensed TEDx event at Kalasalingam University. Be part of
-            our movement to spread ideas worth sharing. We&apos;re recruiting passionate individuals
-            across multiple domains.
+            TEDxKARE is an independently organized TEDx event conducted at Kalasalingam Academy of Research and Education.
+            It follows the ideas and format of TEDx, where speakers share powerful ideas, experiences, and innovations that can inspire students and the community.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -142,7 +172,6 @@ const Home = () => {
             >
               Apply Now →
             </button>
-            <button className="btn-outline px-8 py-4 text-lg">Learn More</button>
           </motion.div>
         </motion.div>
       </section>
@@ -151,7 +180,7 @@ const Home = () => {
       <section className="section bg-gradient-to-b from-transparent to-gray-900/20">
         {/* Section Title */}
         <div className="section-title">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Explore Our Teams</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Join Our Team</h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Find the perfect domain that matches your skills and interests. Each team plays a crucial
             role in making TEDxKARE a success.

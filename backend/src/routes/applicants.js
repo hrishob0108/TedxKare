@@ -9,8 +9,19 @@ import {
   getStatistics,
 } from '../controllers/applicantController.js';
 import { authenticate } from '../middleware/auth.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+// ==================== RATE LIMITING ====================
+// Limit 50 applications per hour per IP
+const applicationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // 50 requests per hour
+  message: 'Too many applications from this IP, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ==================== VALIDATION MIDDLEWARE ====================
 // Validation rules for creating an application
@@ -25,13 +36,12 @@ const applicationValidation = [
   body('whyTedx').trim().isLength({ min: 20 }).withMessage('Why TEDx answer must be at least 20 characters'),
   body('whyDomain').trim().isLength({ min: 20 }).withMessage('Why this domain answer must be at least 20 characters'),
   body('experience').trim().isLength({ min: 20 }).withMessage('Experience answer must be at least 20 characters'),
-  body('availability').notEmpty().withMessage('Availability is required'),
 ];
 
 // ==================== PUBLIC ROUTES ====================
 
 // POST /api/applicants - Create new application
-router.post('/', applicationValidation, createApplication);
+router.post('/', applicationLimiter, applicationValidation, createApplication);
 
 // ==================== PROTECTED ROUTES (Admin Only) ====================
 

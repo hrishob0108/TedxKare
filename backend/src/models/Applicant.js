@@ -44,16 +44,16 @@ const applicantSchema = new mongoose.Schema(
       enum: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate', 'Faculty'],
     },
 
-    // Portfolio Links
+    // Links
     linkedin: {
       type: String,
       trim: true,
-      default: '',
+      required: [true, 'LinkedIn profile is required'],
     },
-    portfolio: {
+    resume: {
       type: String,
       trim: true,
-      default: '',
+      required: [true, 'Resume link is required'],
     },
 
     // Domain Preferences
@@ -103,12 +103,6 @@ const applicantSchema = new mongoose.Schema(
       minlength: [20, 'Answer must be at least 20 characters'],
     },
 
-    // Availability
-    availability: {
-      type: String,
-      required: [true, 'Weekly availability is required'],
-      enum: ['0-5 hours', '5-10 hours', '10-15 hours', '15+ hours'],
-    },
 
     // Application Status
     status: {

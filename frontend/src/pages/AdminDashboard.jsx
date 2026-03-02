@@ -169,7 +169,10 @@ const AdminDashboard = () => {
       {/* ==================== TOP NAVIGATION ==================== */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="container-flex h-16 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-ted-red">TEDxKARE Admin</h1>
+          <h1 className="text-2xl font-bold">
+            <span className="text-ted-red">TED</span>
+            <span className="text-white">xKARE Admin</span>
+          </h1>
           <button onClick={handleLogout} className="btn-secondary text-sm">
             Logout
           </button>
@@ -428,10 +431,6 @@ const AdminDashboard = () => {
                     <p className="text-gray-400">Year</p>
                     <p className="font-semibold">{selectedApplicant.year}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-400">Availability</p>
-                    <p className="font-semibold">{selectedApplicant.availability}</p>
-                  </div>
                 </div>
               </div>
 
@@ -469,10 +468,10 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Portfolio Links */}
-              {(selectedApplicant.linkedin || selectedApplicant.portfolio) && (
+              {/* Links */}
+              {(selectedApplicant.linkedin || selectedApplicant.resume) && (
                 <div>
-                  <h4 className="text-ted-red font-bold mb-4">Portfolio Links</h4>
+                  <h4 className="text-ted-red font-bold mb-4">Important Links</h4>
                   <div className="space-y-2 text-sm">
                     {selectedApplicant.linkedin && (
                       <div>
@@ -487,16 +486,16 @@ const AdminDashboard = () => {
                         </a>
                       </div>
                     )}
-                    {selectedApplicant.portfolio && (
+                    {selectedApplicant.resume && (
                       <div>
-                        <p className="text-gray-400 mb-1">Portfolio</p>
+                        <p className="text-gray-400 mb-1">Resume</p>
                         <a
-                          href={selectedApplicant.portfolio}
+                          href={selectedApplicant.resume}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-ted-red hover:text-red-600 break-all"
                         >
-                          {selectedApplicant.portfolio}
+                          {selectedApplicant.resume}
                         </a>
                       </div>
                     )}
@@ -520,11 +519,10 @@ const AdminDashboard = () => {
                       key={status}
                       onClick={() => handleStatusChange(selectedApplicant._id, status)}
                       disabled={selectedApplicant.status === status}
-                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                        selectedApplicant.status === status
-                          ? 'bg-ted-red text-white'
-                          : 'btn-outline'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedApplicant.status === status
+                        ? 'bg-ted-red text-white'
+                        : 'btn-outline'
+                        }`}
                     >
                       {status}
                     </button>
