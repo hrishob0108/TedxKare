@@ -29,7 +29,7 @@ const DomainCard = ({ domain, icon, description }) => {
         <h3 className="text-xl md:text-2xl font-bold mb-3">{domain}</h3>
 
         <div className="flex-grow flex flex-col mt-auto">
-          <AnimatePresence initial={false}>
+          <AnimatePresence>
             {isExpanded && (
               <motion.div
                 key="content"
