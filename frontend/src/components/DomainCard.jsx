@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ==================== DOMAIN CARD COMPONENT ====================
-// Card for displaying domain information with hover effects
+// Card for displaying domain information with click-to-expand effects
 const DomainCard = ({ domain, icon, description }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -14,7 +14,7 @@ const DomainCard = ({ domain, icon, description }) => {
   return (
     <motion.div
       variants={cardVariants}
-      whileHover="hover"
+      whileHover={isOpen ? "open" : "hover"}
       initial="idle"
       className="h-full cursor-pointer"
       onClick={() => setIsExpanded(!isExpanded)}
