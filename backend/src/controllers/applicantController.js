@@ -158,45 +158,36 @@ export const updateApplicantStatus = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { status, email } = req.body;
+    const { status, email, shortlistedDomain } = req.body;
     console.log(req.body);
-    // Validate status
-    if (status == "Rejected") {
+    // Helper function to send email
+    const sendEmail = async (toEmail, subject, bodyText) => {
       try {
-        axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender",
-          {
-            config: {
-              email: "hrishobp@gmail.com",
-              pass: "lerz fhwj rsqx ogbp",
-              from: "'TEDxKARE' <hrishobp@gmail.com>",
-            },
-            to: email,
-            subject: "Your application has been rejected",
-            body: "Your application has been rejected"
-          }).then((res) => { console.log(res.data) }).catch((err) => { console.log("error") })
+        const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
+          config: {
+            email: "hrishobp@gmail.com",
+            pass: "lerz fhwj rsqx ogbp",
+            from: "'TEDxKARE' <hrishobp@gmail.com>",
+          },
+          to: toEmail,
+          subject: subject,
+          body: bodyText
+        });
+        console.log("Email sent successfully:", response.data);
+      } catch (error) {
+        console.error("Failed to send email to", toEmail, ":", error.message);
       }
-      catch (error) {
-        console.log("jo");
-      }
+    };
+
+    // Trigger emails based ONLY on specific statuses
+    if (status === "Rejected") {
+      // Fire and forget email
+      sendEmail(email, "Your application has been rejected", "Your application has been rejected");
+    } else if (status === "Shortlisted") {
+      // Fire and forget email
+      sendEmail(email, "Your application has been accepted", `Your application has been accepted for the domain: ${shortlistedDomain}`);
     }
-    else {
-      try {
-        axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender",
-          {
-            config: {
-              email: "hrishobp@gmail.com",
-              pass: "lerz fhwj rsqx ogbp",
-              from: "'TEDxKARE' <hrishobp@gmail.com>",
-            },
-            to: email,
-            subject: "Your application has been accepted",
-            body: "Your application has been accepted"
-          }).then((res) => { console.log(res.data) }).catch((err) => { console.log("error") })
-      }
-      catch (error) {
-        console.log("jo");
-      }
-    }
+
     const validStatuses = ['Pending', 'Shortlisted', 'Rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -205,9 +196,16 @@ export const updateApplicantStatus = async (req, res, next) => {
       });
     }
 
+    const updateData = { status };
+    if (status === 'Shortlisted' && shortlistedDomain) {
+      updateData.shortlistedDomain = shortlistedDomain;
+    } else if (status !== 'Shortlisted') {
+      updateData.shortlistedDomain = ''; // Reset if status changes away from Shortlisted
+    }
+
     const applicant = await Applicant.findByIdAndUpdate(
       req.params.id,
-      { status },
+      updateData,
       { new: true, runValidators: true }
     );
 

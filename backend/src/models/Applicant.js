@@ -22,6 +22,11 @@ const applicantSchema = new mongoose.Schema(
       required: [true, 'Phone number is required'],
       trim: true,
     },
+    registrationNumber: {
+      type: String,
+      required: [true, 'Registration number is required'],
+      trim: true,
+    },
 
     // Academic Information
     department: {
@@ -41,7 +46,7 @@ const applicantSchema = new mongoose.Schema(
     year: {
       type: String,
       required: [true, 'Year of study is required'],
-      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate', 'Faculty'],
+      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
     },
 
     // Links
@@ -66,7 +71,6 @@ const applicantSchema = new mongoose.Schema(
         'Sponsorship & Budget Manager',
         'Designer',
         'Communications & Marketing Director',
-        'Website Manager',
         'Video Production',
         'Research Team',
       ],
@@ -81,7 +85,6 @@ const applicantSchema = new mongoose.Schema(
         'Sponsorship & Budget Manager',
         'Designer',
         'Communications & Marketing Director',
-        'Website Manager',
         'Video Production',
         'Research Team',
       ],
@@ -110,6 +113,10 @@ const applicantSchema = new mongoose.Schema(
       type: String,
       enum: ['Pending', 'Shortlisted', 'Rejected'],
       default: 'Pending',
+    },
+    shortlistedDomain: {
+      type: String,
+      default: '',
     },
 
     // IP Address for tracking (optional)

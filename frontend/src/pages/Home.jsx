@@ -36,11 +36,6 @@ const domains = [
     description: 'This role manages the public communication and promotion of the event. They create marketing strategies, manage social media platforms, write promotional content, and engage with the audience online. They also help in building awareness about the event through posters, campaigns, and digital promotions to attract attendees and participants.',
   },
   {
-    name: 'Website Manager',
-    icon: '🌐',
-    description: 'The Website Manager develops and maintains the official event website. They update important information such as event details, speaker profiles, schedules, and announcements. This role ensures that the website is easy to use, informative, and accessible to the public. They may also coordinate with designers and developers to improve the website experience.',
-  },
-  {
     name: 'Video Production',
     icon: '📹',
     description: 'The Video & Production Lead manages all technical aspects related to recording and producing the event. This includes camera setup, audio recording, stage lighting, and video editing. Their work ensures that the talks are recorded in high quality so they can later be shared with a global audience. They also coordinate camera operators and technical teams during the event.',
@@ -109,6 +104,14 @@ const Home = () => {
                   </button>
                 </div>
                 <div className="space-y-1 text-sm">
+                  <a href="tel:+918978442820" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Hrishob Pal</p>
+                    <p className="text-gray-400">+91 89784 42820</p>
+                  </a>
+                  <a href="tel:+919490464582" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Trivikram</p>
+                    <p className="text-gray-400">+91 94904 64582</p>
+                  </a>
                   <a href="tel:+918143152912" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
                     <p className="text-gray-300 font-medium">Venkat Reddy</p>
                     <p className="text-gray-400">+91 81431 52912</p>
