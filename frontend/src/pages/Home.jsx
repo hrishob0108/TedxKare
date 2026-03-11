@@ -6,49 +6,49 @@ import DomainCard from '../components/DomainCard';
 // ==================== DOMAINS DATA ====================
 const domains = [
   {
+    name: 'Selection Committee (Curation Team)',
+    icon: '⚖️',
+    description: 'The Selection Committee is responsible for finding and selecting speakers with meaningful and powerful ideas. This team reviews speaker applications, conducts interviews if needed, and ensures that the talks cover different fields such as science, education, innovation, business, culture, and social impact. They also help guide speakers in developing clear and impactful talks that follow TEDx guidelines.',
+  },
+  {
+    name: 'Executive Producer',
+    icon: '🎬',
+    description: 'The Executive Producer oversees the entire planning and production of the event. This role coordinates different teams and ensures that every part of the event is organized properly. They manage the stage flow, coordinate rehearsals, and make sure the program runs smoothly on the event day. They also work closely with technical teams for lighting, audio, and stage management.',
+  },
+  {
+    name: 'Event Manager',
+    icon: '🎭',
+    description: 'The Event Manager handles the operational side of the event. They coordinate with the venue management, manage event schedules, and organize attendee registration and ticketing. This role ensures that guests, speakers, and volunteers have a smooth experience during the event. They also oversee logistics such as seating, guest reception, and event day coordination.',
+  },
+  {
+    name: 'Sponsorship & Budget Manager',
+    icon: '💰',
+    description: 'This role focuses on financial planning for the event. The Sponsorship & Manager approaches companies and organizations for sponsorship support and partnerships. They prepare sponsorship proposals, manage funds received from sponsors, and track event expenses. Their goal is to ensure the event has enough resources while maintaining transparency and proper financial planning.',
+  },
+  {
+    name: 'Designer',
+    icon: '🎨',
+    description: 'The Designer is responsible for the visual identity of the event. They create posters, banners, social media graphics, stage visuals, and other branding materials. This role helps maintain a professional and creative look for the event. The designer works closely with the marketing and website teams to ensure consistent branding across all platforms.',
+  },
+  {
+    name: 'Communications & Marketing Director',
+    icon: '📢',
+    description: 'This role manages the public communication and promotion of the event. They create marketing strategies, manage social media platforms, write promotional content, and engage with the audience online. They also help in building awareness about the event through posters, campaigns, and digital promotions to attract attendees and participants.',
+  },
+  {
+    name: 'Website Manager',
+    icon: '🌐',
+    description: 'The Website Manager develops and maintains the official event website. They update important information such as event details, speaker profiles, schedules, and announcements. This role ensures that the website is easy to use, informative, and accessible to the public. They may also coordinate with designers and developers to improve the website experience.',
+  },
+  {
+    name: 'Video Production',
+    icon: '📹',
+    description: 'The Video & Production Lead manages all technical aspects related to recording and producing the event. This includes camera setup, audio recording, stage lighting, and video editing. Their work ensures that the talks are recorded in high quality so they can later be shared with a global audience. They also coordinate camera operators and technical teams during the event.',
+  },
+  {
     name: 'Research Team',
     icon: '🔬',
-    description: 'Dive deep into innovative topics and curate thought-provoking content for TEDx events.',
-  },
-  {
-    name: 'Marketing Team',
-    icon: '📢',
-    description: 'Amplify our message through strategic campaigns and digital presence across platforms.',
-  },
-  {
-    name: 'Sponsorship Team',
-    icon: '💼',
-    description: 'Build partnerships and secure funding to make TEDxKARE events a grand success.',
-  },
-  {
-    name: 'Finance Team',
-    icon: '💰',
-    description: 'Manage budgets and ensure financial transparency for all TEDx initiatives.',
-  },
-  {
-    name: 'Design Team',
-    icon: '🎨',
-    description: 'Create stunning visuals and design experiences that captivate our audience.',
-  },
-  {
-    name: 'Media Team',
-    icon: '📹',
-    description: 'Capture and produce engaging content that tells the story of TEDxKARE.',
-  },
-  {
-    name: 'Content Team',
-    icon: '✍️',
-    description: 'Write compelling narratives and manage the voice of TEDxKARE across all channels.',
-  },
-  {
-    name: 'Event Managers and Editors',
-    icon: '🎭',
-    description: 'Coordinate logistics and ensure every TEDx event runs flawlessly from start to finish.',
-  },
-  {
-    name: 'Selection Committee',
-    icon: '⚖️',
-    description: 'Review and select the most impactful speakers for TEDxKARE events.',
+    description: 'The Research Team supports the Selection Committee in identifying strong and meaningful speakers for TEDxKARE, part of the global TEDx initiative. This team researches speaker ideas and talk topics across different fields such as science, technology, education, innovation, business, culture, and social impact. They analyze the originality and relevance of each idea, verify facts, and ensure the content follows TEDx guidelines. The team also studies the speakers’ proposed talks, helps refine their ideas, and ensures the talks are clear, informative, and meaningful for the audience.',
   },
 ];
 
@@ -109,13 +109,13 @@ const Home = () => {
                   </button>
                 </div>
                 <div className="space-y-1 text-sm">
-                  <a href="tel:+918978442820" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
-                    <p className="text-gray-300 font-medium">Hrishob Pal</p>
-                    <p className="text-gray-400">+91 8978442820</p>
+                  <a href="tel:+918143152912" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Venkat Reddy</p>
+                    <p className="text-gray-400">+91 81431 52912</p>
                   </a>
-                  <a href="tel:+919490464582" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
-                    <p className="text-gray-300 font-medium">Trivikram</p>
-                    <p className="text-gray-400">+91 9490464582</p>
+                  <a href="tel:+919346276642" className="block p-2 -mx-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    <p className="text-gray-300 font-medium">Surya</p>
+                    <p className="text-gray-400">+91 93462 76642</p>
                   </a>
                 </div>
               </div>
@@ -187,26 +187,81 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Domains Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {domains.map((domain, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              onMouseEnter={() => setHoveredCard(index)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <DomainCard
-                domain={domain.name}
-                icon={domain.icon}
-                description={domain.description}
-              />
-            </motion.div>
-          ))}
-        </div>
+        {/* Domains Grid - Custom Masonry Layout */}
+        <>
+          {/* Mobile Layout (1 column) */}
+          <div className="grid grid-cols-1 gap-6 md:hidden">
+            <div className="flex flex-col gap-6">
+              {domains.map((domain, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <DomainCard
+                    domain={domain.name}
+                    icon={domain.icon}
+                    description={domain.description}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tablet Layout (2 columns) */}
+          <div className="hidden md:grid lg:hidden grid-cols-2 gap-6">
+            {[0, 1].map((colIndex) => (
+              <div key={`tab-${colIndex}`} className="flex flex-col gap-6">
+                {domains
+                  .map((domain, idx) => ({ domain, idx }))
+                  .filter((_, idx) => idx % 2 === colIndex)
+                  .map(({ domain, idx }) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <DomainCard
+                        domain={domain.name}
+                        icon={domain.icon}
+                        description={domain.description}
+                      />
+                    </motion.div>
+                  ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Layout (4 columns) */}
+          <div className="hidden lg:grid grid-cols-4 gap-6">
+            {[0, 1, 2, 3].map((colIndex) => (
+              <div key={`desk-${colIndex}`} className="flex flex-col gap-6">
+                {domains
+                  .map((domain, idx) => ({ domain, idx }))
+                  .filter((_, idx) => idx % 4 === colIndex)
+                  .map(({ domain, idx }) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <DomainCard
+                        domain={domain.name}
+                        icon={domain.icon}
+                        description={domain.description}
+                      />
+                    </motion.div>
+                  ))}
+              </div>
+            ))}
+          </div>
+        </>
       </section>
 
       {/* ==================== STATS SECTION ==================== */}

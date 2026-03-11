@@ -6,14 +6,15 @@ import { applicantAPI } from '../utils/api';
 
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
+  'Selection Committee (Curation Team)',
+  'Executive Producer',
+  'Event Manager',
+  'Sponsorship & Budget Manager',
+  'Designer',
+  'Communications & Marketing Director',
+  'Website Manager',
+  'Video Production',
   'Research Team',
-  'Marketing Team',
-  'Sponsorship Team',
-  'Finance Team',
-  'Design Team',
-  'Media Team',
-  'Content Team',
-  'Event Managers and Editors',
 ];
 
 const departments = [
@@ -357,7 +358,7 @@ const Apply = () => {
               {/* Resume */}
               <div className="form-group">
                 <label htmlFor="resume" className="form-label">
-                  Resume Link (Drive/Docs) *
+                  Resume Link (Drive/Docs) (Optional)
                 </label>
                 <input
                   type="url"
@@ -369,7 +370,6 @@ const Apply = () => {
                   onChange={form.handleChange}
                   onBlur={form.handleBlur}
                   disabled={loading}
-                  required
                 />
                 {form.touched.resume && form.errors.resume && (
                   <p className="form-error">{form.errors.resume}</p>
