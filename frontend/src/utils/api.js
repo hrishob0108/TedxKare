@@ -52,8 +52,8 @@ export const applicantAPI = {
   getApplicant: (id) => api.get(`/applicants/${id}`),
 
   // Update applicant status (admin only)
-  updateStatus: (id, status) =>
-    api.patch(`/applicants/${id}`, { status }),
+  updateStatus: (id, status, email) =>
+    api.patch(`/applicants/${id}`, { status, email }),
 
   // Delete applicant (admin only)
   deleteApplicant: (id) => api.delete(`/applicants/${id}`),

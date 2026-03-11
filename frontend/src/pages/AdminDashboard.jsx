@@ -93,9 +93,9 @@ const AdminDashboard = () => {
   };
 
   // Update applicant status
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus, email) => {
     try {
-      await request(() => applicantAPI.updateStatus(id, newStatus));
+      await request(() => applicantAPI.updateStatus(id, newStatus, email));
 
       // Update local state
       setApplicants((prev) =>
@@ -517,7 +517,7 @@ const AdminDashboard = () => {
                   {['Pending', 'Shortlisted', 'Rejected'].map((status) => (
                     <button
                       key={status}
-                      onClick={() => handleStatusChange(selectedApplicant._id, status)}
+                      onClick={() => handleStatusChange(selectedApplicant._id, status, selectedApplicant.email)}
                       disabled={selectedApplicant.status === status}
                       className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedApplicant.status === status
                         ? 'bg-ted-red text-white'

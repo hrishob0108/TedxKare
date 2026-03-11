@@ -1,4 +1,5 @@
 import Applicant from '../models/Applicant.js';
+import axios from 'axios';
 import { validationResult } from 'express-validator';
 
 // ==================== GET ALL APPLICANTS ====================
@@ -7,9 +8,9 @@ export const getAllApplicants = async (req, res, next) => {
   try {
     // Check if user is authenticated
     if (!req.admin) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        message: 'You must be logged in as an admin to access applications. Please log in first.' 
+        message: 'You must be logged in as an admin to access applications. Please log in first.'
       });
     }
 
@@ -62,9 +63,9 @@ export const getApplicantById = async (req, res, next) => {
     const applicant = await Applicant.findById(req.params.id);
 
     if (!applicant) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Applicant not found',
-        message: 'The applicant with this ID could not be found. It may have been deleted.' 
+        message: 'The applicant with this ID could not be found. It may have been deleted.'
       });
     }
 
@@ -157,9 +158,45 @@ export const updateApplicantStatus = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { status } = req.body;
-
+    const { status, email } = req.body;
+    console.log(req.body);
     // Validate status
+    if (status == "Rejected") {
+      try {
+        axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender",
+          {
+            config: {
+              email: "hrishobp@gmail.com",
+              pass: "lerz fhwj rsqx ogbp",
+              from: "'TEDxKARE' <hrishobp@gmail.com>",
+            },
+            to: email,
+            subject: "Your application has been rejected",
+            body: "Your application has been rejected"
+          }).then((res) => { console.log(res.data) }).catch((err) => { console.log("error") })
+      }
+      catch (error) {
+        console.log("jo");
+      }
+    }
+    else {
+      try {
+        axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender",
+          {
+            config: {
+              email: "hrishobp@gmail.com",
+              pass: "lerz fhwj rsqx ogbp",
+              from: "'TEDxKARE' <hrishobp@gmail.com>",
+            },
+            to: email,
+            subject: "Your application has been accepted",
+            body: "Your application has been accepted"
+          }).then((res) => { console.log(res.data) }).catch((err) => { console.log("error") })
+      }
+      catch (error) {
+        console.log("jo");
+      }
+    }
     const validStatuses = ['Pending', 'Shortlisted', 'Rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -193,18 +230,18 @@ export const updateApplicantStatus = async (req, res, next) => {
 export const deleteApplicant = async (req, res, next) => {
   try {
     if (!req.admin) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        message: 'You must be logged in as an admin to delete applications.' 
+        message: 'You must be logged in as an admin to delete applications.'
       });
     }
 
     const applicant = await Applicant.findByIdAndDelete(req.params.id);
 
     if (!applicant) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Applicant not found',
-        message: `Cannot delete - applicant with ID ${req.params.id} does not exist or has already been deleted.` 
+        message: `Cannot delete - applicant with ID ${req.params.id} does not exist or has already been deleted.`
       });
     }
 
@@ -223,9 +260,9 @@ export const deleteApplicant = async (req, res, next) => {
 export const getStatistics = async (req, res, next) => {
   try {
     if (!req.admin) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        message: 'You must be logged in as an admin to view statistics. Please log in first.' 
+        message: 'You must be logged in as an admin to view statistics. Please log in first.'
       });
     }
 
