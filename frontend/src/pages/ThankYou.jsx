@@ -11,9 +11,11 @@ const ThankYou = () => {
     window.scrollTo(0, 0);
 
     // Auto-redirect after 8 seconds
-    const timer = setTimeout(() => {
-      navigate('/');
-    }, 8000);
+  const FIVE_MINUTES = 5 * 60 * 1000;
+
+const timer = setTimeout(() => {
+  navigate('/');
+}, FIVE_MINUTES);
 
     return () => clearTimeout(timer);
   }, [navigate]);
