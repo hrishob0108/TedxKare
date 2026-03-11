@@ -22,6 +22,11 @@ const applicantSchema = new mongoose.Schema(
       required: [true, 'Phone number is required'],
       trim: true,
     },
+    registrationNumber: {
+      type: String,
+      required: [true, 'Registration number is required'],
+      trim: true,
+    },
 
     // Academic Information
     department: {
@@ -41,7 +46,7 @@ const applicantSchema = new mongoose.Schema(
     year: {
       type: String,
       required: [true, 'Year of study is required'],
-      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate', 'Faculty'],
+      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
     },
 
     // Links
@@ -53,7 +58,6 @@ const applicantSchema = new mongoose.Schema(
     resume: {
       type: String,
       trim: true,
-      required: [true, 'Resume link is required'],
     },
 
     // Domain Preferences
@@ -61,28 +65,28 @@ const applicantSchema = new mongoose.Schema(
       type: String,
       required: [true, 'First domain preference is required'],
       enum: [
+        'Selection Committee (Curation Team)',
+        'Executive Producer',
+        'Event Manager',
+        'Sponsorship & Budget Manager',
+        'Designer',
+        'Communications & Marketing Director',
+        'Video Production',
         'Research Team',
-        'Marketing Team',
-        'Sponsorship Team',
-        'Finance Team',
-        'Design Team',
-        'Media Team',
-        'Content Team',
-        'Event Managers and Editors',
       ],
     },
     secondPreference: {
       type: String,
       required: [true, 'Second domain preference is required'],
       enum: [
+        'Selection Committee (Curation Team)',
+        'Executive Producer',
+        'Event Manager',
+        'Sponsorship & Budget Manager',
+        'Designer',
+        'Communications & Marketing Director',
+        'Video Production',
         'Research Team',
-        'Marketing Team',
-        'Sponsorship Team',
-        'Finance Team',
-        'Design Team',
-        'Media Team',
-        'Content Team',
-        'Event Managers and Editors',
       ],
     },
 
@@ -109,6 +113,10 @@ const applicantSchema = new mongoose.Schema(
       type: String,
       enum: ['Pending', 'Shortlisted', 'Rejected'],
       default: 'Pending',
+    },
+    shortlistedDomain: {
+      type: String,
+      default: '',
     },
 
     // IP Address for tracking (optional)

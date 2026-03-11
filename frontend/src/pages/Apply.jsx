@@ -6,14 +6,14 @@ import { applicantAPI } from '../utils/api';
 
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
+  'Selection Committee (Curation Team)',
+  'Executive Producer',
+  'Event Manager',
+  'Sponsorship & Budget Manager',
+  'Designer',
+  'Communications & Marketing Director',
+  'Video Production',
   'Research Team',
-  'Marketing Team',
-  'Sponsorship Team',
-  'Finance Team',
-  'Design Team',
-  'Media Team',
-  'Content Team',
-  'Event Managers and Editors',
 ];
 
 const departments = [
@@ -27,7 +27,7 @@ const departments = [
   'Other',
 ];
 
-const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate', 'Faculty'];
+const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
 
 
@@ -46,6 +46,7 @@ const Apply = () => {
     name: '',
     email: '',
     phone: '',
+    registrationNumber: '',
     department: '',
     year: '',
     linkedin: '',
@@ -211,7 +212,7 @@ const Apply = () => {
                   type="email"
                   id="email"
                   name="email"
-                  placeholder="your@email.com"
+                  placeholder="your@klu.ac.in"
                   className="input-field"
                   value={form.values.email}
                   onChange={(e) => {
@@ -219,7 +220,7 @@ const Apply = () => {
                     // Real-time email validation
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (e.target.value && !emailRegex.test(e.target.value)) {
-                      form.setFieldError('email', 'Valid email is required (e.g., user@example.com)');
+                      form.setFieldError('email', 'Valid email is required (e.g., user@klu.ac.on.com)');
                     } else {
                       form.setFieldError('email', '');
                     }
@@ -261,6 +262,28 @@ const Apply = () => {
                 />
                 {form.errors.phone && (
                   <p className="form-error">{form.errors.phone}</p>
+                )}
+              </div>
+
+              {/* Registration Number */}
+              <div className="form-group">
+                <label htmlFor="registrationNumber" className="form-label">
+                  Registration Number *
+                </label>
+                <input
+                  type="text"
+                  id="registrationNumber"
+                  name="registrationNumber"
+                  placeholder="e.g., 992400....."
+                  className="input-field"
+                  value={form.values.registrationNumber}
+                  onChange={form.handleChange}
+                  onBlur={form.handleBlur}
+                  disabled={loading}
+                  required
+                />
+                {form.touched.registrationNumber && form.errors.registrationNumber && (
+                  <p className="form-error">{form.errors.registrationNumber}</p>
                 )}
               </div>
             </div>
@@ -357,7 +380,7 @@ const Apply = () => {
               {/* Resume */}
               <div className="form-group">
                 <label htmlFor="resume" className="form-label">
-                  Resume Link (Drive/Docs) *
+                  Resume Link (Drive/Docs) (Optional)
                 </label>
                 <input
                   type="url"
@@ -369,7 +392,6 @@ const Apply = () => {
                   onChange={form.handleChange}
                   onBlur={form.handleBlur}
                   disabled={loading}
-                  required
                 />
                 {form.touched.resume && form.errors.resume && (
                   <p className="form-error">{form.errors.resume}</p>

@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const [filteredApplicants, setFilteredApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedShortlistDomain, setSelectedShortlistDomain] = useState('');
   const [stats, setStats] = useState({
     totalApplications: 0,
     byStatus: { pending: 0, shortlisted: 0, rejected: 0 },
@@ -30,14 +31,14 @@ const AdminDashboard = () => {
 
   // Domains list
   const domains = [
+    'Selection Committee (Curation Team)',
+    'Executive Producer',
+    'Event Manager',
+    'Sponsorship & Budget Manager',
+    'Designer',
+    'Communications & Marketing Director',
+    'Video Production',
     'Research Team',
-    'Marketing Team',
-    'Sponsorship Team',
-    'Finance Team',
-    'Design Team',
-    'Media Team',
-    'Content Team',
-    'Event Managers and Editors',
   ];
 
   // Fetch applicants on component mount
@@ -93,20 +94,31 @@ const AdminDashboard = () => {
   };
 
   // Update applicant status
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus, email) => {
     try {
-      await request(() => applicantAPI.updateStatus(id, newStatus));
+      if (newStatus === 'Shortlisted' && !selectedShortlistDomain) {
+        alert("Please select a domain to shortlist the applicant for.");
+        return;
+      }
+      
+      await request(() => applicantAPI.updateStatus(id, newStatus, email, newStatus === 'Shortlisted' ? selectedShortlistDomain : null));
 
       // Update local state
       setApplicants((prev) =>
-        prev.map((app) => (app._id === id ? { ...app, status: newStatus } : app))
+        prev.map((app) => (app._id === id ? { ...app, status: newStatus, shortlistedDomain: newStatus === 'Shortlisted' ? selectedShortlistDomain : '' } : app))
       );
 
       if (selectedApplicant?._id === id) {
         setSelectedApplicant((prev) => ({
           ...prev,
           status: newStatus,
+          shortlistedDomain: newStatus === 'Shortlisted' ? selectedShortlistDomain : ''
         }));
+      }
+
+      // Reset selection
+      if (newStatus === 'Shortlisted') {
+        setSelectedShortlistDomain('');
       }
 
       fetchStatistics();
@@ -135,6 +147,7 @@ const AdminDashboard = () => {
       Name: app.name,
       Email: app.email,
       Phone: app.phone,
+      'Registration Number': app.registrationNumber,
       Department: app.department,
       Year: app.year,
       'First Preference': app.firstPreference,
@@ -417,6 +430,10 @@ const AdminDashboard = () => {
                     <p className="font-semibold">{selectedApplicant.phone}</p>
                   </div>
                   <div>
+                    <p className="text-gray-400">Registration Number</p>
+                    <p className="font-semibold">{selectedApplicant.registrationNumber}</p>
+                  </div>
+                  <div>
                     <p className="text-gray-400">Department</p>
                     <p className="font-semibold">{selectedApplicant.department}</p>
                   </div>
@@ -513,20 +530,70 @@ const AdminDashboard = () => {
               {/* Status Management */}
               <div className="border-t border-gray-800 pt-6">
                 <h4 className="text-ted-red font-bold mb-4">Update Status</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {['Pending', 'Shortlisted', 'Rejected'].map((status) => (
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-2 flex-wrap items-center">
                     <button
-                      key={status}
-                      onClick={() => handleStatusChange(selectedApplicant._id, status)}
-                      disabled={selectedApplicant.status === status}
-                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedApplicant.status === status
+                      onClick={() => handleStatusChange(selectedApplicant._id, 'Pending', selectedApplicant.email)}
+                      disabled={selectedApplicant.status === 'Pending'}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedApplicant.status === 'Pending'
                         ? 'bg-ted-red text-white'
                         : 'btn-outline'
                         }`}
                     >
-                      {status}
+                      Pending
                     </button>
-                  ))}
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant._id, 'Rejected', selectedApplicant.email)}
+                      disabled={selectedApplicant.status === 'Rejected'}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedApplicant.status === 'Rejected'
+                        ? 'bg-ted-red text-white'
+                        : 'btn-outline'
+                        }`}
+                    >
+                      Rejected
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col md:flex-row gap-2 md:items-center p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+                    <div className="flex-1">
+                      <label className="text-sm text-gray-400 mb-1 block">Shortlist for Role:</label>
+                      <select
+                        className="input-field py-2 text-sm appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 w-full"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                        }}
+                        value={selectedShortlistDomain || (selectedApplicant.status === 'Shortlisted' ? selectedApplicant.shortlistedDomain : '')}
+                        onChange={(e) => setSelectedShortlistDomain(e.target.value)}
+                        disabled={selectedApplicant.status === 'Shortlisted'}
+                      >
+                        <option value="">-- Select Role to Shortlist --</option>
+                        <optgroup label="Applicant Preferences">
+                          <option value={selectedApplicant.firstPreference}>1st Choice: {selectedApplicant.firstPreference}</option>
+                          <option value={selectedApplicant.secondPreference}>2nd Choice: {selectedApplicant.secondPreference}</option>
+                        </optgroup>
+                        <optgroup label="All Roles">
+                          {domains.filter(d => d !== selectedApplicant.firstPreference && d !== selectedApplicant.secondPreference).map(domain => (
+                            <option key={domain} value={domain}>{domain}</option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant._id, 'Shortlisted', selectedApplicant.email)}
+                      disabled={selectedApplicant.status === 'Shortlisted' || !selectedShortlistDomain}
+                      className={`px-4 py-2 mt-auto h-[42px] rounded-lg font-semibold text-sm transition-all whitespace-nowrap ${selectedApplicant.status === 'Shortlisted'
+                        ? 'bg-green-600 text-white cursor-not-allowed opacity-80'
+                        : !selectedShortlistDomain ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'
+                        }`}
+                    >
+                      {selectedApplicant.status === 'Shortlisted' ? '✓ Shortlisted' : 'Shortlist Applicant'}
+                    </button>
+                  </div>
+                  {selectedApplicant.status === 'Shortlisted' && selectedApplicant.shortlistedDomain && (
+                    <p className="text-sm text-green-400 mt-1">
+                      Currently shortlisted for: <span className="font-bold">{selectedApplicant.shortlistedDomain}</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
