@@ -1,21 +1,14 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ==================== DOMAIN CARD COMPONENT ====================
 // Card for displaying domain information with click-to-expand effects
 const DomainCard = ({ domain, icon, description }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const cardVariants = {
     idle: { scale: 1 },
     hover: { scale: 1.02 },
-    open: { scale: 1.05 },
-  };
-
-  const borderVariants = {
-    idle: { borderColor: '#374151' },
-    hover: { borderColor: '#E62B1E' },
-    open: { borderColor: '#E62B1E' },
   };
 
   return (
@@ -23,52 +16,46 @@ const DomainCard = ({ domain, icon, description }) => {
       variants={cardVariants}
       whileHover={isOpen ? "open" : "hover"}
       initial="idle"
-      animate={isOpen ? "open" : "idle"}
-      className="w-full h-auto"
-      onClick={() => setIsOpen(!isOpen)}
+      className="h-full cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)}
     >
-      <motion.div
-        variants={borderVariants}
-        initial="idle"
-        whileHover={isOpen ? "open" : "hover"}
-        animate={isOpen ? "open" : "idle"}
-        className="card card-hover flex flex-col border-2 transition-all duration-300 cursor-pointer min-h-[160px]"
+      <div
+        className={`card h-full min-h-[160px] flex flex-col border-2 transition-all duration-300 ${
+          isExpanded ? 'border-ted-red' : 'border-[#374151] hover:border-gray-500'
+        }`}
+        style={isExpanded ? { borderColor: '#E62B1E' } : {}}
       >
-        {/* Domain Title */}
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="text-xl md:text-2xl font-bold flex-1">{domain}</h3>
-        </div>
+        {/* Domain Name */}
+        <h3 className="text-xl md:text-2xl font-bold mb-3">{domain}</h3>
 
-        {/* State Indicator */}
-        {!isOpen && (
-          <div className="flex justify-between items-end flex-1 mt-2 group">
-            <span className="text-ted-red text-sm font-medium group-hover:underline">Click to read details</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ted-red"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
-        )}
+        <div className="flex-grow flex flex-col mt-auto">
+          <AnimatePresence initial={false}>
+            {isExpanded && (
+              <motion.div
+                key="content"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <p className="text-gray-400 text-sm md:text-base pt-2 mb-2">
+                  {description}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Description */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-4 mt-2 border-t border-gray-700">
-                <p className="text-gray-300 text-sm md:text-base leading-relaxed">{description}</p>
-              </div>
-            </motion.div>
+          {!isExpanded && (
+            <div className="flex justify-between items-center text-ted-red text-sm font-semibold mt-auto pt-4">
+              <span>Click to read details</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
           )}
-        </AnimatePresence>
-        
-        {isOpen && (
-          <div className="flex justify-center mt-auto pt-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 hover:text-white transition-colors"><path d="m18 15-6-6-6 6"/></svg>
-          </div>
-        )}
-      </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 };

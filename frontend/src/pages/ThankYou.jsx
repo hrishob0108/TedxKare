@@ -120,8 +120,8 @@ const timer = setTimeout(() => {
           variants={itemVariants}
           className="text-gray-300 text-lg mb-8 leading-relaxed"
         >
-          We appreciate your interest in joining TEDxKARE! Your application has been successfully submitted
-          and we&apos;ve received all the information you provided.
+         Your mindset is more important than anything else.
+See you soon at the interview. All the best! TEDxKARE
         </motion.p>
 
         {/* What Happens Next */}
@@ -130,19 +130,15 @@ const timer = setTimeout(() => {
           <ul className="text-gray-300 space-y-3 text-left max-w-md mx-auto">
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
-              <span>Our team will review your application thoroughly</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <span>We&apos;ll contact shortlisted candidates within 1-2 weeks</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
               <span>Check your email and phone regularly for updates</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
               <span>Join our journey to spread ideas worth sharing!</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-ted-red font-bold mt-1">→</span>
+              <span>Join our WhatsApp group for updates: <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo</a></span>
             </li>
           </ul>
         </motion.div>
