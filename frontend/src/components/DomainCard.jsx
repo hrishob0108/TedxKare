@@ -14,7 +14,7 @@ const DomainCard = ({ domain, icon, description }) => {
   return (
     <motion.div
       variants={cardVariants}
-      whileHover={isOpen ? "open" : "hover"}
+      whileHover={isExpanded ? "open" : "hover"}
       initial="idle"
       className="h-full cursor-pointer"
       onClick={() => setIsExpanded(!isExpanded)}
