@@ -1,16 +1,14 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ==================== DOMAIN CARD COMPONENT ====================
 // Card for displaying domain information with hover effects
 const DomainCard = ({ domain, icon, description }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const cardVariants = {
     idle: { scale: 1 },
-    hover: { scale: 1.05 },
-  };
-
-  const borderVariants = {
-    idle: { borderColor: '#374151' },
-    hover: { borderColor: '#E62B1E' },
+    hover: { scale: 1.02 },
   };
 
   return (
@@ -18,27 +16,46 @@ const DomainCard = ({ domain, icon, description }) => {
       variants={cardVariants}
       whileHover="hover"
       initial="idle"
-      className="h-full"
+      className="h-full cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)}
     >
-      <motion.div
-        variants={borderVariants}
-        initial="idle"
-        whileHover="hover"
-        className="card card-hover h-full flex flex-col border-2 transition-all duration-300"
+      <div
+        className={`card h-full min-h-[160px] flex flex-col border-2 transition-all duration-300 ${
+          isExpanded ? 'border-ted-red' : 'border-[#374151] hover:border-gray-500'
+        }`}
+        style={isExpanded ? { borderColor: '#E62B1E' } : {}}
       >
-        {/* Domain Icon/Title */}
-        <div className="text-4xl mb-4">
-          <span className="text-ted-red font-bold">{icon}</span>
-        </div>
-
         {/* Domain Name */}
         <h3 className="text-xl md:text-2xl font-bold mb-3">{domain}</h3>
 
-        {/* Description */}
-        <p className="text-gray-400 text-sm md:text-base flex-grow mb-4">{description}</p>
+        <div className="flex-grow flex flex-col mt-auto">
+          <AnimatePresence initial={false}>
+            {isExpanded && (
+              <motion.div
+                key="content"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <p className="text-gray-400 text-sm md:text-base pt-2 mb-2">
+                  {description}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        
-      </motion.div>
+          {!isExpanded && (
+            <div className="flex justify-between items-center text-ted-red text-sm font-semibold mt-auto pt-4">
+              <span>Click to read details</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 };
