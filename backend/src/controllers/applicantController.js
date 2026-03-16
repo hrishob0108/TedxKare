@@ -1,6 +1,7 @@
 import Applicant from '../models/Applicant.js';
 import axios from 'axios';
 import { validationResult } from 'express-validator';
+import { getAcceptanceEmailTemplate } from '../utils/emailTemplates.js';
 
 // ==================== GET ALL APPLICANTS ====================
 // Admin only: Retrieve all applicants with optional filtering
@@ -179,14 +180,7 @@ export const updateApplicantStatus = async (req, res, next) => {
       }
     };
 
-    // Trigger emails based ONLY on specific statuses
-    if (status === "Rejected") {
-      // Fire and forget email
-      sendEmail(email, "Your application has been rejected", "Your application has been rejected");
-    } else if (status === "Shortlisted") {
-      // Fire and forget email
-      sendEmail(email, "Your application has been accepted", `Your application has been accepted for the domain: ${shortlistedDomain}`);
-    }
+
 
     const validStatuses = ['Pending', 'Shortlisted', 'Rejected'];
     if (!validStatuses.includes(status)) {
@@ -211,6 +205,16 @@ export const updateApplicantStatus = async (req, res, next) => {
 
     if (!applicant) {
       return res.status(404).json({ error: 'Applicant not found' });
+    }
+
+    // Trigger emails based ONLY on specific statuses
+    if (status === "Rejected") {
+      // Fire and forget email
+      sendEmail(applicant.email, "Update on your TEDxKARE Application", `Dear ${applicant.name},\n\nThank you for applying to join the TEDxKARE organizing team. We appreciate the time you took to submit your application. After careful review, we regret to inform you that we are unable to offer you a position on the team at this time.\n\nWe wish you all the best in your future endeavors.\n\nBest regards,\nN. Thrivikram\nOrganizer – TEDxKARE`);
+    } else if (status === "Shortlisted") {
+      // Fire and forget email
+      const emailBody = getAcceptanceEmailTemplate(applicant.name, shortlistedDomain);
+      sendEmail(applicant.email, "Congratulations! You've been selected for TEDxKARE", emailBody);
     }
 
     res.json({
