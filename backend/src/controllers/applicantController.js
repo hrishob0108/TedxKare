@@ -169,7 +169,7 @@ export const updateApplicantStatus = async (req, res, next) => {
           config: {
             email: process.env.EMAIL_USER,
             pass: process.env.PASS,
-            from: `TEDxKARE-OFFICIAL <${process.env.EMAIL_USER}>`,
+            from: `TEDxKARE <${process.env.EMAIL_USER}>`,
           },
           to: toEmail,
           subject: subject,
