@@ -172,7 +172,8 @@ export const updateApplicantStatus = async (req, res, next) => {
           },
           to: toEmail,
           subject: subject,
-          body: bodyText
+          text: bodyText,
+          html: bodyText.replace(/\n/g, '<br>')
         });
         console.log("Email sent successfully:", response.data);
       } catch (error) {
