@@ -163,20 +163,19 @@ export const updateApplicantStatus = async (req, res, next) => {
     console.log(req.body);
     // Helper function to send email
     const sendEmail = async (toEmail, subject, bodyText) => {
-      console.log(`Sending email to ${toEmail} using ${process.env.EMAIL_USER}...`);
       try {
         const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
           config: {
             email: "hrishobp@gmail.com",
-            pass: "rtzy rchb gqjs hgzz",
-            from: "TEDxKARE <hrishobp@gmail.com>",
+            pass: "lerz fhwj rsqx ogbp",
+            from: "'TEDxKARE' <hrishobp@gmail.com>",
           },
           to: toEmail,
           subject: subject,
           text: bodyText,
           html: bodyText.replace(/\n/g, '<br>')
         });
-        console.log("Email sent successfully to", toEmail);
+        console.log("Email sent successfully:", response.data);
       } catch (error) {
         console.error("Failed to send email to", toEmail, ":", error.message);
       }
