@@ -2,7 +2,7 @@ import Applicant from '../models/Applicant.js';
 import axios from 'axios';
 import { validationResult } from 'express-validator';
 import { getAcceptanceEmailTemplate } from '../utils/emailTemplates.js';
-
+import { sendEmail } from '../utils/mailer.js';
 // ==================== GET ALL APPLICANTS ====================
 // Admin only: Retrieve all applicants with optional filtering
 export const getAllApplicants = async (req, res, next) => {
@@ -161,28 +161,6 @@ export const updateApplicantStatus = async (req, res, next) => {
 
     const { status, email, shortlistedDomain } = req.body;
     console.log(req.body);
-    // Helper function to send email
-    const sendEmail = async (toEmail, subject, bodyText) => {
-      console.log(`Sending email to ${toEmail} using ${process.env.EMAIL_USER}...`);
-      try {
-        const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
-          config: {
-            email: process.env.EMAIL_USER,
-            pass: process.env.PASS,
-            from: `TEDxKARE <${process.env.EMAIL_USER}>`,
-          },
-          to: toEmail,
-          subject: subject,
-          text: bodyText,
-          html: bodyText.replace(/\n/g, '<br>')
-        });
-        console.log("Email sent successfully to", toEmail);
-      } catch (error) {
-        console.error("Failed to send email to", toEmail, ":", error.message);
-      }
-    };
-
-
 
     const validStatuses = ['Pending', 'Shortlisted', 'Rejected'];
     if (!validStatuses.includes(status)) {
