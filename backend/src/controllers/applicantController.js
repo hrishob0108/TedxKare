@@ -166,9 +166,9 @@ export const updateApplicantStatus = async (req, res, next) => {
       try {
         const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
           config: {
-            email: "hrishobp@gmail.com",
-            pass: "lerz fhwj rsqx ogbp",
-            from: "'TEDxKARE' <hrishobp@gmail.com>",
+            email: process.env.EMAIL_USER,
+            pass: process.env.PASS,
+            from: `'TEDxKARE' <${process.env.EMAIL_USER}>`,
           },
           to: toEmail,
           subject: subject,
