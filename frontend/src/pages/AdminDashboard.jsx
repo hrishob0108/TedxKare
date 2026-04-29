@@ -53,7 +53,7 @@ const AdminDashboard = () => {
   const fetchSettings = async () => {
     try {
       const response = await request(() => settingsAPI.getSettings());
-      setRegistrationOpen(response.data.data.registrationOpen);
+      setRegistrationOpen(response.data.registrationOpen);
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
