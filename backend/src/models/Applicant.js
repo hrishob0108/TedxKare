@@ -119,8 +119,16 @@ const applicantSchema = new mongoose.Schema(
       default: '',
     },
 
-    // IP Address for tracking (optional)
+    // Tracking (for spam identification)
     ipAddress: {
+      type: String,
+      default: '',
+    },
+    userAgent: {
+      type: String,
+      default: '',
+    },
+    screenResolution: {
       type: String,
       default: '',
     },

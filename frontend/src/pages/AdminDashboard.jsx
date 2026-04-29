@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApi } from '../hooks/useApi';
-import { applicantAPI } from '../utils/api';
+import { applicantAPI, settingsAPI } from '../utils/api';
 import { storage, format, exportToCSV } from '../utils/helpers';
 
 // ==================== ADMIN DASHBOARD ====================
@@ -41,11 +41,33 @@ const AdminDashboard = () => {
     'Research Team',
   ];
 
-  // Fetch applicants on component mount
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+
+  // Fetch applicants and settings on component mount
   useEffect(() => {
     fetchApplicants();
     fetchStatistics();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await request(() => settingsAPI.getSettings());
+      setRegistrationOpen(response.data.data.registrationOpen);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const handleToggleRegistration = async () => {
+    try {
+      const newState = !registrationOpen;
+      await request(() => settingsAPI.updateSettings({ registrationOpen: newState }));
+      setRegistrationOpen(newState);
+    } catch (error) {
+      console.error('Error updating registration status:', error);
+    }
+  };
 
   // Apply filters whenever they change
   useEffect(() => {
@@ -198,14 +220,38 @@ const AdminDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
-          <h2 className="text-3xl font-bold mb-2">Applicants Dashboard</h2>
-          <p className="text-gray-400">
-            View and manage all applications. Currently showing{' '}
-            <span className="text-ted-red font-semibold">{filteredApplicants.length}</span> of{' '}
-            <span className="text-ted-red font-semibold">{applicants.length}</span> applications.
-          </p>
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Applicants Dashboard</h2>
+            <p className="text-gray-400">
+              View and manage all applications. Currently showing{' '}
+              <span className="text-ted-red font-semibold">{filteredApplicants.length}</span> of{' '}
+              <span className="text-ted-red font-semibold">{applicants.length}</span> applications.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+            <div>
+              <p className="text-sm font-semibold mb-1">Registration Status</p>
+              <p className={`text-xs ${registrationOpen ? 'text-green-400' : 'text-red-400'}`}>
+                {registrationOpen ? '🟢 Accepting Applications' : '🔴 Applications Closed'}
+              </p>
+            </div>
+            <button
+              onClick={handleToggleRegistration}
+              disabled={loading}
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${
+                registrationOpen ? 'bg-ted-red' : 'bg-gray-700'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  registrationOpen ? 'translate-x-8' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </motion.div>
 
         {/* ==================== STATISTICS CARDS ==================== */}

@@ -1,17 +1,15 @@
 import express from 'express';
-import { login, createAdmin, changePassword, verifyToken } from '../controllers/adminController.js';
+import { login, changePassword, verifyToken } from '../controllers/adminController.js';
 import { authenticate } from '../middleware/auth.js';
+import { loginLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // ==================== PUBLIC ROUTES ====================
 
 // POST /api/admin/login - Admin login
-router.post('/login', login);
+router.post('/login', loginLimiter, login);
 
-// POST /api/admin/create - Create new admin account
-// Note: In production, this should be protected or removed after initial setup
-router.post('/create', createAdmin);
 
 // ==================== PROTECTED ROUTES ====================
 

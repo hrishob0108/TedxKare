@@ -95,6 +95,15 @@ export const createApplication = async (req, res, next) => {
       });
     }
 
+    // Honeypot check (stop bots)
+    if (req.body.website) {
+      console.log('🛑 Bot submission blocked via honeypot');
+      return res.status(200).json({
+        success: true,
+        message: 'Application submitted successfully',
+      });
+    }
+
     // Prevent duplicate submissions from same email
     const existingApplicant = await Applicant.findOne({ email: req.body.email });
     if (existingApplicant) {
@@ -109,6 +118,8 @@ export const createApplication = async (req, res, next) => {
       req.headers['x-forwarded-for']?.split(',')[0].trim() ||
       req.socket.remoteAddress ||
       '';
+
+    const userAgent = req.headers['user-agent'] || '';
 
     if (ipAddress) {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -129,6 +140,7 @@ export const createApplication = async (req, res, next) => {
     const applicantData = {
       ...req.body,
       ipAddress,
+      userAgent,
     };
 
     const applicant = new Applicant(applicantData);

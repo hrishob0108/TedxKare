@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import rateLimit from 'express-rate-limit';
 import compression from 'compression';
+import { apiLimiter } from './middleware/rateLimiter.js';
 import applicantRoutes from './routes/applicants.js';
 import adminRoutes from './routes/admin.js';
+import settingsRoutes from './routes/settings.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -14,25 +15,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
-// Limit 5 login attempts per 15 minutes per IP
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per 15 minutes
-  message: 'Too many login attempts, please try again later',
-  skipSuccessfulRequests: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// General API limiter - 100 requests per 15 minutes per IP
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // ==================== MIDDLEWARE ====================
 app.use(compression()); // Compress responses
@@ -76,9 +58,10 @@ const connectDB = async () => {
 };
 
 // ==================== ROUTES ====================
+app.use('/api/', apiLimiter); // General API protection (MUST be before routes)
 app.use('/api/applicants', applicantRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/', apiLimiter); // General API protection
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
