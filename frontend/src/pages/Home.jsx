@@ -177,6 +177,26 @@ const Home = () => {
             </button>
           </motion.div>
         </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer"
+          onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+        >
+          <span className="text-gray-400 text-sm mb-2 font-medium tracking-widest uppercase">Scroll Down</span>
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ted-red">
+              <path d="M12 5v14" />
+              <path d="m19 12-7 7-7-7" />
+            </svg>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ==================== DOMAINS SECTION ==================== */}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm, useApi } from '../hooks/useApi';
-import { applicantAPI } from '../utils/api';
+import { applicantAPI, settingsAPI } from '../utils/api';
 
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
@@ -37,9 +37,23 @@ const Apply = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const { loading, error, request, clearError } = useApi();
 
-  // Scroll to top on page load
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+
+  // Scroll to top and check status on page load
   useEffect(() => {
     window.scrollTo(0, 0);
+    const checkStatus = async () => {
+      try {
+        const response = await settingsAPI.getSettings();
+        setRegistrationOpen(response.data.data.registrationOpen);
+      } catch (err) {
+        console.error('Failed to fetch registration status', err);
+      } finally {
+        setIsCheckingStatus(false);
+      }
+    };
+    checkStatus();
   }, []);
 
   const initialValues = {
@@ -56,6 +70,8 @@ const Apply = () => {
     whyTedx: '',
     whyDomain: '',
     experience: '',
+    website: '', // Honeypot field
+    screenResolution: `${window.screen.width}x${window.screen.height}`,
   };
 
   const onSubmit = async (values) => {
@@ -88,6 +104,41 @@ const Apply = () => {
   };
 
   const form = useForm(initialValues, onSubmit);
+
+  if (isCheckingStatus) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
+      </div>
+    );
+  }
+
+  if (!registrationOpen) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl shadow-red-900/20"
+        >
+          <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">⏳</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4">Registration Closed</h2>
+          <p className="text-gray-400 mb-8">
+            Thank you for your interest in joining <span className="text-ted-red font-semibold">TEDxKARE</span>. 
+            The application period has currently ended. Stay tuned to our social media for future opportunities!
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full btn-primary py-3 font-semibold"
+          >
+            Return to Home
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   // Prevent selecting same domain twice
   const isSecondPreferenceDisabled = form.values.firstPreference === form.values.secondPreference;
@@ -568,6 +619,17 @@ const Apply = () => {
               )}
             </div>
           </motion.div>
+          {/* Honeypot field (hidden from users) */}
+          <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+            <input
+              type="text"
+              name="website"
+              value={form.values.website}
+              onChange={form.handleChange}
+              tabIndex="-1"
+              autoComplete="off"
+            />
+          </div>
 
 
 
