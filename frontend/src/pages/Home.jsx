@@ -192,19 +192,8 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-ted-red selection:text-white overflow-hidden">
-      {/* Delayed Navbar Entry */}
-      <motion.div
-        initial={{ opacity: 0, y: -25 }}
-        animate={loadingScreen ? { opacity: 0, y: -25 } : { opacity: 1, y: 0 }}
-        transition={
-          window.__hasLoadedBefore 
-            ? { duration: 0.4, ease: "easeOut" } 
-            : { delay: 0.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }
-        }
-        className="fixed top-0 left-0 right-0 z-50"
-      >
-        <Navbar />
-      </motion.div>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Background Decorative Glow Blobs */}
       <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-ted-red/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
