@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { motion } from 'framer-motion';
 import DomainCard from '../components/DomainCard';
+import Footer from '../components/Footer';
 
 const domains = [
   {
@@ -130,18 +131,15 @@ const TeamRecruitment = () => {
         </div>
       </section>
 
-      <section className="section bg-gradient-to-r from-ted-red/10 to-orange-500/10 rounded-2xl border border-ted-red/20 py-16 text-center flex flex-col items-center justify-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Make a Difference?</h2>
-        <p className="text-gray-300 mb-8 max-w-2xl mx-auto">Join <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> and help us bring inspiring ideas to our campus and beyond.</p>
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/apply')} className="btn-primary px-8 py-4 text-lg">Start Your Application</motion.button>
+      <section className="section">
+        <div className="bg-gradient-to-r from-ted-red/10 to-orange-500/10 rounded-2xl border border-ted-red/20 py-16 px-6 text-center flex flex-col items-center justify-center shadow-xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Make a Difference?</h2>
+          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">Join <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> and help us bring inspiring ideas to our campus and beyond.</p>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/apply')} className="btn-primary px-8 py-4 text-lg">Start Your Application</motion.button>
+        </div>
       </section>
 
-      <footer className="bg-gray-900/50 border-t border-gray-800 py-8">
-        <div className="container-flex text-center text-gray-400">
-          <p>&copy; 2026 <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>. All rights reserved.</p>
-          <p className="text-sm mt-2"><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> is an independently organized TED-like event at Kalasalingam University.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
