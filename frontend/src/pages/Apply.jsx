@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm, useApi } from '../hooks/useApi';
 import { applicantAPI, settingsAPI } from '../utils/api';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
@@ -37,7 +39,7 @@ const Apply = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const { loading, error, request, clearError } = useApi();
 
-  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
   // Scroll to top and check status on page load
@@ -165,7 +167,11 @@ const Apply = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-16">
+    <div className="min-h-screen bg-black text-white pt-24 pb-16 relative overflow-hidden">
+      <Navbar />
+      {/* Decorative Glow Blobs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-ted-red/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
       {/* ==================== HEADER ==================== */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -657,6 +663,8 @@ const Apply = () => {
           </p>
         </form>
       </motion.div>
+
+      <Footer />
     </div>
   );
 };

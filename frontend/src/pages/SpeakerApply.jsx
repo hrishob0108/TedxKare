@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useForm, useApi } from '../hooks/useApi';
 import { speakerAPI } from '../utils/api';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // ==================== SPEAKER APPLICATION PAGE ====================
 const SpeakerApply = () => {
@@ -416,6 +417,8 @@ const SpeakerApply = () => {
           </p>
         </form>
       </motion.div>
+
+      <Footer />
     </div>
   );
 };

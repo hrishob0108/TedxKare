@@ -194,3 +194,31 @@
     display: none !important;
   }
 }
+
+/* Custom Navigation Responsive Toggles */
+.nav-mobile-toggle {
+  display: flex !important;
+}
+@media (min-width: 1024px) {
+  .nav-mobile-toggle {
+    display: none !important;
+  }
+}
+
+.nav-desktop-links {
+  display: none !important;
+}
+@media (min-width: 1024px) {
+  .nav-desktop-links {
+    display: flex !important;
+  }
+}
+
+.nav-mobile-overlay {
+  display: block !important;
+}
+@media (min-width: 1024px) {
+  .nav-mobile-overlay {
+    display: none !important;
+  }
+}

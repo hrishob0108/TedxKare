@@ -231,7 +231,7 @@ const Home = () => {
             {/* Glowing Big Title - Scale Popout */}
             <motion.h1
               variants={titleVariants}
-              className="text-6xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
+              className="text-5xl sm:text-7xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
             >
               <span className="bg-gradient-to-r from-ted-red via-red-500 to-red-600 bg-clip-text text-transparent">TEDx</span>
               <span className="bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">KARE</span>
@@ -310,15 +310,15 @@ const Home = () => {
         >
           <div className="grid md:grid-cols-12 gap-12 items-center">
             {/* What description */}
-            <div className="md:col-span-7 space-y-6">
+            <div className="md:col-span-7 space-y-6 text-center md:text-left">
               <span className="text-ted-red font-bold text-xs uppercase tracking-widest block">About Us</span>
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">What is <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>?</h2>
-              <p className="text-gray-400 text-base md:text-lg leading-relaxed">
+              <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto md:mx-0">
                 An independently organized TED event series created by local changemakers to surface ideas that matter to our region. We bring together speakers, performers, volunteers, and partners to learn, connect, and take action.
               </p>
               
               <div className="pt-4 border-t border-gray-900 space-y-4">
-                <h3 className="text-lg font-bold text-white uppercase tracking-wider">How it works</h3>
+                <h3 className="text-lg font-bold text-white uppercase tracking-wider text-center md:text-left">How it works</h3>
                 <ol className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-400">
                   <li className="bg-gray-950/40 p-4 rounded-xl border border-gray-900 hover:border-ted-red/40 hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-ted-red/5">
                     <span className="text-ted-red font-bold block mb-1">01. Curate</span>
@@ -339,21 +339,21 @@ const Home = () => {
             {/* Sidebar Cards */}
             <div className="md:col-span-5 space-y-6">
               {/* Event highlight glass panel */}
-              <div className="p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl relative overflow-hidden group hover:border-ted-red/30 transition-all duration-300">
+              <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl relative overflow-hidden group hover:border-ted-red/30 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-ted-red/5 rounded-full blur-2xl group-hover:bg-ted-red/10 transition-colors pointer-events-none"></div>
                 <span className="bg-ted-red/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Next Event</span>
                 <h4 className="font-extrabold text-xl text-white">{events[0].title}</h4>
                 <p className="text-gray-400 text-sm mt-1 mb-4">{events[0].date} · {events[0].location}</p>
                 
                 {/* Live Countdown Timer Widget */}
-                <div className="grid grid-cols-4 gap-2 mb-4 max-w-xs text-center">
+                <div className="grid grid-cols-4 gap-1.5 mb-4 max-w-full sm:max-w-xs text-center">
                   {[
                     { value: timeLeft.days, label: 'Days' },
                     { value: timeLeft.hours, label: 'Hrs' },
                     { value: timeLeft.minutes, label: 'Min' },
                     { value: timeLeft.seconds, label: 'Sec' }
                   ].map((t, idx) => (
-                    <div key={idx} className="bg-black/60 border border-gray-800/80 rounded-xl p-2 shadow-inner">
+                    <div key={idx} className="bg-black/60 border border-gray-800/80 rounded-xl p-1.5 sm:p-2 shadow-inner">
                       <div className="text-lg font-black text-ted-red tabular-nums">
                         {String(t.value).padStart(2, '0')}
                       </div>
@@ -399,10 +399,10 @@ const Home = () => {
           className="bg-gradient-to-b from-black via-gray-950/20 to-black py-20 border-t border-b border-gray-950"
         >
           <div className="container mx-auto px-6 lg:px-20">
-            <div className="mb-12">
+             <div className="mb-12 text-center md:text-left">
               <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">Our Areas</span>
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Explore Organizing Domains</h2>
-              <p className="text-gray-400 mt-2 font-light max-w-xl">Every team plays a pivotal role in ensuring KARE hosts a premium, world-class TEDx series.</p>
+              <p className="text-gray-400 mt-2 font-light max-w-xl mx-auto md:mx-0">Every team plays a pivotal role in ensuring KARE hosts a premium, world-class TEDx series.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
@@ -467,8 +467,10 @@ const Home = () => {
             <div className="grid md:grid-cols-12 gap-12">
               {/* FAQ Accordions */}
               <div className="md:col-span-7">
-                <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">F.A.Q.</span>
-                <h3 className="text-3xl font-extrabold tracking-tight mb-8">Frequently Asked Questions</h3>
+                <div className="text-center md:text-left mb-8">
+                  <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">F.A.Q.</span>
+                  <h3 className="text-3xl font-extrabold tracking-tight">Frequently Asked Questions</h3>
+                </div>
                 <div className="space-y-4">
                   {faqs.map((f, i) => {
                     const isOpen = openFAQ === i;
@@ -511,7 +513,7 @@ const Home = () => {
 
               {/* Newsletter */}
               <div className="md:col-span-5 flex flex-col justify-center">
-                <div className="p-8 bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div className="p-5 sm:p-8 bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-2xl shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-32 h-32 bg-ted-red/5 rounded-full blur-2xl pointer-events-none"></div>
                   <h3 className="text-2xl font-extrabold mb-2 text-white">Stay in the Loop</h3>
                   <p className="text-gray-400 text-sm mb-6 leading-relaxed">
@@ -555,7 +557,7 @@ const Home = () => {
                   </p>
                 </div>
 
-                <div className="p-6 bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-2xl shadow-xl relative overflow-hidden">
+                <div className="p-5 sm:p-6 bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-2xl shadow-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-ted-red/5 rounded-full blur-2xl pointer-events-none"></div>
                   <h4 className="font-extrabold text-lg text-white mb-4">Cast Your Idea</h4>
                   
@@ -586,7 +588,7 @@ const Home = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="idea-cat" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Category</label>
                         <select 
@@ -639,7 +641,7 @@ const Home = () => {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         className="p-5 bg-gray-900/30 border border-gray-900 rounded-xl hover:border-ted-red/40 transition-all duration-300 relative group flex flex-col justify-between"
                       >
-                        <div className="flex justify-between items-start gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
                           <div>
                             <span className="inline-block px-2 py-0.5 rounded bg-ted-red/10 border border-ted-red/20 text-ted-red text-[10px] font-bold uppercase tracking-wider mb-2">
                               {idea.cat}
@@ -717,7 +719,7 @@ const Home = () => {
               </div>
 
               {/* Date & Location */}
-              <div className="grid grid-cols-2 gap-4 mb-6 border-t border-b border-gray-800 py-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 border-t border-b border-gray-800 py-4 text-sm">
                 <div>
                   <p className="text-gray-400">📅 Date & Time</p>
                   <p className="font-semibold text-gray-200 mt-1">June 12, 2026 · 04:00 PM IST</p>
@@ -799,7 +801,7 @@ const Home = () => {
 
               {/* Pulsing Logo - Falling and Bouncing X between TED and KARE */}
               <motion.h1
-                className="text-5xl md:text-7xl font-black tracking-tighter text-center flex items-center justify-center gap-1 select-none"
+                className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-center flex items-center justify-center gap-1 select-none"
               >
                 <span className="text-ted-red drop-shadow-[0_0_15px_rgba(235,0,40,0.2)]">TED</span>
                 <motion.span
