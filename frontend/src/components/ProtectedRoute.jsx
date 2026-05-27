@@ -7,7 +7,8 @@ const ProtectedRoute = ({ children }) => {
   const isLoggedIn = storage.isAdminLoggedIn();
 
   if (!isLoggedIn) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/ad" replace />;
+
   }
 
   return children;

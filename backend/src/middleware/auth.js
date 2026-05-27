@@ -14,7 +14,7 @@ export const authenticate = (req, res, next) => {
     const token = authHeader.substring(7); // Remove "Bearer " prefix
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.admin = decoded;
     next();
   } catch (error) {
@@ -36,7 +36,7 @@ export const optionalAuth = (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.admin = decoded;
     }
 

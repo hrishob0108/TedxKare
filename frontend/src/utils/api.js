@@ -33,7 +33,7 @@ api.interceptors.response.use(
     // If token expired, clear it and redirect to login
     if (error.response?.status === 401) {
       localStorage.removeItem('adminToken');
-      window.location.href = '/admin';
+      window.location.href = '/ad';
     }
     return Promise.reject(error);
   }
@@ -62,22 +62,31 @@ export const applicantAPI = {
   getStatistics: () => api.get('/applicants/stats'),
 };
 
+// ==================== SPEAKER API ====================
+export const speakerAPI = {
+  submitSpeaker: (data) => api.post('/speakers', data),
+  getAllSpeakers: () => api.get('/speakers'),
+  getSpeaker: (id) => api.get(`/speakers/${id}`),
+  updateSpeaker: (id, data) => api.patch(`/speakers/${id}`, data),
+  deleteSpeaker: (id) => api.delete(`/speakers/${id}`),
+};
+
 // ==================== ADMIN API ====================
 export const adminAPI = {
   // Admin login
   login: (email, password) =>
-    api.post('/admin/login', { email, password }),
+    api.post('/ad/login', { email, password }),
 
   // Create admin account
   createAdmin: (email, password) =>
-    api.post('/admin/create', { email, password }),
+    api.post('/ad/create', { email, password }),
 
   // Verify token
-  verifyToken: () => api.get('/admin/verify'),
+  verifyToken: () => api.get('/ad/verify'),
 
   // Change password
   changePassword: (currentPassword, newPassword) =>
-    api.post('/admin/change-password', {
+    api.post('/ad/change-password', {
       currentPassword,
       newPassword,
     }),
@@ -90,6 +99,13 @@ export const settingsAPI = {
 
   // Update settings (admin only)
   updateSettings: (data) => api.patch('/settings', data),
+};
+
+// ==================== IDEAS API ====================
+export const ideasAPI = {
+  getAllIdeas: () => api.get('/ideas'),
+  submitIdea: (data) => api.post('/ideas', data),
+  likeIdea: (id) => api.post(`/ideas/${id}/like`),
 };
 
 export default api;

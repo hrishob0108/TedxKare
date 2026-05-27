@@ -121,7 +121,7 @@ const timer = setTimeout(() => {
           className="text-gray-300 text-lg mb-8 leading-relaxed"
         >
          Your mindset is more important than anything else.
-See you soon at the interview. All the best! TEDxKARE
+See you soon at the interview. All the best! <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>
         </motion.p>
 
         {/* What Happens Next */}

@@ -126,7 +126,7 @@ const Apply = () => {
           </div>
           <h2 className="text-3xl font-bold mb-4">Registration Closed</h2>
           <p className="text-gray-400 mb-8">
-            Thank you for your interest in joining <span className="text-ted-red font-semibold">TEDxKARE</span>. 
+            Thank you for your interest in joining <span className="text-ted-red font-semibold">TEDx</span><span className="text-white font-semibold">KARE</span>. 
             The application period has currently ended. Stay tuned to our social media for future opportunities!
           </p>
           <button
@@ -179,7 +179,7 @@ const Apply = () => {
         >
           ← Back to Home
         </button>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Join TEDxKARE</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Join <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span></h1>
         <p className="text-gray-300 max-w-2xl mx-auto">
           Tell us about yourself and why you want to be part of our team. We&apos;re excited to learn about
           your passion and skills!
@@ -526,7 +526,7 @@ const Apply = () => {
             {/* Why TEDx */}
             <div className="form-group mb-6">
               <label htmlFor="whyTedx" className="form-label">
-                Why do you want to join TEDxKARE? *
+                Why do you want to join <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>? *
               </label>
               <textarea
                 id="whyTedx"
