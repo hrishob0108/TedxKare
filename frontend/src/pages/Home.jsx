@@ -216,11 +216,10 @@ const Home = () => {
               <span className="w-2 h-2 rounded-full bg-ted-red animate-pulse"></span>
               Founding Cycle 2026
             </motion.div>
-
-            {/* Glowing Big Title - Scale Popout */}
+             {/* Glowing Big Title - Scale Popout */}
             <motion.h1
               variants={titleVariants}
-              className="text-5xl sm:text-7xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
+              className="text-3xl xs:text-4xl sm:text-7xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
             >
               <span className="bg-gradient-to-r from-ted-red via-red-500 to-red-600 bg-clip-text text-transparent">TEDx</span>
               <span className="bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">KARE</span>
@@ -229,7 +228,7 @@ const Home = () => {
             {/* Independently Organized Event Sub-label */}
             <motion.p
               variants={subtitleVariants}
-              className="text-sm md:text-base text-white font-medium mb-8 select-none"
+              className="text-xs sm:text-sm md:text-base text-white font-medium mb-8 select-none"
             >
               <span className="text-ted-red font-bold">x</span> = An independently organized TED event
             </motion.p>
@@ -237,7 +236,7 @@ const Home = () => {
             {/* Elegant Subtitle */}
             <motion.p 
               variants={subtitleVariants}
-              className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-light"
+              className="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-light px-4"
             >
               A premium space where student changemakers, innovators, and leaders collaborate to bring <span className="text-white font-medium">Ideas Worth Spreading</span> to life.
             </motion.p>

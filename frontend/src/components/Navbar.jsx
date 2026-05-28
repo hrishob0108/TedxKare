@@ -40,7 +40,7 @@ const Navbar = () => {
       <div className="container-flex w-full flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Home" className="flex items-center">
-            <h1 className="text-2xl font-bold"><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span></h1>
+            <h1 className="text-lg sm:text-2xl font-bold"><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span></h1>
           </button>
         </div>
 
