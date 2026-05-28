@@ -191,7 +191,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-ted-red selection:text-white overflow-hidden">
+    <div className="min-h-screen bg-black text-white selection:bg-ted-red selection:text-white relative overflow-hidden">
       {/* Navbar */}
       <Navbar />
 
