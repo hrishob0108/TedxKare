@@ -1,4 +1,5 @@
 import Speaker from '../models/Speaker.js';
+import Settings from '../models/Settings.js';
 import { validationResult } from 'express-validator';
 import axios from 'axios';
 import { getSpeakerEmailTemplate } from '../utils/emailTemplates.js';
@@ -6,6 +7,15 @@ import { getSpeakerEmailTemplate } from '../utils/emailTemplates.js';
 // Create new speaker submission (public)
 export const createSpeaker = async (req, res, next) => {
   try {
+    // Check if speaker proposals are open
+    const settings = await Settings.findOne();
+    if (settings && !settings.speakerRegistrationOpen) {
+      return res.status(403).json({
+        error: 'Proposals closed',
+        message: 'Speaker proposal submissions are currently closed.',
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -20,8 +30,8 @@ export const createSpeaker = async (req, res, next) => {
       return res.status(200).json({ success: true, message: 'Submission received' });
     }
 
-    // Prevent duplicate speaker submissions with same email and title
-    const exists = await Speaker.findOne({ email: req.body.email, title: req.body.title });
+    // Prevent duplicate speaker submissions with same email and proposed talk title
+    const exists = await Speaker.findOne({ email: req.body.email, proposedTitle: req.body.proposedTitle });
     if (exists) {
       return res.status(409).json({ error: 'Duplicate submission', message: 'A similar speaker submission already exists.' });
     }
@@ -29,7 +39,29 @@ export const createSpeaker = async (req, res, next) => {
     const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '';
     const userAgent = req.headers['user-agent'] || '';
 
-    const speaker = new Speaker({ ...req.body, ipAddress, userAgent });
+    const speakerData = {
+      ...req.body,
+      // Backward compatibility mappings
+      title: req.body.proposedTitle,
+      abstract: req.body.proposedDescription,
+      bio: `${req.body.profession} at ${req.body.organization}`,
+      details: req.body.whySpeak1,
+      background: req.body.proposedQualifications,
+      whyApply: req.body.whySpeak1,
+      idea1DomainLegacy: req.body.idea1Domain,
+      idea1DescriptionLegacy: req.body.idea1Description,
+      idea1Sentence: req.body.idea1WorthSpreading,
+      idea2DomainLegacy: req.body.idea2Domain || '',
+      idea2DescriptionLegacy: req.body.idea2Description || '',
+      idea2Sentence: req.body.idea2WorthSpreading || '',
+      idea3DomainLegacy: req.body.idea3Domain || '',
+      idea3DescriptionLegacy: req.body.idea3Description || '',
+      idea3Sentence: req.body.idea3WorthSpreading || '',
+      ipAddress,
+      userAgent
+    };
+
+    const speaker = new Speaker(speakerData);
     await speaker.save();
 
     res.status(201).json({ success: true, message: 'Speaker submission received', data: { id: speaker._id } });

@@ -13,6 +13,17 @@ const sampleDomains = [
   { domain: 'Marketing', description: 'Branding, social media and audience growth.' },
 ];
 
+const radialNodes = [
+  { label: 'Creativity', angle: 270 }, // Top Center
+  { label: 'Inspiration', angle: 315 }, // Top Right
+  { label: 'Networking', angle: 0 }, // Middle Right
+  { label: 'Business', angle: 45 }, // Bottom Right
+  { label: 'Innovation', angle: 90 }, // Bottom Center
+  { label: 'Different Ideas', angle: 135 }, // Bottom Left
+  { label: 'Leadership', angle: 180 }, // Middle Left
+  { label: 'Technology', angle: 225 }, // Top Left
+];
+
 const Home = () => {
   const [loadingScreen, setLoadingScreen] = useState(() => {
     // Skip full splash loading on internal router navigation
@@ -20,6 +31,7 @@ const Home = () => {
   });
   const [openFAQ, setOpenFAQ] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [activeNode, setActiveNode] = useState(null);
 
   // Timer to end the loader splash
   useEffect(() => {
@@ -202,7 +214,7 @@ const Home = () => {
       <main className="pt-20 relative z-10">
         {/* ==================== HERO SECTION (Cinematic Entry) ==================== */}
         <section className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center border-b border-gray-900 bg-gradient-to-b from-gray-950/20 to-black pt-20 pb-36">
-          <motion.div 
+          <motion.div
             variants={heroContainerVariants}
             initial="hidden"
             animate={loadingScreen ? "hidden" : "visible"}
@@ -216,7 +228,7 @@ const Home = () => {
               <span className="w-2 h-2 rounded-full bg-ted-red animate-pulse"></span>
               Founding Cycle 2026
             </motion.div>
-             {/* Glowing Big Title - Scale Popout */}
+            {/* Glowing Big Title - Scale Popout */}
             <motion.h1
               variants={titleVariants}
               className="text-3xl xs:text-4xl sm:text-7xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
@@ -234,7 +246,7 @@ const Home = () => {
             </motion.p>
 
             {/* Elegant Subtitle */}
-            <motion.p 
+            <motion.p
               variants={subtitleVariants}
               className="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-light px-4"
             >
@@ -288,8 +300,8 @@ const Home = () => {
 
 
         {/* ==================== WHAT & HOW ==================== */}
-        <motion.section 
-          id="what-is-tedx" 
+        <motion.section
+          id="what-is-tedx"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
@@ -304,7 +316,7 @@ const Home = () => {
               <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto md:mx-0">
                 An independently organized TED event series created by local changemakers to surface ideas that matter to our region. We bring together speakers, performers, volunteers, and partners to learn, connect, and take action.
               </p>
-              
+
               <div className="pt-4 border-t border-gray-900 space-y-4">
                 <h3 className="text-lg font-bold text-white uppercase tracking-wider text-center md:text-left">How it works</h3>
                 <ol className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-400">
@@ -332,7 +344,7 @@ const Home = () => {
                 <span className="bg-ted-red/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Next Event</span>
                 <h4 className="font-extrabold text-xl text-white">{events[0].title}</h4>
                 <p className="text-gray-400 text-sm mt-1 mb-4">{events[0].date} · {events[0].location}</p>
-                
+
                 {/* Live Countdown Timer Widget */}
                 <div className="grid grid-cols-4 gap-1.5 mb-4 max-w-full sm:max-w-xs text-center">
                   {[
@@ -351,8 +363,8 @@ const Home = () => {
                 </div>
 
                 <div className="mt-4">
-                  <button 
-                    onClick={() => setShowEventModal(true)} 
+                  <button
+                    onClick={() => setShowEventModal(true)}
                     className="text-ted-red hover:text-red-500 font-bold text-sm flex items-center gap-1.5 transition-colors"
                   >
                     View Complete Schedule →
@@ -366,8 +378,8 @@ const Home = () => {
                 <h4 className="font-extrabold text-xl text-white">Join as a Speaker</h4>
                 <p className="text-gray-400 text-sm mt-1">Our core team is now recruited, but we actively accept speaker ideas and proposals for future cycles.</p>
                 <div className="mt-4">
-                  <Link 
-                    to="/apply/speaker" 
+                  <Link
+                    to="/apply/speaker"
                     className="inline-block bg-ted-red hover:bg-black/90 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors"
                   >
                     Apply to Speak
@@ -378,33 +390,141 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* ==================== EXPLORE DOMAINS ==================== */}
-        <motion.section 
+        {/* ==================== EXPLORE DOMAINS MIND-MAP ==================== */}
+        <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-gradient-to-b from-black via-gray-950/20 to-black py-20 border-t border-b border-gray-950"
+          className="bg-gradient-to-b from-black via-gray-950/20 to-black py-24 border-t border-b border-gray-950 relative overflow-hidden"
         >
-          <div className="container mx-auto px-6 lg:px-20">
-             <div className="mb-12 text-center md:text-left">
-              <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">Our Areas</span>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Explore Organizing Domains</h2>
-              <p className="text-gray-400 mt-2 font-light max-w-xl mx-auto md:mx-0">Every team plays a pivotal role in ensuring KARE hosts a premium, world-class TEDx series.</p>
+          <div className="container mx-auto px-6 lg:px-20 relative z-10">
+            {/* Headers matching the picture */}
+            <div className="mb-12 text-center">
+              <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">What We Do</span>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3">
+                TEDxKARE is<span className="text-ted-red">...</span>
+              </h2>
+              <p className="text-gray-400 font-light text-base md:text-lg max-w-xl mx-auto">
+                A living network of ideas, people, and possibilities.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-              {sampleDomains.map((d) => (
-                <div key={d.domain}>
-                  <DomainCard domain={d.domain} description={d.description} />
-                </div>
-              ))}
+            {/* Mind-map circular system */}
+            <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[480px] mx-auto flex items-center justify-center mb-10">
+
+              {/* Pulsing glow background */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] bg-ted-red/10 rounded-full blur-[80px] animate-pulse"></div>
+              </div>
+
+              {/* Reactive Connectors Overlay (SVG) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 500 500">
+                {radialNodes.map((node, index) => {
+                  const angleRad = (node.angle * Math.PI) / 180;
+                  const radius = 175; // percentage-style logic translated to SVG viewBox coordinates
+                  const x2 = 250 + radius * Math.cos(angleRad);
+                  const y2 = 250 + radius * Math.sin(angleRad);
+                  const isHighlighted = activeNode === index;
+                  return (
+                    <line
+                      key={index}
+                      x1="250"
+                      y1="250"
+                      x2={x2}
+                      y2={y2}
+                      stroke={isHighlighted ? "#E62B1E" : "rgba(230, 43, 30, 0.15)"}
+                      strokeWidth={isHighlighted ? "2.5" : "1"}
+                      className="transition-all duration-300 ease-out"
+                    />
+                  );
+                })}
+              </svg>
+
+              {/* Center Core sphere */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center text-center z-20 border transition-all duration-500 shadow-2xl relative select-none bg-black/90 ${activeNode !== null
+                  ? 'border-ted-red shadow-ted-red/30'
+                  : 'border-red-950 shadow-red-950/20'
+                  }`}
+              >
+                {/* Glowing ring overlay */}
+                <div className={`absolute inset-[-8px] rounded-full border border-ted-red/10 transition-all duration-500 animate-ping ${activeNode !== null ? 'opacity-100 scale-105 border-ted-red/35' : 'opacity-0'
+                  }`}></div>
+
+                <span className="font-black text-xs sm:text-sm uppercase tracking-wider block leading-tight">
+                  <span className="text-ted-red">TED</span><span className="text-white">x</span>
+                </span>
+                <span className="font-semibold text-gray-400 text-[9px] sm:text-[10px] tracking-widest uppercase block mt-0.5">
+                  KARE
+                </span>
+              </motion.div>
+
+              {/* Circularly Distributed Outer Nodes */}
+              {radialNodes.map((node, index) => {
+                const angleRad = (node.angle * Math.PI) / 180;
+                // Position calculations in percentage
+                const radiusPercent = 35; // 35% radius allows nodes to float safely inside container bounds
+                const left = 50 + radiusPercent * Math.cos(angleRad);
+                const top = 50 + radiusPercent * Math.sin(angleRad);
+                const isHighlighted = activeNode === index;
+
+                return (
+                  <motion.div
+                    key={index}
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      x: "-50%",
+                      y: "-50%",
+                    }}
+                    onMouseEnter={() => setActiveNode(index)}
+                    onMouseLeave={() => setActiveNode(null)}
+                    animate={{
+                      scale: isHighlighted ? 1.15 : 1,
+                      borderColor: isHighlighted ? "#E62B1E" : "rgba(31, 41, 55, 1)",
+                    }}
+                    whileHover={{ scale: 1.15 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full border flex items-center justify-center text-center px-1 sm:px-2 shadow-lg cursor-pointer z-10 ${isHighlighted
+                      ? 'bg-black text-white shadow-ted-red/35'
+                      : 'bg-black/90 border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'
+                      }`}
+                  >
+                    <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider leading-tight">
+                      {node.label}
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Capsules grid matching user's photo */}
+            <div className="flex flex-wrap justify-center gap-2.5 max-w-2xl mx-auto mt-6 z-10 relative">
+              {radialNodes.map((node, index) => {
+                const isHighlighted = activeNode === index;
+                return (
+                  <button
+                    key={index}
+                    onMouseEnter={() => setActiveNode(index)}
+                    onMouseLeave={() => setActiveNode(null)}
+                    onClick={() => setActiveNode(index)}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider border transition-all active:scale-95 duration-200 ${isHighlighted
+                      ? 'bg-ted-red border-ted-red text-white shadow-lg shadow-ted-red/20 scale-105'
+                      : 'bg-gray-950/45 border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'
+                      }`}
+                  >
+                    {node.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </motion.section>
 
         {/* ==================== TESTIMONIALS ==================== */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
@@ -422,12 +542,12 @@ const Home = () => {
               { text: "The speaker coaching helped me refine my message and reach more people.", author: "Raj", role: "Speaker" },
               { text: "Great production and community — I met collaborators I still work with.", author: "Thrivikram", role: "Organizer" }
             ].map((item, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
                 whileHover={{ y: -6 }}
                 className="p-6 bg-gray-900/30 border border-gray-800/80 rounded-2xl shadow-xl flex flex-col justify-between relative group hover:border-ted-red/30 transition-all duration-300"
               >
-                <span className="text-ted-red text-4xl font-serif absolute top-3 left-4 opacity-10 group-hover:opacity-30 transition-opacity">“</span>
+                <span className="text-ted-red text-4xl absolute top-3 left-4 opacity-10 group-hover:opacity-30 transition-opacity">“</span>
                 <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-6 italic z-10">"{item.text}"</p>
                 <div className="flex items-center gap-3 border-t border-gray-900 pt-4">
                   <div className="w-8 h-8 rounded-full bg-ted-red/20 text-ted-red font-bold flex items-center justify-center text-xs">
@@ -444,7 +564,7 @@ const Home = () => {
         </motion.section>
 
         {/* ==================== FAQ + NEWSLETTER ==================== */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
@@ -463,11 +583,10 @@ const Home = () => {
                   {faqs.map((f, i) => {
                     const isOpen = openFAQ === i;
                     return (
-                      <div 
-                        key={f.q} 
-                        className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
-                          isOpen ? 'bg-gray-900/30 border-ted-red/40' : 'bg-gray-900/10 border-gray-900 hover:border-gray-800'
-                        }`}
+                      <div
+                        key={f.q}
+                        className={`border rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'bg-gray-900/30 border-ted-red/40' : 'bg-gray-900/10 border-gray-900 hover:border-gray-800'
+                          }`}
                       >
                         <button
                           className="w-full text-left px-5 py-4 flex justify-between items-center font-bold text-white text-sm md:text-base"
@@ -508,11 +627,11 @@ const Home = () => {
                     Subscribe to our newsletters for early bird ticket releases, official scheduling, and recruitments.
                   </p>
                   <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                    <input 
-                      aria-label="Email Address" 
-                      type="email" 
-                      placeholder="Enter your email address" 
-                      className="w-full px-4 py-3 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600" 
+                    <input
+                      aria-label="Email Address"
+                      type="email"
+                      placeholder="Enter your email address"
+                      className="w-full px-4 py-3 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600"
                     />
                     <button className="w-full py-3 bg-ted-red hover:bg-red-700 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-ted-red/15 active:scale-[0.98]">
                       Subscribe Now
@@ -525,7 +644,7 @@ const Home = () => {
         </motion.section>
 
         {/* ==================== COMMUNITY IDEAS SANDBOX ==================== */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
@@ -534,7 +653,7 @@ const Home = () => {
         >
           <div className="container mx-auto px-6 lg:px-20">
             <div className="grid md:grid-cols-12 gap-12">
-              
+
               {/* Left Side: Header & Submission Form */}
               <div className="md:col-span-5 space-y-6">
                 <div>
@@ -548,30 +667,30 @@ const Home = () => {
                 <div className="p-5 sm:p-6 bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-2xl shadow-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-ted-red/5 rounded-full blur-2xl pointer-events-none"></div>
                   <h4 className="font-extrabold text-lg text-white mb-4">Cast Your Idea</h4>
-                  
+
                   <form onSubmit={handleAddIdea} className="space-y-4">
                     <div>
                       <label htmlFor="idea-title" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Idea Title</label>
-                      <input 
+                      <input
                         id="idea-title"
-                        type="text" 
-                        placeholder="e.g. Eco-Acoustic Campus Zones" 
+                        type="text"
+                        placeholder="e.g. Eco-Acoustic Campus Zones"
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white" 
+                        className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white"
                         required
                       />
                     </div>
 
                     <div>
                       <label htmlFor="idea-desc" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Short Description</label>
-                      <textarea 
+                      <textarea
                         id="idea-desc"
                         rows="3"
-                        placeholder="Explain the idea and its impact worth spreading..." 
+                        placeholder="Explain the idea and its impact worth spreading..."
                         value={newDesc}
                         onChange={(e) => setNewDesc(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white resize-none" 
+                        className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white resize-none"
                         required
                       />
                     </div>
@@ -579,7 +698,7 @@ const Home = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="idea-cat" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Category</label>
-                        <select 
+                        <select
                           id="idea-cat"
                           value={newCat}
                           onChange={(e) => setNewCat(e.target.value)}
@@ -593,13 +712,13 @@ const Home = () => {
 
                       <div>
                         <label htmlFor="idea-author" className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Your Name</label>
-                        <input 
+                        <input
                           id="idea-author"
-                          type="text" 
-                          placeholder="Anonymous" 
+                          type="text"
+                          placeholder="Anonymous"
                           value={newAuthor}
                           onChange={(e) => setNewAuthor(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white" 
+                          className="w-full px-4 py-2.5 rounded-lg bg-black border border-gray-800 text-sm focus:outline-none focus:border-ted-red focus:ring-1 focus:ring-ted-red transition-colors placeholder:text-gray-600 text-white"
                         />
                       </div>
                     </div>
@@ -637,8 +756,8 @@ const Home = () => {
                             <h5 className="font-extrabold text-base text-white">{idea.title}</h5>
                             <p className="text-gray-400 text-xs md:text-sm mt-1.5 leading-relaxed font-light">{idea.desc}</p>
                           </div>
-                          
-                          <motion.button 
+
+                          <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleLike(idea._id)}

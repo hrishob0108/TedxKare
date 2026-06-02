@@ -6,6 +6,14 @@ const settingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    teamRegistrationOpen: {
+      type: Boolean,
+      default: true,
+    },
+    speakerRegistrationOpen: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

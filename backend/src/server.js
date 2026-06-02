@@ -32,8 +32,8 @@ const PORT = process.env.PORT || 5000;
 
 // ==================== MIDDLEWARE ====================
 app.use(compression()); // Compress responses
-app.use(express.json({ limit: '5mb' })); // Reduced limit
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // CORS Configuration
 app.use(
