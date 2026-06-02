@@ -222,3 +222,31 @@
     display: none !important;
   }
 }
+
+/* ==================== FORM VALIDATION ERRORS STYLE ==================== */
+.space-y-1:has(.text-red-500) input[type="text"],
+.space-y-1:has(.text-red-500) input[type="email"],
+.space-y-1:has(.text-red-500) input[type="url"],
+.space-y-1:has(.text-red-500) textarea,
+.space-y-1:has(.text-red-500) select,
+.space-y-2:has(.text-red-500) input[type="text"],
+.space-y-2:has(.text-red-500) input[type="email"],
+.space-y-2:has(.text-red-500) input[type="url"],
+.space-y-2:has(.text-red-500) textarea,
+.space-y-2:has(.text-red-500) select {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.space-y-1:has(.text-red-500) input[type="text"]:focus,
+.space-y-1:has(.text-red-500) input[type="email"]:focus,
+.space-y-1:has(.text-red-500) input[type="url"]:focus,
+.space-y-1:has(.text-red-500) textarea:focus,
+.space-y-1:has(.text-red-500) select:focus,
+.space-y-2:has(.text-red-500) input[type="text"]:focus,
+.space-y-2:has(.text-red-500) input[type="email"]:focus,
+.space-y-2:has(.text-red-500) input[type="url"]:focus,
+.space-y-2:has(.text-red-500) textarea:focus,
+.space-y-2:has(.text-red-500) select:focus {
+  border-color: rgb(239, 68, 68) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.15) !important;
+}

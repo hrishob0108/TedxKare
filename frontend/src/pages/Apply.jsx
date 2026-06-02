@@ -48,7 +48,7 @@ const Apply = () => {
     const checkStatus = async () => {
       try {
         const response = await settingsAPI.getSettings();
-        setRegistrationOpen(response.data.data.registrationOpen);
+        setRegistrationOpen(response.data.data.teamRegistrationOpen ?? response.data.data.registrationOpen);
       } catch (err) {
         console.error('Failed to fetch registration status', err);
       } finally {

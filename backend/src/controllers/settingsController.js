@@ -8,7 +8,11 @@ export const getSettings = async (req, res, next) => {
     
     // Create default settings if none exist
     if (!settings) {
-      settings = await Settings.create({ registrationOpen: true });
+      settings = await Settings.create({ 
+        registrationOpen: true,
+        teamRegistrationOpen: true,
+        speakerRegistrationOpen: true
+      });
     }
 
     res.json({
@@ -28,15 +32,27 @@ export const updateSettings = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { registrationOpen } = req.body;
+    const { registrationOpen, teamRegistrationOpen, speakerRegistrationOpen } = req.body;
 
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ registrationOpen });
+      settings = new Settings({
+        registrationOpen: registrationOpen ?? teamRegistrationOpen ?? true,
+        teamRegistrationOpen: teamRegistrationOpen ?? true,
+        speakerRegistrationOpen: speakerRegistrationOpen ?? true
+      });
     } else {
-      if (registrationOpen !== undefined) {
+      if (teamRegistrationOpen !== undefined) {
+        settings.teamRegistrationOpen = teamRegistrationOpen;
+        settings.registrationOpen = teamRegistrationOpen; // keep synced
+      }
+      if (speakerRegistrationOpen !== undefined) {
+        settings.speakerRegistrationOpen = speakerRegistrationOpen;
+      }
+      if (registrationOpen !== undefined && teamRegistrationOpen === undefined) {
         settings.registrationOpen = registrationOpen;
+        settings.teamRegistrationOpen = registrationOpen; // fallback sync
       }
     }
 

@@ -23,6 +23,7 @@ const AdminDashboard = () => {
   const [filteredSpeakers, setFilteredSpeakers] = useState([]);
   const [selectedSpeaker, setSelectedSpeaker] = useState(null);
   const [showSpeakerModal, setShowSpeakerModal] = useState(false);
+  const [speakerModalTab, setSpeakerModalTab] = useState('profile');
 
   const [stats, setStats] = useState({
     totalApplications: 0,
@@ -49,7 +50,8 @@ const AdminDashboard = () => {
     'Research Team',
   ];
 
-  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [teamRegistrationOpen, setTeamRegistrationOpen] = useState(true);
+  const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(true);
 
   // Fetch applicants, speakers and settings on component mount
   useEffect(() => {
@@ -71,19 +73,30 @@ const AdminDashboard = () => {
   const fetchSettings = async () => {
     try {
       const response = await request(() => settingsAPI.getSettings());
-      setRegistrationOpen(response.data.registrationOpen);
+      setTeamRegistrationOpen(response.data.teamRegistrationOpen ?? response.data.registrationOpen ?? true);
+      setSpeakerRegistrationOpen(response.data.speakerRegistrationOpen ?? true);
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
   };
 
-  const handleToggleRegistration = async () => {
+  const handleToggleTeamRegistration = async () => {
     try {
-      const newState = !registrationOpen;
-      await request(() => settingsAPI.updateSettings({ registrationOpen: newState }));
-      setRegistrationOpen(newState);
+      const newState = !teamRegistrationOpen;
+      await request(() => settingsAPI.updateSettings({ teamRegistrationOpen: newState }));
+      setTeamRegistrationOpen(newState);
     } catch (error) {
-      console.error('Error updating registration status:', error);
+      console.error('Error updating team registration status:', error);
+    }
+  };
+
+  const handleToggleSpeakerRegistration = async () => {
+    try {
+      const newState = !speakerRegistrationOpen;
+      await request(() => settingsAPI.updateSettings({ speakerRegistrationOpen: newState }));
+      setSpeakerRegistrationOpen(newState);
+    } catch (error) {
+      console.error('Error updating speaker registration status:', error);
     }
   };
 
@@ -297,7 +310,17 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     storage.clearAdmin();
     navigate('/ad');
+  };
 
+  // Download Base64 File Attachment
+  const downloadBase64File = (base64Data, fileName) => {
+    if (!base64Data) return;
+    const link = document.createElement('a');
+    link.href = base64Data;
+    link.download = fileName || 'attachment';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Get status badge color
@@ -350,26 +373,52 @@ const AdminDashboard = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-            <div>
-              <p className="text-sm font-semibold mb-1">Registration Status</p>
-              <p className={`text-xs ${registrationOpen ? 'text-green-400' : 'text-red-400'}`}>
-                {registrationOpen ? '🟢 Accepting Applications' : '🔴 Applications Closed'}
-              </p>
-            </div>
-            <button
-              onClick={handleToggleRegistration}
-              disabled={loading}
-              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${
-                registrationOpen ? 'bg-ted-red' : 'bg-gray-700'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                  registrationOpen ? 'translate-x-8' : 'translate-x-1'
+          <div className="flex flex-col sm:flex-row gap-4 bg-gray-900/40 backdrop-blur-md p-4 rounded-2xl border border-gray-800 shadow-lg">
+            {/* Team Toggle */}
+            <div className="flex items-center justify-between gap-6 border-b sm:border-b-0 sm:border-r border-gray-800 pb-3 sm:pb-0 sm:pr-6">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Team Recruitment</p>
+                <p className={`text-xs font-bold ${teamRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
+                  {teamRegistrationOpen ? '🟢 Open' : '🔴 Closed'}
+                </p>
+              </div>
+              <button
+                onClick={handleToggleTeamRegistration}
+                disabled={loading}
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                  teamRegistrationOpen ? 'bg-ted-red' : 'bg-gray-800 border border-gray-700'
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    teamRegistrationOpen ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Speaker Toggle */}
+            <div className="flex items-center justify-between gap-6 sm:pl-2">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Speaker Proposals</p>
+                <p className={`text-xs font-bold ${speakerRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
+                  {speakerRegistrationOpen ? '🟢 Open' : '🔴 Closed'}
+                </p>
+              </div>
+              <button
+                onClick={handleToggleSpeakerRegistration}
+                disabled={loading}
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                  speakerRegistrationOpen ? 'bg-ted-red' : 'bg-gray-800 border border-gray-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    speakerRegistrationOpen ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -641,6 +690,7 @@ const AdminDashboard = () => {
                           onClick={() => {
                             setSelectedSpeaker(speaker);
                             setShowSpeakerModal(true);
+                            setSpeakerModalTab('profile');
                           }}
                           className="text-ted-red hover:text-red-600 font-semibold text-sm"
                         >
@@ -900,11 +950,14 @@ const AdminDashboard = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-gray-900 border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-gray-900 border border-gray-800 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden"
           >
             {/* Modal Header */}
-            <div className="sticky top-0 border-b border-gray-800 bg-gray-900 p-6 flex justify-between items-center">
-              <h3 className="text-2xl font-bold">Proposal Details</h3>
+            <div className="border-b border-gray-800 bg-gray-900 p-6 flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="text-2xl font-bold">Proposal Details</h3>
+                <p className="text-xs text-gray-400 mt-1">Speaker: <span className="font-semibold text-ted-red">{selectedSpeaker.name}</span></p>
+              </div>
               <button
                 onClick={() => setShowSpeakerModal(false)}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -913,76 +966,732 @@ const AdminDashboard = () => {
               </button>
             </div>
 
+            {/* Modal Inner Tabs */}
+            <div className="flex border-b border-gray-800 bg-gray-950 px-6 pt-3 gap-4 overflow-x-auto whitespace-nowrap scrollbar-thin shrink-0">
+              <button
+                type="button"
+                onClick={() => setSpeakerModalTab('profile')}
+                className={`pb-3 px-1 font-semibold text-xs md:text-sm border-b-2 transition-all duration-200 ${
+                  speakerModalTab === 'profile' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+                }`}
+              >
+                👤 Profile
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpeakerModalTab('idea1')}
+                className={`pb-3 px-1 font-semibold text-xs md:text-sm border-b-2 transition-all duration-200 ${
+                  speakerModalTab === 'idea1' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+                }`}
+              >
+                💡 Idea 1
+              </button>
+              {(selectedSpeaker.idea2Title || selectedSpeaker.idea2Sentence) && (
+                <button
+                  type="button"
+                  onClick={() => setSpeakerModalTab('idea2')}
+                  className={`pb-3 px-1 font-semibold text-xs md:text-sm border-b-2 transition-all duration-200 ${
+                    speakerModalTab === 'idea2' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+                  }`}
+                >
+                  💡 Idea 2
+                </button>
+              )}
+              {(selectedSpeaker.idea3Title || selectedSpeaker.idea3Sentence) && (
+                <button
+                  type="button"
+                  onClick={() => setSpeakerModalTab('idea3')}
+                  className={`pb-3 px-1 font-semibold text-xs md:text-sm border-b-2 transition-all duration-200 ${
+                    speakerModalTab === 'idea3' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+                  }`}
+                >
+                  💡 Idea 3
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setSpeakerModalTab('policy')}
+                className={`pb-3 px-1 font-semibold text-xs md:text-sm border-b-2 transition-all duration-200 ${
+                  speakerModalTab === 'policy' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+                }`}
+              >
+                📜 Policy & Talk Details
+              </button>
+            </div>
+
             {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Speaker Info */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Speaker Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="p-6 space-y-6 overflow-y-auto flex-grow">
+              {/* TAB 1: Profile */}
+              {speakerModalTab === 'profile' && (
+                <div className="space-y-6">
                   <div>
-                    <p className="text-gray-400">Full Name</p>
-                    <p className="font-semibold">{selectedSpeaker.name}</p>
+                    <h4 className="text-ted-red font-bold mb-3 flex items-center gap-1.5">
+                      <span>👤</span> Speaker Profile Details
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-black/40 border border-gray-800/85 p-5 rounded-xl">
+                      <div>
+                        <p className="text-gray-400 text-xs">Full Name</p>
+                        <p className="font-semibold text-white text-base mt-0.5">{selectedSpeaker.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Nomination Type</p>
+                        <p className="font-semibold text-white text-base mt-0.5">{selectedSpeaker.selfNomination || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Email Address</p>
+                        <p className="font-semibold text-white break-all mt-0.5">{selectedSpeaker.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Phone Number</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.phone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Profession / Designation</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.profession || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Company / Institution / Org</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.organization || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Current Location</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.location || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">LinkedIn Profile</p>
+                        {selectedSpeaker.linkedin ? (
+                          <a
+                            href={selectedSpeaker.linkedin.startsWith('http') ? selectedSpeaker.linkedin : `https://${selectedSpeaker.linkedin}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-ted-red hover:underline font-semibold break-all mt-0.5 inline-block"
+                          >
+                            {selectedSpeaker.linkedin}
+                          </a>
+                        ) : (
+                          <p className="text-gray-500 italic mt-0.5">Not provided</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-400">Email</p>
-                    <p className="font-semibold break-all">{selectedSpeaker.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Phone</p>
-                    <p className="font-semibold">{selectedSpeaker.phone || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Proposed Duration</p>
-                    <p className="font-semibold">{selectedSpeaker.durationMinutes} minutes</p>
-                  </div>
+
+                  {selectedSpeaker.additionalLinks && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-bold mb-1.5">Additional Professional Links:</p>
+                      <div className="bg-black/30 border border-gray-800 p-3 rounded-xl flex flex-col gap-1.5">
+                        {selectedSpeaker.additionalLinks.split(',').map((link, idx) => {
+                          const trimmed = link.trim();
+                          if (!trimmed) return null;
+                          const href = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+                          return (
+                            <a
+                              key={idx}
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-ted-red hover:underline font-medium text-sm break-all"
+                            >
+                              🔗 {trimmed}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSpeaker.whySpeak1 && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-bold mb-1.5">Why should this speaker speak at TEDxKARE?</p>
+                      <p className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl text-sm leading-relaxed text-gray-300">
+                        {selectedSpeaker.whySpeak1}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedSpeaker.whyApply && !selectedSpeaker.whySpeak1 && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-bold mb-1.5">Why are they applying? (Legacy):</p>
+                      <p className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl text-sm leading-relaxed text-gray-300">
+                        {selectedSpeaker.whyApply}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Bio */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Biography</h4>
-                <p className="bg-gray-800/50 p-3 rounded text-sm leading-relaxed">{selectedSpeaker.bio || 'No biography provided.'}</p>
-              </div>
+              {/* TAB 2: Idea 1 */}
+              {speakerModalTab === 'idea1' && (
+                <div className="space-y-6">
+                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
+                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
+                          Primary Idea
+                        </span>
+                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea1Title || selectedSpeaker.title || 'N/A'}</h4>
+                      </div>
+                      <div className="md:text-right">
+                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
+                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea1Domain || selectedSpeaker.idea1DomainLegacy || 'N/A'}</span>
+                      </div>
+                    </div>
 
-              {/* Talk Details */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Talk Details</h4>
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <p className="text-gray-400 mb-1 font-semibold">Talk Title</p>
-                    <p className="bg-gray-800/50 p-3 rounded font-bold text-white text-base leading-relaxed">{selectedSpeaker.title}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 mb-1">Abstract</p>
-                    <p className="bg-gray-800/50 p-3 rounded leading-relaxed">{selectedSpeaker.abstract}</p>
-                  </div>
-                </div>
-              </div>
+                    <div className="space-y-3 text-sm">
+                      {/* Crux / Worth Spreading */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                          "{selectedSpeaker.idea1WorthSpreading || selectedSpeaker.idea1Sentence || 'N/A'}"
+                        </p>
+                      </div>
 
-              {/* Sample Link */}
-              {selectedSpeaker.sampleLink && (
-                <div>
-                  <h4 className="text-ted-red font-bold mb-4">Sample Presentation / Work</h4>
-                  <div className="text-sm">
-                    <p className="text-gray-400 mb-1">Link</p>
-                    <a
-                      href={selectedSpeaker.sampleLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-ted-red hover:text-red-600 break-all underline"
-                    >
-                      {selectedSpeaker.sampleLink}
-                    </a>
+                      {/* Description */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          {selectedSpeaker.idea1Description || selectedSpeaker.idea1DescriptionLegacy || selectedSpeaker.abstract || 'N/A'}
+                        </p>
+                      </div>
+
+                      {/* Why relevant */}
+                      {selectedSpeaker.idea1Relevance && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea1Relevance}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Challenge / Gap */}
+                      {selectedSpeaker.idea1Challenge && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea1Challenge}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Impact */}
+                      {selectedSpeaker.idea1Impact && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea1Impact}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Scalability */}
+                      {selectedSpeaker.idea1Scalability && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea1Scalability}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Lived Experience */}
+                      {selectedSpeaker.idea1LivedExperience && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea1LivedExperience}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea1LivedExperience === 'YES' && selectedSpeaker.idea1LivedExperienceDesc && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea1LivedExperienceDesc}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Props */}
+                      {selectedSpeaker.idea1Props && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea1Props}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea1Props === 'YES' && selectedSpeaker.idea1PropsDetails && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea1PropsDetails}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Articles / Links */}
+                      {selectedSpeaker.idea1Articles && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
+                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                            {selectedSpeaker.idea1Articles}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File Attachment */}
+                      <div className="pt-2 border-t border-gray-800/80">
+                        {selectedSpeaker.idea1File ? (
+                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
+                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea1FileName || 'attachment_1'}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => downloadBase64File(selectedSpeaker.idea1File, selectedSpeaker.idea1FileName)}
+                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <span>📥</span> Download
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
+                        )}
+                      </div>
+
+                      {/* Comments */}
+                      {selectedSpeaker.idea1Comments && (
+                        <div>
+                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
+                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
+                            "{selectedSpeaker.idea1Comments}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Metadata */}
-              <div className="border-t border-gray-800 pt-4">
-                <p className="text-xs text-gray-500">
-                  Submitted on: {format.dateTime(selectedSpeaker.createdAt)}
-                </p>
-              </div>
+              {/* TAB 3: Idea 2 */}
+              {speakerModalTab === 'idea2' && (selectedSpeaker.idea2Title || selectedSpeaker.idea2Sentence) && (
+                <div className="space-y-6">
+                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
+                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
+                          Second Idea (Optional)
+                        </span>
+                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea2Title || 'N/A'}</h4>
+                      </div>
+                      <div className="md:text-right">
+                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
+                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea2Domain || selectedSpeaker.idea2DomainLegacy || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 text-sm">
+                      {/* Crux / Worth Spreading */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                          "{selectedSpeaker.idea2WorthSpreading || selectedSpeaker.idea2Sentence || 'N/A'}"
+                        </p>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          {selectedSpeaker.idea2Description || selectedSpeaker.idea2DescriptionLegacy || 'N/A'}
+                        </p>
+                      </div>
+
+                      {/* Why relevant */}
+                      {selectedSpeaker.idea2Relevance && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea2Relevance}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Challenge / Gap */}
+                      {selectedSpeaker.idea2Challenge && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea2Challenge}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Impact */}
+                      {selectedSpeaker.idea2Impact && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea2Impact}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Scalability */}
+                      {selectedSpeaker.idea2Scalability && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea2Scalability}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Lived Experience */}
+                      {selectedSpeaker.idea2LivedExperience && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea2LivedExperience}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea2LivedExperience === 'YES' && selectedSpeaker.idea2LivedExperienceDesc && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea2LivedExperienceDesc}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Props */}
+                      {selectedSpeaker.idea2Props && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea2Props}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea2Props === 'YES' && selectedSpeaker.idea2PropsDetails && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea2PropsDetails}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Articles / Links */}
+                      {selectedSpeaker.idea2Articles && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
+                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                            {selectedSpeaker.idea2Articles}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File Attachment */}
+                      <div className="pt-2 border-t border-gray-800/80">
+                        {selectedSpeaker.idea2File ? (
+                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
+                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea2FileName || 'attachment_2'}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => downloadBase64File(selectedSpeaker.idea2File, selectedSpeaker.idea2FileName)}
+                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <span>📥</span> Download
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
+                        )}
+                      </div>
+
+                      {/* Comments */}
+                      {selectedSpeaker.idea2Comments && (
+                        <div>
+                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
+                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
+                            "{selectedSpeaker.idea2Comments}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: Idea 3 */}
+              {speakerModalTab === 'idea3' && (selectedSpeaker.idea3Title || selectedSpeaker.idea3Sentence) && (
+                <div className="space-y-6">
+                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
+                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
+                          Third Idea (Optional)
+                        </span>
+                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea3Title || 'N/A'}</h4>
+                      </div>
+                      <div className="md:text-right">
+                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
+                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea3Domain || selectedSpeaker.idea3DomainLegacy || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 text-sm">
+                      {/* Crux / Worth Spreading */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                          "{selectedSpeaker.idea3WorthSpreading || selectedSpeaker.idea3Sentence || 'N/A'}"
+                        </p>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          {selectedSpeaker.idea3Description || selectedSpeaker.idea3DescriptionLegacy || 'N/A'}
+                        </p>
+                      </div>
+
+                      {/* Why relevant */}
+                      {selectedSpeaker.idea3Relevance && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea3Relevance}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Challenge / Gap */}
+                      {selectedSpeaker.idea3Challenge && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea3Challenge}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Impact */}
+                      {selectedSpeaker.idea3Impact && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea3Impact}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Scalability */}
+                      {selectedSpeaker.idea3Scalability && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                            {selectedSpeaker.idea3Scalability}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Lived Experience */}
+                      {selectedSpeaker.idea3LivedExperience && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea3LivedExperience}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea3LivedExperience === 'YES' && selectedSpeaker.idea3LivedExperienceDesc && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea3LivedExperienceDesc}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Props */}
+                      {selectedSpeaker.idea3Props && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                          <div className="col-span-1">
+                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                              {selectedSpeaker.idea3Props}
+                            </span>
+                          </div>
+                          {selectedSpeaker.idea3Props === 'YES' && selectedSpeaker.idea3PropsDetails && (
+                            <div className="col-span-2 text-xs">
+                              <span className="text-gray-400 block font-bold">Details:</span>
+                              <p className="text-gray-350">{selectedSpeaker.idea3PropsDetails}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Articles / Links */}
+                      {selectedSpeaker.idea3Articles && (
+                        <div>
+                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
+                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                            {selectedSpeaker.idea3Articles}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File Attachment */}
+                      <div className="pt-2 border-t border-gray-800/80">
+                        {selectedSpeaker.idea3File ? (
+                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
+                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea3FileName || 'attachment_3'}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => downloadBase64File(selectedSpeaker.idea3File, selectedSpeaker.idea3FileName)}
+                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <span>📥</span> Download
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
+                        )}
+                      </div>
+
+                      {/* Comments */}
+                      {selectedSpeaker.idea3Comments && (
+                        <div>
+                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
+                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
+                            "{selectedSpeaker.idea3Comments}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: Policy & Confirmations */}
+              {speakerModalTab === 'policy' && (
+                <div className="space-y-6">
+                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
+                    <h4 className="text-ted-red font-bold flex items-center gap-1.5 border-b border-gray-800 pb-3">
+                      <span>🎙️</span> Proposed Talk Details & Confirmations
+                    </h4>
+
+                    <div className="space-y-4 text-sm">
+                      {/* Proposed Title */}
+                      <div>
+                        <p className="text-gray-400 text-xs font-bold">Proposed Talk Title</p>
+                        <p className="font-semibold text-white text-base mt-0.5">{selectedSpeaker.proposedTitle || selectedSpeaker.title || 'N/A'}</p>
+                      </div>
+
+                      {/* Originality / Abstract */}
+                      <div>
+                        <p className="text-gray-400 text-xs font-bold">Originality & Abstract (Why they should share it):</p>
+                        <p className="bg-black/60 border border-gray-850 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
+                          {selectedSpeaker.proposedDescription || selectedSpeaker.abstract || 'N/A'}
+                        </p>
+                      </div>
+
+                      {/* Qualifications */}
+                      <div>
+                        <p className="text-gray-400 text-xs font-bold">Qualifications, Credentials & Achievements:</p>
+                        <p className="bg-black/60 border border-gray-850 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
+                          {selectedSpeaker.proposedQualifications || selectedSpeaker.background || 'N/A'}
+                        </p>
+                      </div>
+
+                      {/* Sample presentation/slides link */}
+                      {selectedSpeaker.sampleLink && (
+                        <div>
+                          <p className="text-gray-400 text-xs font-bold">Sample Video / Presentation / Slides Link:</p>
+                          <a
+                            href={selectedSpeaker.sampleLink.startsWith('http') ? selectedSpeaker.sampleLink : `https://${selectedSpeaker.sampleLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-ted-red hover:underline font-semibold break-all text-sm mt-1 inline-block"
+                          >
+                            🔗 {selectedSpeaker.sampleLink}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Policy and Comfort Levels */}
+                      {selectedSpeaker.policyComfort && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-800/80 pt-4">
+                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                            <span className="text-xs text-gray-400 block font-bold">Recording & Distribution:</span>
+                            <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.policyComfort}</span>
+                          </div>
+                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                            <span className="text-xs text-gray-400 block font-bold">Fact Checking & Controversy:</span>
+                            <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.factCheckingNeed}</span>
+                          </div>
+                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                            <span className="text-xs text-gray-400 block font-bold">Willingness to Modify:</span>
+                            <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.willingnessToModify}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Confirmations List */}
+                      <div className="border-t border-gray-800/80 pt-4 space-y-2.5">
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Confirmations & Alignments</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                            <span className={selectedSpeaker.soloPresentationConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
+                              {selectedSpeaker.soloPresentationConfirmed ? "✓" : "✗"}
+                            </span>
+                            <span className="text-gray-300">Solo Presentation Confirmed</span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                            <span className={selectedSpeaker.durationConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
+                              {selectedSpeaker.durationConfirmed ? "✓" : "✗"}
+                            </span>
+                            <span className="text-gray-300">
+                              Duration Limit Confirmed {selectedSpeaker.durationMinutes ? `(${selectedSpeaker.durationMinutes} min)` : ""}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                            <span className={selectedSpeaker.compliesConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
+                              {selectedSpeaker.compliesConfirmed ? "✓" : "✗"}
+                            </span>
+                            <span className="text-gray-300">Complies with TEDx Guidelines</span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                            <span className={selectedSpeaker.guidelinesAligned === 'YES' ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
+                              {selectedSpeaker.guidelinesAligned === 'YES' ? "✓" : "✗"}
+                            </span>
+                            <span className="text-gray-300">Guidelines Alignment: {selectedSpeaker.guidelinesAligned || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* How Learned */}
+                      {selectedSpeaker.howLearned && (
+                        <div className="border-t border-gray-800/80 pt-4">
+                          <p className="text-xs text-gray-400 font-bold">How did the speaker learn about TEDxKARE nominations?</p>
+                          <p className="text-white font-medium mt-1">{selectedSpeaker.howLearned}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Status Management */}
               <div className="border-t border-gray-800 pt-6">

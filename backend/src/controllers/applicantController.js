@@ -1,4 +1,5 @@
 import Applicant from '../models/Applicant.js';
+import Settings from '../models/Settings.js';
 import axios from 'axios';
 import { validationResult } from 'express-validator';
 import { getAcceptanceEmailTemplate } from '../utils/emailTemplates.js';
@@ -83,6 +84,15 @@ export const getApplicantById = async (req, res, next) => {
 // Public: Submit a new application
 export const createApplication = async (req, res, next) => {
   try {
+    // Check if registration is open
+    const settings = await Settings.findOne();
+    if (settings && !settings.teamRegistrationOpen) {
+      return res.status(403).json({
+        error: 'Registration closed',
+        message: 'Team recruitment applications are currently closed.',
+      });
+    }
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
