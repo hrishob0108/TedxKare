@@ -44,7 +44,7 @@ const domains = [
   {
     name: 'Research Team',
     icon: '🔬',
-    description: 'The Research Team supports the Selection Committee in identifying strong and meaningful speakers for TEDxKARE, part of the global TEDx initiative. This team researches speaker ideas and talk topics across different fields such as science, technology, education, innovation, business, culture, and social impact. They analyze the originality and relevance of each idea, verify facts, and ensure the content follows TEDx guidelines. The team also studies the speakers’ proposed talks, helps refine their ideas, and ensures the talks are clear, informative, and meaningful for the audience.',
+    description: <>The Research Team supports the Selection Committee in identifying strong and meaningful speakers for <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>, part of the global TEDx initiative. This team researches speaker ideas and talk topics across different fields such as science, technology, education, innovation, business, culture, and social impact. They analyze the originality and relevance of each idea, verify facts, and ensure the content follows TEDx guidelines. The team also studies the speakers’ proposed talks, helps refine their ideas, and ensures the talks are clear, informative, and meaningful for the audience.</>,
   },
 ];
 
@@ -81,13 +81,13 @@ const TeamRecruitment = () => {
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>
+            <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-300 mb-8">Join the Founding Team 2026</motion.p>
 
           <motion.p variants={itemVariants} className="text-base md:text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-            <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> is an independently organized TEDx event conducted at Kalasalingam Academy of Research and Education.
+            <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> is an independently organized TEDx event conducted at Kalasalingam Academy of Research and Education.
             It follows the ideas and format of TEDx, where speakers share powerful ideas, experiences, and innovations that can inspire students and the community.
           </motion.p>
 
@@ -100,7 +100,7 @@ const TeamRecruitment = () => {
       <section className="section bg-gradient-to-b from-transparent to-gray-900/20">
         <div className="section-title">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">Join Our Team</h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">Find the perfect domain that matches your skills and interests. Each team plays a crucial role in making <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> a success.</p>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">Find the perfect domain that matches your skills and interests. Each team plays a crucial role in making <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> a success.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
@@ -134,7 +134,7 @@ const TeamRecruitment = () => {
       <section className="section">
         <div className="bg-gradient-to-r from-ted-red/10 to-orange-500/10 rounded-2xl border border-ted-red/20 py-16 px-6 text-center flex flex-col items-center justify-center shadow-xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Make a Difference?</h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">Join <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> and help us bring inspiring ideas to our campus and beyond.</p>
+          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">Join <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> and help us bring inspiring ideas to our campus and beyond.</p>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/apply')} className="btn-primary px-8 py-4 text-lg">Start Your Application</motion.button>
         </div>
       </section>

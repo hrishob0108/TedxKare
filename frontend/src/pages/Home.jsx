@@ -32,6 +32,7 @@ const Home = () => {
   const [openFAQ, setOpenFAQ] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [activeNode, setActiveNode] = useState(null);
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
 
   // Timer to end the loader splash
   useEffect(() => {
@@ -193,13 +194,13 @@ const Home = () => {
   };
 
   const faqs = [
-    { q: <>What is <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>?</>, a: <><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> is an independently organized TED event focused on community ideas and local impact.</> },
+    { q: <>What is <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>?</>, a: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> is an independently organized TED event focused on community ideas and local impact.</> },
     { q: 'How can I join the team?', a: 'Visit the Team Recruitment page, view open domains, and submit an expression of interest.' },
     { q: 'Can I attend events without volunteering?', a: 'Yes — events are open to the public; volunteering helps deepen your experience.' },
   ];
 
   const events = [
-    { title: <><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> Spring Summit</>, date: 'June 12, 2026', location: 'KARE Main Auditorium' },
+    { title: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit</>, date: 'June 12, 2026', location: 'KARE Main Auditorium' },
   ];
 
   return (
@@ -221,20 +222,12 @@ const Home = () => {
             className="container mx-auto px-6 text-center relative z-10"
           >
             {/* Founding Cycle Pill Badge */}
-            <motion.div
-              variants={badgeVariants}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ted-red/10 border border-ted-red/30 text-ted-red text-xs font-semibold uppercase tracking-wider mb-8 shadow-lg shadow-ted-red/5"
-            >
-              <span className="w-2 h-2 rounded-full bg-ted-red animate-pulse"></span>
-              Founding Cycle 2026
-            </motion.div>
-            {/* Glowing Big Title - Scale Popout */}
             <motion.h1
               variants={titleVariants}
-              className="text-3xl xs:text-4xl sm:text-7xl md:text-8xl font-black leading-none mb-3 tracking-tighter"
+              className="text-3xl xs:text-4xl sm:text-7xl md:text-8xl leading-none mb-3 tracking-tighter"
             >
-              <span className="bg-gradient-to-r from-ted-red via-red-500 to-red-600 bg-clip-text text-transparent">TEDx</span>
-              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">KARE</span>
+              <span className="bg-gradient-to-r from-ted-red via-red-500 to-red-600 bg-clip-text text-transparent font-black">TEDx</span>
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent font-light">KARE</span>
             </motion.h1>
 
             {/* Independently Organized Event Sub-label */}
@@ -312,7 +305,7 @@ const Home = () => {
             {/* What description */}
             <div className="md:col-span-7 space-y-6 text-center md:text-left">
               <span className="text-ted-red font-bold text-xs uppercase tracking-widest block">About Us</span>
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">What is <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>?</h2>
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">What is <span className="text-ted-red">TEDx</span><span className="text-white font-light">KARE</span>?</h2>
               <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto md:mx-0">
                 An independently organized TED event series created by local changemakers to surface ideas that matter to our region. We bring together speakers, performers, volunteers, and partners to learn, connect, and take action.
               </p>
@@ -338,45 +331,29 @@ const Home = () => {
 
             {/* Sidebar Cards */}
             <div className="md:col-span-5 space-y-6">
-              {/* Event highlight glass panel */}
+              {/* Sponsor Us glass panel */}
               <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl relative overflow-hidden group hover:border-ted-red/30 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-ted-red/5 rounded-full blur-2xl group-hover:bg-ted-red/10 transition-colors pointer-events-none"></div>
-                <span className="bg-ted-red/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Next Event</span>
-                <h4 className="font-extrabold text-xl text-white">{events[0].title}</h4>
-                <p className="text-gray-400 text-sm mt-1 mb-4">{events[0].date} · {events[0].location}</p>
-
-                {/* Live Countdown Timer Widget */}
-                <div className="grid grid-cols-4 gap-1.5 mb-4 max-w-full sm:max-w-xs text-center">
-                  {[
-                    { value: timeLeft.days, label: 'Days' },
-                    { value: timeLeft.hours, label: 'Hrs' },
-                    { value: timeLeft.minutes, label: 'Min' },
-                    { value: timeLeft.seconds, label: 'Sec' }
-                  ].map((t, idx) => (
-                    <div key={idx} className="bg-black/60 border border-gray-800/80 rounded-xl p-1.5 sm:p-2 shadow-inner">
-                      <div className="text-lg font-black text-ted-red tabular-nums">
-                        {String(t.value).padStart(2, '0')}
-                      </div>
-                      <div className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{t.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4">
-                  <button
-                    onClick={() => setShowEventModal(true)}
-                    className="text-ted-red hover:text-red-500 font-bold text-sm flex items-center gap-1.5 transition-colors"
+                <span className="bg-ted-red/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider inline-block mb-3">Partner with Us</span>
+                <h4 className="font-extrabold text-xl text-white">Sponsor <span className="text-ted-red font-extrabold">TEDx</span><span className="font-light">KARE</span></h4>
+                <p className="text-gray-400 text-sm mt-2 mb-5 leading-relaxed font-light">
+                  Support ideas worth spreading. Align your brand with campus innovation and connect with student leaders, thinkers, and builders.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/sponsor"
+                    className="w-full bg-ted-red hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-lg transition-colors text-center shadow-lg shadow-ted-red/15 active:scale-[0.98] block"
                   >
-                    View Complete Schedule →
-                  </button>
+                    Become a Sponsor
+                  </Link>
                 </div>
               </div>
 
               {/* Speaker highlight glass panel */}
               <div className="p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl hover:border-ted-red/30 transition-all duration-300">
-                <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Call to Speak</span>
+                <span className="bg-red-500/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Call to Speak</span>
                 <h4 className="font-extrabold text-xl text-white">Join as a Speaker</h4>
-                <p className="text-gray-400 text-sm mt-1">Our core team is now recruited, but we actively accept speaker ideas and proposals for future cycles.</p>
+                <p className="text-gray-400 text-sm mt-1">Our core team is now recruited, but we actively accept speaker ideas and applications for future cycles.</p>
                 <div className="mt-4">
                   <Link
                     to="/apply/speaker"
@@ -403,7 +380,7 @@ const Home = () => {
             <div className="mb-12 text-center">
               <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">What We Do</span>
               <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3">
-                TEDxKARE is<span className="text-ted-red">...</span>
+                <span className="text-ted-red font-black">TEDx</span><span className="font-light">KARE</span> is<span className="text-ted-red">...</span>
               </h2>
               <p className="text-gray-400 font-light text-base md:text-lg max-w-xl mx-auto">
                 A living network of ideas, people, and possibilities.
@@ -519,6 +496,171 @@ const Home = () => {
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* ==================== UPCOMING EVENT SECTION ==================== */}
+        <motion.section
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="container mx-auto px-6 lg:px-20 py-24 border-b border-gray-950 relative overflow-hidden"
+        >
+          <div className="absolute top-1/2 left-1/4 w-[300px] h-[300px] bg-ted-red/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+          <div className="text-center mb-16">
+            <span className="text-ted-red font-bold text-xs uppercase tracking-widest block mb-2">Flagship Event</span>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3">
+              Upcoming Event
+            </h2>
+            <p className="text-gray-400 font-light text-base md:text-lg max-w-xl mx-auto">
+              Join us for an immersive experience of talks, performances, and networking.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden flex flex-col gap-8 group hover:border-ted-red/20 transition-all duration-500">
+            {/* Top Row: Details */}
+            <div className="space-y-6">
+              <div>
+                <span className="bg-ted-red/10 text-ted-red px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-block mb-3">
+                  Flagship Event 2026
+                </span>
+                <h3 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                  <span className="text-ted-red">TEDx</span><span className="font-light">KARE</span>
+                </h3>
+                <p className="text-gray-400 mt-2 font-medium">
+                  Theme: <span className="text-white font-semibold">THE BIGBANG: Where Ideas Start</span>
+                </p>
+              </div>
+
+              <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light">
+                THE BIGBANG: Where ideas Start represents the beginning of powerful ideas that can change people, industries, and the future. Every innovation, discovery, movement, and success starts from a single thought. This theme brings together diverse voices and ideas that inspire change, creativity, and new possibilities.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {["Entrepreneurship", "Science", "Universe", "Innovation", "Solutions", "Thinkers"].map((tag) => (
+                  <span key={tag} className="text-[10px] bg-gray-950 border border-gray-900 text-gray-400 px-2 py-1 rounded-md">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Middle Row: Autoplaying Video Preview (rendered big) */}
+            <div className="w-full max-w-4xl mx-auto aspect-video rounded-2xl border border-gray-800 overflow-hidden relative group/video shadow-2xl bg-black">
+              {/* Autoplaying Local Video / Poster Fallback */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none">
+                <video
+                  src="/videos/theme_promo.mp4"
+                  poster="/images/event_teaser_poster.png"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Clickable Overlay Link to Instagram Reel */}
+              <a
+                href="https://www.instagram.com/reel/DZAGVYqT_ko/?igsh=c3oxMDFhbXJoMTFy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 bg-black/35 hover:bg-black/25 transition-colors duration-300 flex flex-col justify-between p-4 cursor-pointer z-10"
+              >
+                {/* Top Badge */}
+                <div className="self-end px-2.5 py-1 bg-ted-red text-white text-[9px] font-bold uppercase tracking-wider rounded-md shadow-md shadow-ted-red/20 flex items-center gap-1 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  Live Preview
+                </div>
+
+                {/* Center play icon overlay (only visible on hover) */}
+                <div className="self-center w-14 h-14 rounded-full bg-ted-red/90 group-hover/video:bg-ted-red flex items-center justify-center shadow-lg shadow-ted-red/30 transition-all duration-300 opacity-0 group-hover/video:opacity-100 transform scale-90 group-hover/video:scale-100">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="white"
+                    className="w-7 h-7 ml-0.5"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+
+                {/* Bottom text banner */}
+                <div className="w-full text-left bg-black/75 backdrop-blur-md p-3 rounded-xl border border-gray-800/80 group-hover/video:border-ted-red/35 transition-colors duration-300">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-[9px] text-ted-red font-bold uppercase tracking-widest">Watch Full Theme Promo</p>
+                      <p className="text-xs text-gray-200 mt-0.5 font-medium"><span className="font-bold">TEDx</span><span className="font-light">KARE</span> 2026: THE BIGBANG theme video</p>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-bold bg-gray-900 border border-gray-800 px-2 py-1 rounded">
+                      Instagram Reel ↗
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            {/* Bottom Row: Date, Venue, Countdown & Buttons */}
+            <div className="space-y-6 border-t border-gray-900 pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm py-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-black border border-gray-800 flex items-center justify-center text-ted-red">
+                    📅
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider font-bold">Date & Time</p>
+                    <p className="font-semibold text-gray-200 mt-0.5">Soon · June 2026</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-black border border-gray-800 flex items-center justify-center text-ted-red">
+                    📍
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider font-bold">Venue</p>
+                    <p className="font-semibold text-gray-200 mt-0.5">Kalasalingam University</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Countdown clock */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider font-bold text-gray-500">Event Commencing In</p>
+                <div className="grid grid-cols-4 gap-2 max-w-sm text-center">
+                  {[
+                    { value: timeLeft.days, label: 'Days' },
+                    { value: timeLeft.hours, label: 'Hrs' },
+                    { value: timeLeft.minutes, label: 'Min' },
+                    { value: timeLeft.seconds, label: 'Sec' }
+                  ].map((t, idx) => (
+                    <div key={idx} className="bg-black/60 border border-gray-800/80 rounded-2xl p-2.5 shadow-inner">
+                      <div className="text-xl md:text-2xl font-black text-ted-red tabular-nums">
+                        {String(t.value).padStart(2, '0')}
+                      </div>
+                      <div className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{t.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-wrap gap-4 pt-2 items-center">
+                <button
+                  onClick={() => setShowEventModal(true)}
+                  className="px-6 py-3 bg-ted-red hover:bg-red-700 text-white font-bold rounded-lg text-sm transition-all duration-200 shadow-lg shadow-ted-red/15 active:scale-[0.98]"
+                >
+                  View Complete Schedule
+                </button>
+                <Link
+                  to="/events"
+                  className="px-6 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-white font-bold rounded-lg text-sm transition-all duration-200 flex items-center gap-2 hover:border-gray-700"
+                >
+                  Explore All Events →
+                </Link>
+              </div>
             </div>
           </div>
         </motion.section>
@@ -818,7 +960,7 @@ const Home = () => {
                   Upcoming Event Details
                 </span>
                 <h3 className="text-3xl font-extrabold mt-3 text-white">
-                  <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> Spring Summit
+                  <span className="text-ted-red">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit
                 </h3>
                 <p className="text-gray-400 mt-1">
                   Theme: <span className="text-white font-semibold">Igniting Minds, Creating Impact</span>
@@ -841,7 +983,7 @@ const Home = () => {
               <div className="mb-6">
                 <h4 className="font-bold text-lg text-white mb-2">About the Summit</h4>
                 <p className="text-gray-300 text-sm leading-relaxed font-light">
-                  Join us for an extraordinary evening of ideas worth spreading. The <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> Spring Summit features a curated lineup of thought leaders, student innovators, and changemakers sharing powerful insights across science, culture, technology, and leadership.
+                  Join us for an extraordinary evening of ideas worth spreading. The <span className="text-ted-red font-black">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit features a curated lineup of thought leaders, student innovators, and changemakers sharing powerful insights across science, culture, technology, and leadership.
                 </p>
               </div>
 
@@ -882,6 +1024,8 @@ const Home = () => {
         )}
       </AnimatePresence>
 
+
+
       {/* Cinematic Splash Loading Screen */}
       <AnimatePresence>
         {loadingScreen && (
@@ -908,9 +1052,9 @@ const Home = () => {
 
               {/* Pulsing Logo - Falling and Bouncing X between TED and KARE */}
               <motion.h1
-                className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-center flex items-center justify-center gap-1 select-none"
+                className="text-4xl sm:text-5xl md:text-7xl tracking-tighter text-center flex items-center justify-center gap-1 select-none"
               >
-                <span className="text-ted-red drop-shadow-[0_0_15px_rgba(235,0,40,0.2)]">TED</span>
+                <span className="text-ted-red drop-shadow-[0_0_15px_rgba(235,0,40,0.2)] font-black">TED</span>
                 <motion.span
                   initial={{ y: -100, scale: 0.1, opacity: 0, rotate: -180 }}
                   animate={{
@@ -925,14 +1069,14 @@ const Home = () => {
                     ease: ["easeIn", "easeOut", "easeIn", "easeOut", "easeIn", "easeOut", "easeIn"],
                     times: [0, 0.25, 0.42, 0.58, 0.72, 0.84, 0.93, 1.0]
                   }}
-                  className="text-ted-red drop-shadow-[0_0_15px_rgba(235,0,40,0.4)] inline-block origin-bottom font-bold"
+                  className="text-ted-red drop-shadow-[0_0_15px_rgba(235,0,40,0.4)] inline-block origin-bottom font-black"
                 >
                   x
                 </motion.span>
 
 
 
-                <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]">KARE</span>
+                <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.05)] font-light">KARE</span>
               </motion.h1>
 
               {/* Sleek Progress Track */}

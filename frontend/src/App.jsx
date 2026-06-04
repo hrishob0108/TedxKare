@@ -6,11 +6,13 @@ import Home from './pages/Home';
 import Apply from './pages/Apply';
 import SpeakerApply from './pages/SpeakerApply';
 import ThankYou from './pages/ThankYou';
+import SpeakerThankYou from './pages/SpeakerThankYou';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import TeamRecruitment from './pages/TeamRecruitment';
 import MeetTeam from './pages/MeetTeam';
 import Events from './pages/Events';
+import Sponsor from './pages/Sponsor';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -25,9 +27,11 @@ function App() {
         <Route path="/apply/speaker" element={<SpeakerApply />} />
         <Route path="/team-recruitment" element={<TeamRecruitment />} />
         <Route path="/thank-you" element={<ThankYou />} />
+        <Route path="/thank-you-speaker" element={<SpeakerThankYou />} />
         <Route path="/ad" element={<AdminLogin />} />
         <Route path="/meet-team" element={<MeetTeam />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/sponsor" element={<Sponsor />} />
 
 
         {/* Protected Routes */}

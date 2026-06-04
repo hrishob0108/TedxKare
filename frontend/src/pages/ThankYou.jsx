@@ -11,11 +11,11 @@ const ThankYou = () => {
     window.scrollTo(0, 0);
 
     // Auto-redirect after 8 seconds
-  const FIVE_MINUTES = 5 * 60 * 1000;
+    const FIVE_MINUTES = 5 * 60 * 1000;
 
-const timer = setTimeout(() => {
-  navigate('/');
-}, FIVE_MINUTES);
+    const timer = setTimeout(() => {
+      navigate('/');
+    }, FIVE_MINUTES);
 
     return () => clearTimeout(timer);
   }, [navigate]);
@@ -120,8 +120,8 @@ const timer = setTimeout(() => {
           variants={itemVariants}
           className="text-gray-300 text-lg mb-8 leading-relaxed"
         >
-         Your mindset is more important than anything else.
-See you soon at the interview. All the best! <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>
+          Your mindset is more important than anything else.
+          See you soon at the interview. All the best! <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>
         </motion.p>
 
         {/* What Happens Next */}
@@ -140,6 +140,10 @@ See you soon at the interview. All the best! <span className="text-ted-red">TEDx
               <span className="text-ted-red font-bold mt-1">→</span>
               <span>Join our WhatsApp group for updates: <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo</a></span>
             </li>
+            <li className="flex items-start gap-3">
+              <span className="text-ted-red font-bold mt-1">→</span>
+              <span>There are still multiple selection stages ahead, and our team will reach out to you.</span>
+            </li>
           </ul>
         </motion.div>
 
@@ -152,7 +156,7 @@ See you soon at the interview. All the best! <span className="text-ted-red">TEDx
             Back to Home
           </button>
           <button
-            onClick={() => window.open('https://linkedin.com', '_blank')}
+            onClick={() => window.open('https://www.linkedin.com/company/tedxkare/', '_blank')}
             className="btn-outline px-8 py-4 text-lg font-semibold"
           >
             Share on LinkedIn

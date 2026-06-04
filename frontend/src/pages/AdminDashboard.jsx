@@ -260,7 +260,7 @@ const AdminDashboard = () => {
 
   // Delete speaker
   const handleSpeakerDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this speaker proposal?')) return;
+    if (!window.confirm('Are you sure you want to delete this speaker application?')) return;
 
     try {
       await request(() => speakerAPI.deleteSpeaker(id));
@@ -341,8 +341,8 @@ const AdminDashboard = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="container-flex h-16 flex items-center justify-between">
           <h1 className="text-2xl font-bold">
-            <span className="text-ted-red">TEDx</span>
-            <span className="text-white">KARE Admin</span>
+            <span className="text-ted-red font-bold">TEDx</span>
+            <span className="text-white font-light">KARE Admin</span>
           </h1>
           <button onClick={handleLogout} className="btn-secondary text-sm">
             Logout
@@ -361,7 +361,7 @@ const AdminDashboard = () => {
           <div>
             <h2 className="text-3xl font-bold mb-2">Admin Dashboard</h2>
             <p className="text-gray-400">
-              View and manage all recruitment and speaker proposals. Currently showing{' '}
+              View and manage all recruitment and speaker applications. Currently showing{' '}
               <span className="text-ted-red font-semibold">
                 {activeTab === 'applicants' ? filteredApplicants.length : filteredSpeakers.length}
               </span>{' '}
@@ -400,7 +400,7 @@ const AdminDashboard = () => {
             {/* Speaker Toggle */}
             <div className="flex items-center justify-between gap-6 sm:pl-2">
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Speaker Proposals</p>
+                <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Speaker Applications</p>
                 <p className={`text-xs font-bold ${speakerRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
                   {speakerRegistrationOpen ? '🟢 Open' : '🔴 Closed'}
                 </p>
@@ -438,7 +438,7 @@ const AdminDashboard = () => {
               activeTab === 'speakers' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
             }`}
           >
-            🎙️ Speaker Proposals
+            🎙️ Speaker Applications
           </button>
         </div>
 
@@ -452,7 +452,7 @@ const AdminDashboard = () => {
           {/* Total */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card">
             <p className="text-gray-400 text-sm mb-2">
-              {activeTab === 'applicants' ? 'Total Applications' : 'Total Proposals'}
+              Total Applications
             </p>
             <p className="text-4xl font-bold text-ted-red">
               {activeTab === 'applicants' ? stats.totalApplications : speakers.length}
@@ -703,7 +703,7 @@ const AdminDashboard = () => {
               </table>
             ) : (
               <div className="flex items-center justify-center h-40">
-                <p className="text-gray-400">No speaker proposals found matching your filters</p>
+                <p className="text-gray-400">No speaker applications found matching your filters</p>
               </div>
             )
           )}
@@ -797,7 +797,7 @@ const AdminDashboard = () => {
                 <h4 className="text-ted-red font-bold mb-4">Motivation & Experience</h4>
                 <div className="space-y-4 text-sm">
                   <div>
-                    <p className="text-gray-400 mb-2">Why <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>?</p>
+                    <p className="text-gray-400 mb-2">Why <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>?</p>
                     <p className="bg-gray-800/50 p-3 rounded">{selectedApplicant.whyTedx}</p>
                   </div>
                   <div>
@@ -955,7 +955,7 @@ const AdminDashboard = () => {
             {/* Modal Header */}
             <div className="border-b border-gray-800 bg-gray-900 p-6 flex justify-between items-center shrink-0">
               <div>
-                <h3 className="text-2xl font-bold">Proposal Details</h3>
+                <h3 className="text-2xl font-bold">Application Details</h3>
                 <p className="text-xs text-gray-400 mt-1">Speaker: <span className="font-semibold text-ted-red">{selectedSpeaker.name}</span></p>
               </div>
               <button
@@ -1140,7 +1140,7 @@ const AdminDashboard = () => {
                       {/* Crux / Worth Spreading */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
                           "{selectedSpeaker.idea1WorthSpreading || selectedSpeaker.idea1Sentence || 'N/A'}"
                         </p>
                       </div>
@@ -1148,7 +1148,7 @@ const AdminDashboard = () => {
                       {/* Description */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                           {selectedSpeaker.idea1Description || selectedSpeaker.idea1DescriptionLegacy || selectedSpeaker.abstract || 'N/A'}
                         </p>
                       </div>
@@ -1157,7 +1157,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea1Relevance && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea1Relevance}
                           </p>
                         </div>
@@ -1167,7 +1167,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea1Challenge && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea1Challenge}
                           </p>
                         </div>
@@ -1177,7 +1177,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea1Impact && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea1Impact}
                           </p>
                         </div>
@@ -1187,7 +1187,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea1Scalability && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea1Scalability}
                           </p>
                         </div>
@@ -1195,17 +1195,17 @@ const AdminDashboard = () => {
 
                       {/* Lived Experience */}
                       {selectedSpeaker.idea1LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea1LivedExperience}
                             </span>
                           </div>
                           {selectedSpeaker.idea1LivedExperience === 'YES' && selectedSpeaker.idea1LivedExperienceDesc && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea1LivedExperienceDesc}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea1LivedExperienceDesc}</p>
                             </div>
                           )}
                         </div>
@@ -1213,17 +1213,17 @@ const AdminDashboard = () => {
 
                       {/* Props */}
                       {selectedSpeaker.idea1Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea1Props}
                             </span>
                           </div>
                           {selectedSpeaker.idea1Props === 'YES' && selectedSpeaker.idea1PropsDetails && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea1PropsDetails}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea1PropsDetails}</p>
                             </div>
                           )}
                         </div>
@@ -1233,7 +1233,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea1Articles && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
                             {selectedSpeaker.idea1Articles}
                           </p>
                         </div>
@@ -1295,7 +1295,7 @@ const AdminDashboard = () => {
                       {/* Crux / Worth Spreading */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
                           "{selectedSpeaker.idea2WorthSpreading || selectedSpeaker.idea2Sentence || 'N/A'}"
                         </p>
                       </div>
@@ -1303,7 +1303,7 @@ const AdminDashboard = () => {
                       {/* Description */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                           {selectedSpeaker.idea2Description || selectedSpeaker.idea2DescriptionLegacy || 'N/A'}
                         </p>
                       </div>
@@ -1312,7 +1312,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea2Relevance && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea2Relevance}
                           </p>
                         </div>
@@ -1322,7 +1322,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea2Challenge && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea2Challenge}
                           </p>
                         </div>
@@ -1332,7 +1332,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea2Impact && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea2Impact}
                           </p>
                         </div>
@@ -1342,7 +1342,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea2Scalability && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea2Scalability}
                           </p>
                         </div>
@@ -1350,17 +1350,17 @@ const AdminDashboard = () => {
 
                       {/* Lived Experience */}
                       {selectedSpeaker.idea2LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea2LivedExperience}
                             </span>
                           </div>
                           {selectedSpeaker.idea2LivedExperience === 'YES' && selectedSpeaker.idea2LivedExperienceDesc && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea2LivedExperienceDesc}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea2LivedExperienceDesc}</p>
                             </div>
                           )}
                         </div>
@@ -1368,17 +1368,17 @@ const AdminDashboard = () => {
 
                       {/* Props */}
                       {selectedSpeaker.idea2Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea2Props}
                             </span>
                           </div>
                           {selectedSpeaker.idea2Props === 'YES' && selectedSpeaker.idea2PropsDetails && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea2PropsDetails}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea2PropsDetails}</p>
                             </div>
                           )}
                         </div>
@@ -1388,7 +1388,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea2Articles && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
                             {selectedSpeaker.idea2Articles}
                           </p>
                         </div>
@@ -1450,7 +1450,7 @@ const AdminDashboard = () => {
                       {/* Crux / Worth Spreading */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850 italic">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
                           "{selectedSpeaker.idea3WorthSpreading || selectedSpeaker.idea3Sentence || 'N/A'}"
                         </p>
                       </div>
@@ -1458,7 +1458,7 @@ const AdminDashboard = () => {
                       {/* Description */}
                       <div>
                         <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                           {selectedSpeaker.idea3Description || selectedSpeaker.idea3DescriptionLegacy || 'N/A'}
                         </p>
                       </div>
@@ -1467,7 +1467,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea3Relevance && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea3Relevance}
                           </p>
                         </div>
@@ -1477,7 +1477,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea3Challenge && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea3Challenge}
                           </p>
                         </div>
@@ -1487,7 +1487,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea3Impact && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea3Impact}
                           </p>
                         </div>
@@ -1497,7 +1497,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea3Scalability && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-850">
+                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                             {selectedSpeaker.idea3Scalability}
                           </p>
                         </div>
@@ -1505,17 +1505,17 @@ const AdminDashboard = () => {
 
                       {/* Lived Experience */}
                       {selectedSpeaker.idea3LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea3LivedExperience}
                             </span>
                           </div>
                           {selectedSpeaker.idea3LivedExperience === 'YES' && selectedSpeaker.idea3LivedExperienceDesc && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea3LivedExperienceDesc}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea3LivedExperienceDesc}</p>
                             </div>
                           )}
                         </div>
@@ -1523,17 +1523,17 @@ const AdminDashboard = () => {
 
                       {/* Props */}
                       {selectedSpeaker.idea3Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-850 p-3 rounded-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
                           <div className="col-span-1">
                             <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-850 text-gray-400'}`}>
+                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
                               {selectedSpeaker.idea3Props}
                             </span>
                           </div>
                           {selectedSpeaker.idea3Props === 'YES' && selectedSpeaker.idea3PropsDetails && (
                             <div className="col-span-2 text-xs">
                               <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-350">{selectedSpeaker.idea3PropsDetails}</p>
+                              <p className="text-gray-300">{selectedSpeaker.idea3PropsDetails}</p>
                             </div>
                           )}
                         </div>
@@ -1543,7 +1543,7 @@ const AdminDashboard = () => {
                       {selectedSpeaker.idea3Articles && (
                         <div>
                           <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-350 whitespace-pre-line bg-black/40 border border-gray-850 p-3 rounded-xl text-xs leading-relaxed">
+                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
                             {selectedSpeaker.idea3Articles}
                           </p>
                         </div>
@@ -1602,7 +1602,7 @@ const AdminDashboard = () => {
                       {/* Originality / Abstract */}
                       <div>
                         <p className="text-gray-400 text-xs font-bold">Originality & Abstract (Why they should share it):</p>
-                        <p className="bg-black/60 border border-gray-850 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
+                        <p className="bg-black/60 border border-gray-800 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
                           {selectedSpeaker.proposedDescription || selectedSpeaker.abstract || 'N/A'}
                         </p>
                       </div>
@@ -1610,7 +1610,7 @@ const AdminDashboard = () => {
                       {/* Qualifications */}
                       <div>
                         <p className="text-gray-400 text-xs font-bold">Qualifications, Credentials & Achievements:</p>
-                        <p className="bg-black/60 border border-gray-850 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
+                        <p className="bg-black/60 border border-gray-800 p-3 rounded-xl text-gray-300 mt-1 leading-relaxed">
                           {selectedSpeaker.proposedQualifications || selectedSpeaker.background || 'N/A'}
                         </p>
                       </div>
@@ -1633,15 +1633,15 @@ const AdminDashboard = () => {
                       {/* Policy and Comfort Levels */}
                       {selectedSpeaker.policyComfort && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-800/80 pt-4">
-                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                          <div className="bg-black/30 border border-gray-800 p-3.5 rounded-xl">
                             <span className="text-xs text-gray-400 block font-bold">Recording & Distribution:</span>
                             <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.policyComfort}</span>
                           </div>
-                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                          <div className="bg-black/30 border border-gray-800 p-3.5 rounded-xl">
                             <span className="text-xs text-gray-400 block font-bold">Fact Checking & Controversy:</span>
                             <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.factCheckingNeed}</span>
                           </div>
-                          <div className="bg-black/30 border border-gray-850 p-3.5 rounded-xl">
+                          <div className="bg-black/30 border border-gray-800 p-3.5 rounded-xl">
                             <span className="text-xs text-gray-400 block font-bold">Willingness to Modify:</span>
                             <span className="text-sm font-semibold text-white block mt-1">{selectedSpeaker.willingnessToModify}</span>
                           </div>
@@ -1652,13 +1652,13 @@ const AdminDashboard = () => {
                       <div className="border-t border-gray-800/80 pt-4 space-y-2.5">
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Confirmations & Alignments</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-800">
                             <span className={selectedSpeaker.soloPresentationConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
                               {selectedSpeaker.soloPresentationConfirmed ? "✓" : "✗"}
                             </span>
                             <span className="text-gray-300">Solo Presentation Confirmed</span>
                           </div>
-                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-800">
                             <span className={selectedSpeaker.durationConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
                               {selectedSpeaker.durationConfirmed ? "✓" : "✗"}
                             </span>
@@ -1666,13 +1666,13 @@ const AdminDashboard = () => {
                               Duration Limit Confirmed {selectedSpeaker.durationMinutes ? `(${selectedSpeaker.durationMinutes} min)` : ""}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-800">
                             <span className={selectedSpeaker.compliesConfirmed ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
                               {selectedSpeaker.compliesConfirmed ? "✓" : "✗"}
                             </span>
                             <span className="text-gray-300">Complies with TEDx Guidelines</span>
                           </div>
-                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-850">
+                          <div className="flex items-center gap-2 bg-black/20 p-2.5 rounded-lg border border-gray-800">
                             <span className={selectedSpeaker.guidelinesAligned === 'YES' ? "text-green-500 font-bold text-base" : "text-gray-500 text-base"}>
                               {selectedSpeaker.guidelinesAligned === 'YES' ? "✓" : "✗"}
                             </span>
@@ -1724,7 +1724,7 @@ const AdminDashboard = () => {
                 onClick={() => handleSpeakerDelete(selectedSpeaker._id)}
                 className="w-full px-4 py-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-900/40 transition-colors font-semibold"
               >
-                Delete Proposal
+                Delete Application
               </button>
             </div>
           </motion.div>

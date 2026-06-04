@@ -34,13 +34,14 @@ const Navbar = () => {
   const isSpeakerPage = location.pathname.startsWith('/apply/speaker');
   const isMeetTeamPage = location.pathname.startsWith('/meet-team');
   const isEventsPage = location.pathname.startsWith('/events');
+  const isSponsorPage = location.pathname.startsWith('/sponsor');
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800">
       <div className="container-flex w-full flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Home" className="flex items-center">
-            <h1 className="text-lg sm:text-2xl font-bold"><span className="text-ted-red">TEDx</span><span className="text-white">KARE</span></h1>
+            <h1 className="text-lg sm:text-2xl"><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span></h1>
           </button>
         </div>
 
@@ -52,15 +53,18 @@ const Navbar = () => {
           {!isSpeakerPage && (
             <NavLink to="/apply/speaker" className="btn-secondary text-sm px-3 py-2">Join as Speaker</NavLink>
           )}
-           {!isEventsPage && (
+          {!isEventsPage && (
             <NavLink to="/events" className="btn-secondary text-sm px-3 py-2">Events</NavLink>
           )}
           {!isMeetTeamPage && (
             <NavLink to="/meet-team" className="btn-secondary text-sm px-3 py-2">Meet Our Team</NavLink>
           )}
-          
+
           {!isTeamPage && (
             <NavLink to="/team-recruitment" className="btn-secondary text-sm px-3 py-2">Join Team</NavLink>
+          )}
+          {!isSponsorPage && (
+            <NavLink to="/sponsor" className="btn-secondary text-sm px-3 py-2">Sponsor Us</NavLink>
           )}
           <button ref={helpButtonRef} onClick={() => setIsHelpOpen((s) => !s)} aria-expanded={isHelpOpen} aria-controls="help-popup" className="btn-primary text-sm">Help</button>
 
@@ -125,6 +129,9 @@ const Navbar = () => {
             )}
             {!isTeamPage && (
               <NavLink to="/team-recruitment" onClick={() => setMobileOpen(false)} className="block text-lg font-medium">Join Team</NavLink>
+            )}
+            {!isSponsorPage && (
+              <NavLink to="/sponsor" onClick={() => setMobileOpen(false)} className="block text-lg font-medium">Sponsor Us</NavLink>
             )}
             <button onClick={() => { setIsHelpOpen((s) => !s); }} className="block btn-primary w-full text-left">Help</button>
 
