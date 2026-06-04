@@ -74,7 +74,7 @@ const AdminLogin = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-2">
-            <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span>
+            <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>
           </h1>
           <p className="text-gray-400">Admin Dashboard</p>
         </motion.div>
@@ -181,7 +181,7 @@ const AdminLogin = () => {
 
         {/* Footer */}
         <motion.p variants={itemVariants} className="text-center text-gray-400 text-xs mt-8">
-          This dashboard is for authorized <span className="text-ted-red">TEDx</span><span className="text-white">KARE</span> team members only.
+          This dashboard is for authorized <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> team members only.
         </motion.p>
       </motion.div>
     </div>

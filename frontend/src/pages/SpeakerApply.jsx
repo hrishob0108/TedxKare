@@ -15,9 +15,7 @@ const SpeakerApply = () => {
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   
-  // Custom states to decide if user wants to submit optional ideas
-  const [hasIdea2, setHasIdea2] = useState(false);
-  const [hasIdea3, setHasIdea3] = useState(false);
+  // Section states
   const [validationError, setValidationError] = useState('');
 
   // Scroll to top on step changes or page load
@@ -234,7 +232,7 @@ const SpeakerApply = () => {
       }
     }
 
-    if (currentStep === 2 && hasIdea2) {
+    if (currentStep === 2) {
       if (!form.values.whySpeak2.trim()) {
         form.setFieldError('whySpeak2', 'Please explain why the speaker should speak for this idea');
         isValid = false;
@@ -285,7 +283,7 @@ const SpeakerApply = () => {
       }
     }
 
-    if (currentStep === 3 && hasIdea3) {
+    if (currentStep === 3) {
       if (!form.values.whySpeak3.trim()) {
         form.setFieldError('whySpeak3', 'Please explain why the speaker should speak for this idea');
         isValid = false;
@@ -407,24 +405,13 @@ const SpeakerApply = () => {
 
     setValidationError('');
 
-    // Clean up optional fields if not submitted
     const submitValues = { ...values };
-    if (!hasIdea2) {
-      Object.keys(submitValues).forEach((key) => {
-        if (key.startsWith('idea2') || key === 'whySpeak2') submitValues[key] = '';
-      });
-    }
-    if (!hasIdea3) {
-      Object.keys(submitValues).forEach((key) => {
-        if (key.startsWith('idea3') || key === 'whySpeak3') submitValues[key] = '';
-      });
-    }
 
     try {
       await request(() => speakerAPI.submitSpeaker(submitValues));
       setSubmitSuccess(true);
       setTimeout(() => {
-        navigate('/thank-you');
+        navigate('/thank-you-speaker');
       }, 1500);
     } catch (err) {
       if (err.response?.status === 400 && err.response?.data?.details) {
@@ -435,10 +422,10 @@ const SpeakerApply = () => {
         form.setErrors(fieldErrors);
         setValidationError('Some fields in your submission did not pass server validations.');
       } else {
-        setValidationError(err.response?.data?.message || 'An error occurred during proposal submission.');
+        setValidationError(err.response?.data?.message || 'An error occurred during application submission.');
       }
       window.scrollTo(0, 0);
-      console.error('Error submitting proposal:', err);
+      console.error('Error submitting application:', err);
     }
   };
 
@@ -479,10 +466,10 @@ const SpeakerApply = () => {
             <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">⏳</span>
             </div>
-            <h2 className="text-3xl font-bold mb-4 text-white">Proposals Closed</h2>
+            <h2 className="text-3xl font-bold mb-4 text-white">Applications Closed</h2>
             <p className="text-gray-400 mb-8 text-sm leading-relaxed">
-              Thank you for your interest in presenting at <span className="text-ted-red font-semibold">TEDx</span><span className="text-white font-semibold">KARE</span>. 
-              The speaker proposal portal is currently closed for this cycle. Stay tuned to our community channels for future speaker opportunities!
+              Thank you for your interest in presenting at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>. 
+              The speaker application portal is currently closed for this cycle. Stay tuned to our community channels for future speaker opportunities!
             </p>
             <button
               onClick={() => navigate('/')}
@@ -530,8 +517,8 @@ const SpeakerApply = () => {
         {/* Success / Error Alerts */}
         {submitSuccess && (
           <div className="mb-8 p-6 bg-green-950/30 border border-green-500/30 rounded-2xl text-green-300 text-center shadow-lg">
-            <p className="font-semibold text-lg flex items-center justify-center gap-2">✓ Proposal submitted successfully!</p>
-            <p className="text-xs text-green-400/80 mt-1">Redirecting to candidate thank-you page...</p>
+            <p className="font-semibold text-lg flex items-center justify-center gap-2">✓ Application submitted successfully!</p>
+            <p className="text-xs text-green-400/80 mt-1">Redirecting to speaker thank-you page...</p>
           </div>
         )}
 
@@ -551,10 +538,10 @@ const SpeakerApply = () => {
             🎤 Speaker Nomination & Selection Form
           </span>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-            Apply to Speak at <span className="text-ted-red">TEDx</span>KARE
+            Apply to Speak at <span className="text-ted-red font-bold">TEDx</span><span className="font-light">KARE</span>
           </h1>
           <p className="text-gray-400 text-xs md:text-sm max-w-2xl mx-auto font-light leading-relaxed">
-            “Thank you for contributing to TEDxKARE Speaker Nominations. This form is designed to identify individuals with powerful ideas, inspiring experiences, and meaningful impact worth sharing on the TEDxKARE stage.”
+            “Thank you for contributing to <span className="text-ted-red font-semibold">TEDx</span><span className="text-white font-light">KARE</span> Speaker Nominations. This form is designed to identify individuals with powerful ideas, inspiring experiences, and meaningful impact worth sharing on the <span className="text-ted-red font-semibold">TEDx</span><span className="text-white font-light">KARE</span> stage.”
           </p>
         </div>
 
@@ -562,8 +549,8 @@ const SpeakerApply = () => {
         <div className="mb-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between text-xs text-gray-500 font-semibold mb-2 px-1">
             <span className={step === 1 ? "text-ted-red" : ""}>1. Profile & Idea 1</span>
-            <span className={step === 2 ? "text-ted-red" : ""}>2. Idea 2 (Opt)</span>
-            <span className={step === 3 ? "text-ted-red" : ""}>3. Idea 3 (Opt)</span>
+            <span className={step === 2 ? "text-ted-red" : ""}>2. Idea 2</span>
+            <span className={step === 3 ? "text-ted-red" : ""}>3. Idea 3</span>
             <span className={step === 4 ? "text-ted-red" : ""}>4. Policy Checks</span>
           </div>
           <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
@@ -727,7 +714,7 @@ const SpeakerApply = () => {
 
                 {/* Why believe should speak */}
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at TEDxKARE? *</label>
+                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
                   <textarea
                     name="whySpeak1"
                     placeholder="Describe their speaking capabilities, unique background, and core alignment..."
@@ -979,7 +966,7 @@ const SpeakerApply = () => {
 
                   {/* Comments */}
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the TEDxKARE Selection Committee?</label>
+                    <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
                     <textarea
                       name="idea1Comments"
                       placeholder="Add any extra comments here..."
@@ -1014,50 +1001,12 @@ const SpeakerApply = () => {
               >
                 <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
                   <span className="flex items-center gap-2"><span>💡</span> Section 2: Second Idea Evaluation</span>
-                  <label className="inline-flex items-center gap-2 cursor-pointer bg-black/40 px-3 py-1.5 rounded-lg border border-gray-800 text-xs text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={hasIdea2}
-                      onChange={(e) => {
-                        const val = e.target.checked;
-                        setHasIdea2(val);
-                        if (!val) {
-                          form.setFieldError('whySpeak2', '');
-                          form.setFieldError('idea2Title', '');
-                          form.setFieldError('idea2Description', '');
-                          form.setFieldError('idea2Domain', '');
-                          form.setFieldError('idea2WorthSpreading', '');
-                          form.setFieldError('idea2Relevance', '');
-                          form.setFieldError('idea2Challenge', '');
-                          form.setFieldError('idea2Impact', '');
-                          form.setFieldError('idea2Scalability', '');
-                          form.setFieldError('idea2LivedExperienceDesc', '');
-                          form.setFieldError('idea2PropsDetails', '');
-                          form.setFieldError('idea2Articles', '');
-                        }
-                      }}
-                      className="rounded accent-ted-red"
-                    />
-                    Submit a 2nd Idea
-                  </label>
                 </h2>
 
-                {!hasIdea2 ? (
-                  <div className="text-center py-16 space-y-3 bg-black/10 border border-dashed border-gray-800 rounded-xl">
-                    <p className="text-gray-400 text-sm">Would you like to propose a second alternative talk topic?</p>
-                    <button
-                      type="button"
-                      onClick={() => setHasIdea2(true)}
-                      className="px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-white font-bold rounded-lg text-xs transition-colors"
-                    >
-                      Propose Second Idea
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
+                <div className="space-y-5">
                     {/* Why believe should speak for Idea 2 */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at TEDxKARE? *</label>
+                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
                       <textarea
                         name="whySpeak2"
                         placeholder="Describe their alignment regarding this specific second idea..."
@@ -1306,7 +1255,7 @@ const SpeakerApply = () => {
 
                     {/* Comments */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the TEDxKARE Selection Committee?</label>
+                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
                       <textarea
                         name="idea2Comments"
                         placeholder="Add any extra comments here..."
@@ -1317,7 +1266,6 @@ const SpeakerApply = () => {
                       />
                     </div>
                   </div>
-                )}
 
                 <div className="flex items-center justify-between pt-4">
                   <button
@@ -1349,50 +1297,12 @@ const SpeakerApply = () => {
               >
                 <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
                   <span className="flex items-center gap-2"><span>💡</span> Section 3: Third Idea Evaluation</span>
-                  <label className="inline-flex items-center gap-2 cursor-pointer bg-black/40 px-3 py-1.5 rounded-lg border border-gray-800 text-xs text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={hasIdea3}
-                      onChange={(e) => {
-                        const val = e.target.checked;
-                        setHasIdea3(val);
-                        if (!val) {
-                          form.setFieldError('whySpeak3', '');
-                          form.setFieldError('idea3Title', '');
-                          form.setFieldError('idea3Description', '');
-                          form.setFieldError('idea3Domain', '');
-                          form.setFieldError('idea3WorthSpreading', '');
-                          form.setFieldError('idea3Relevance', '');
-                          form.setFieldError('idea3Challenge', '');
-                          form.setFieldError('idea3Impact', '');
-                          form.setFieldError('idea3Scalability', '');
-                          form.setFieldError('idea3LivedExperienceDesc', '');
-                          form.setFieldError('idea3PropsDetails', '');
-                          form.setFieldError('idea3Articles', '');
-                        }
-                      }}
-                      className="rounded accent-ted-red"
-                    />
-                    Submit a 3rd Idea
-                  </label>
                 </h2>
 
-                {!hasIdea3 ? (
-                  <div className="text-center py-16 space-y-3 bg-black/10 border border-dashed border-gray-800 rounded-xl">
-                    <p className="text-gray-400 text-sm">Would you like to propose a third alternative talk topic?</p>
-                    <button
-                      type="button"
-                      onClick={() => setHasIdea3(true)}
-                      className="px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-white font-bold rounded-lg text-xs transition-colors"
-                    >
-                      Propose Third Idea
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
+                <div className="space-y-5">
                     {/* Why believe should speak for Idea 3 */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at TEDxKARE? *</label>
+                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
                       <textarea
                         name="whySpeak3"
                         placeholder="Describe their alignment regarding this specific third idea..."
@@ -1641,7 +1551,7 @@ const SpeakerApply = () => {
 
                     {/* Comments */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the TEDxKARE Selection Committee?</label>
+                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
                       <textarea
                         name="idea3Comments"
                         placeholder="Add any extra comments here..."
@@ -1652,7 +1562,6 @@ const SpeakerApply = () => {
                       />
                     </div>
                   </div>
-                )}
 
                 <div className="flex items-center justify-between pt-4">
                   <button
@@ -1804,7 +1713,7 @@ const SpeakerApply = () => {
 
                     {/* How Learned */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold block">How did you learn about TEDxKARE? *</label>
+                       <label className="text-xs text-gray-300 font-light block">How did you learn about <span className="text-ted-red font-bold">TEDx</span><span className="text-gray-300 font-light">KARE</span>? *</label>
                       <input
                         type="text"
                         name="howLearned"
@@ -1889,7 +1798,7 @@ const SpeakerApply = () => {
                     {loading ? (
                       <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
                     ) : (
-                      <>Submit Proposal <span>✓</span></>
+                      <>Submit Application <span>✓</span></>
                     )}
                   </button>
                 </div>
