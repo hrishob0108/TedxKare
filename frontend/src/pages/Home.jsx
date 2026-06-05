@@ -214,7 +214,7 @@ const Home = () => {
 
       <main className="pt-20 relative z-10">
         {/* ==================== HERO SECTION (Cinematic Entry) ==================== */}
-        <section className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center border-b border-gray-900 bg-gradient-to-b from-gray-950/20 to-black pt-20 pb-36">
+        <section className="relative min-h-[calc(100dvh-5rem)] overflow-hidden flex flex-col items-center justify-center border-b border-gray-900 bg-gradient-to-b from-gray-950/20 to-black pt-8 pb-20 sm:pt-20 sm:pb-36">
           <motion.div
             variants={heroContainerVariants}
             initial="hidden"
@@ -233,7 +233,7 @@ const Home = () => {
             {/* Independently Organized Event Sub-label */}
             <motion.p
               variants={subtitleVariants}
-              className="text-xs sm:text-sm md:text-base text-white font-medium mb-8 select-none"
+              className="text-xs sm:text-sm md:text-base text-white font-medium mb-6 sm:mb-8 select-none"
             >
               <span className="text-ted-red font-bold">x</span> = An independently organized TED event
             </motion.p>
@@ -241,54 +241,56 @@ const Home = () => {
             {/* Elegant Subtitle */}
             <motion.p
               variants={subtitleVariants}
-              className="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-light px-4"
+              className="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed font-light px-4"
             >
               A premium space where student changemakers, innovators, and leaders collaborate to bring <span className="text-white font-medium">Ideas Worth Spreading</span> to life.
             </motion.p>
           </motion.div>
 
           {/* Bouncing Scroll Down indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={
-              loadingScreen
-                ? { opacity: 0, y: 25 }
-                : hasScrolled
-                  ? { opacity: 0, y: -20, pointerEvents: 'none' }
-                  : { opacity: 1, y: 0 }
-            }
-            transition={
-              hasScrolled
-                ? { duration: 0.4, ease: "easeInOut" }
-                : window.__hasLoadedBefore
-                  ? { duration: 0.5 }
-                  : { delay: 0.9, duration: 0.8 }
-            }
-            className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2.5 cursor-pointer group z-20"
-            onClick={() => {
-              document.getElementById('what-is-tedx')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold group-hover:text-ted-red transition-colors duration-300">
-              Scroll Down
-            </span>
+          <div className="absolute bottom-6 sm:bottom-12 md:bottom-20 left-0 right-0 flex justify-center z-20 pointer-events-none">
             <motion.div
-              animate={{
-                y: [0, 10, 2, 10, 0],
-                scaleY: [1, 0.9, 1.05, 0.92, 1],
+              initial={{ opacity: 0, y: 25 }}
+              animate={
+                loadingScreen
+                  ? { opacity: 0, y: 25 }
+                  : hasScrolled
+                    ? { opacity: 0, y: -20, pointerEvents: 'none' }
+                    : { opacity: 1, y: 0 }
+              }
+              transition={
+                hasScrolled
+                  ? { duration: 0.4, ease: "easeInOut" }
+                  : window.__hasLoadedBefore
+                    ? { duration: 0.5 }
+                    : { delay: 0.9, duration: 0.8 }
+              }
+              className="flex flex-col items-center gap-2 cursor-pointer group pointer-events-auto"
+              onClick={() => {
+                document.getElementById('what-is-tedx')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              transition={{
-                repeat: Infinity,
-                duration: 2.2,
-                ease: "easeInOut"
-              }}
-              className="w-9 h-9 rounded-full border border-gray-800/80 flex items-center justify-center text-gray-400 group-hover:border-ted-red/60 group-hover:text-white transition-all duration-300 shadow-lg shadow-black/20 bg-black/40 backdrop-blur-sm group-hover:shadow-ted-red/10"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 transition-transform group-hover:translate-y-0.5 duration-300">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold group-hover:text-ted-red transition-colors duration-300">
+                Scroll Down
+              </span>
+              <motion.div
+                animate={{
+                  y: [0, 10, 2, 10, 0],
+                  scaleY: [1, 0.9, 1.05, 0.92, 1],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.2,
+                  ease: "easeInOut"
+                }}
+                className="w-9 h-9 rounded-full border border-gray-800/80 flex items-center justify-center text-gray-400 group-hover:border-ted-red/60 group-hover:text-white transition-all duration-300 shadow-lg shadow-black/20 bg-black/40 backdrop-blur-sm group-hover:shadow-ted-red/10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 transition-transform group-hover:translate-y-0.5 duration-300">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </div>
         </section>
 
 
@@ -350,14 +352,17 @@ const Home = () => {
               </div>
 
               {/* Speaker highlight glass panel */}
-              <div className="p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl hover:border-ted-red/30 transition-all duration-300">
+              <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-900/40 to-black/20 rounded-2xl border border-gray-800/80 shadow-2xl relative overflow-hidden group hover:border-ted-red/30 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-ted-red/5 rounded-full blur-2xl group-hover:bg-ted-red/10 transition-colors pointer-events-none"></div>
                 <span className="bg-red-500/10 text-ted-red px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest inline-block mb-3">Call to Speak</span>
                 <h4 className="font-extrabold text-xl text-white">Join as a Speaker</h4>
-                <p className="text-gray-400 text-sm mt-1">Our core team is now recruited, but we actively accept speaker ideas and applications for future cycles.</p>
-                <div className="mt-4">
+                <p className="text-gray-400 text-sm mt-2 mb-5 leading-relaxed font-light">
+                  Our core team is now recruited, but we actively accept speaker ideas and applications for future cycles.
+                </p>
+                <div className="flex flex-col gap-2">
                   <Link
                     to="/apply/speaker"
-                    className="inline-block bg-ted-red hover:bg-black/90 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors"
+                    className="w-full bg-ted-red hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-lg transition-colors text-center shadow-lg shadow-ted-red/15 active:scale-[0.98] block"
                   >
                     Apply to Speak
                   </Link>
@@ -549,59 +554,63 @@ const Home = () => {
             </div>
 
             {/* Middle Row: Autoplaying Video Preview (rendered big) */}
-            <div className="w-full max-w-4xl mx-auto aspect-video rounded-2xl border border-gray-800 overflow-hidden relative group/video shadow-2xl bg-black">
-              {/* Autoplaying Local Video / Poster Fallback */}
-              <div className="absolute inset-0 w-full h-full pointer-events-none">
-                <video
-                  src="/videos/theme_promo.mp4"
-                  poster="/images/event_teaser_poster.png"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <a
+              href="https://www.instagram.com/reel/DZAGVYqT_ko/?igsh=c3oxMDFhbXJoMTFy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full max-w-4xl mx-auto flex flex-col sm:relative sm:block rounded-2xl border border-gray-800 overflow-hidden group/video shadow-2xl bg-black cursor-pointer"
+            >
+              {/* Video Wrapper */}
+              <div className="relative w-full aspect-video overflow-hidden">
+                {/* Autoplaying Local Video / Poster Fallback */}
+                <div className="absolute inset-0 w-full h-full pointer-events-none">
+                  <video
+                    src="/videos/theme_promo.mp4"
+                    poster="/images/event_teaser_poster.png"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-              {/* Clickable Overlay Link to Instagram Reel */}
-              <a
-                href="https://www.instagram.com/reel/DZAGVYqT_ko/?igsh=c3oxMDFhbXJoMTFy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute inset-0 bg-black/35 hover:bg-black/25 transition-colors duration-300 flex flex-col justify-between p-4 cursor-pointer z-10"
-              >
-                {/* Top Badge */}
-                <div className="self-end px-2.5 py-1 bg-ted-red text-white text-[9px] font-bold uppercase tracking-wider rounded-md shadow-md shadow-ted-red/20 flex items-center gap-1 animate-pulse">
+                {/* Live Preview Badge */}
+                <div className="absolute top-3 right-3 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-ted-red text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-md shadow-md shadow-ted-red/20 flex items-center gap-1 animate-pulse z-20">
                   <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                   Live Preview
                 </div>
 
-                {/* Center play icon overlay (only visible on hover) */}
-                <div className="self-center w-14 h-14 rounded-full bg-ted-red/90 group-hover/video:bg-ted-red flex items-center justify-center shadow-lg shadow-ted-red/30 transition-all duration-300 opacity-0 group-hover/video:opacity-100 transform scale-90 group-hover/video:scale-100">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    className="w-7 h-7 ml-0.5"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-
-                {/* Bottom text banner */}
-                <div className="w-full text-left bg-black/75 backdrop-blur-md p-3 rounded-xl border border-gray-800/80 group-hover/video:border-ted-red/35 transition-colors duration-300">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[9px] text-ted-red font-bold uppercase tracking-widest">Watch Full Theme Promo</p>
-                      <p className="text-xs text-gray-200 mt-0.5 font-medium"><span className="font-bold">TEDx</span><span className="font-light">KARE</span> 2026: THE BIGBANG theme video</p>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-bold bg-gray-900 border border-gray-800 px-2 py-1 rounded">
-                      Instagram Reel ↗
-                    </span>
+                {/* Center play icon overlay (only visible on hover/focus on desktop) */}
+                <div className="absolute inset-0 bg-black/25 hover:bg-black/15 transition-colors duration-300 flex items-center justify-center z-10">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-ted-red/90 group-hover/video:bg-ted-red flex items-center justify-center shadow-lg shadow-ted-red/30 transition-all duration-300 opacity-0 group-hover/video:opacity-100 transform scale-90 group-hover/video:scale-100">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      className="w-5 h-5 sm:w-7 sm:h-7 ml-0.5"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
                   </div>
                 </div>
-              </a>
-            </div>
+              </div>
+
+              {/* Bottom text banner: absolute overlay on desktop, normal flow below video on mobile */}
+              <div className="w-full text-left bg-black/90 sm:bg-black/75 sm:backdrop-blur-md p-3 sm:absolute sm:bottom-4 sm:left-4 sm:right-4 sm:w-[calc(100%-2rem)] sm:rounded-xl border-t sm:border border-gray-800/80 group-hover/video:border-ted-red/35 transition-colors duration-300 z-20">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-[8px] sm:text-[9px] text-ted-red font-bold uppercase tracking-widest">Watch Full Theme Promo</p>
+                    <p className="text-[10px] sm:text-xs text-gray-200 mt-0.5 font-medium">
+                      <span className="font-bold">TEDx</span><span className="font-light">KARE</span> 2026: THE BIGBANG theme video
+                    </p>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold bg-gray-900 border border-gray-800 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded whitespace-nowrap">
+                    Instagram Reel ↗
+                  </span>
+                </div>
+              </div>
+            </a>
 
             {/* Bottom Row: Date, Venue, Countdown & Buttons */}
             <div className="space-y-6 border-t border-gray-900 pt-6">
