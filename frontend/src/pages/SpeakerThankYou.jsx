@@ -129,13 +129,13 @@ const SpeakerThankYou = () => {
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
               <div>
-                <strong className="text-white">Application Review:</strong> The Curation Team will carefully review your proposed talk title, abstract, and category alignment.
+                <strong className="text-white">Application Review:</strong> The Selection Committee will carefully review your proposed talk title, abstract, and category alignment.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
               <div>
-                <strong className="text-white">Screening & Pitch:</strong> Shortlisted speakers will be invited to present a brief 3-5 minute preview pitch of their talk concept.
+                <strong className="text-white">Upcoming Stages:</strong> There are still multiple evaluation stages ahead, and our team will reach out to you.
               </div>
             </li>
             <li className="flex items-start gap-3">
@@ -148,12 +148,6 @@ const SpeakerThankYou = () => {
               <span className="text-ted-red font-bold mt-1">→</span>
               <div>
                 <strong className="text-white">WhatsApp Group:</strong> Join our WhatsApp group for updates: <a href="https://chat.whatsapp.com/EV8QJSVNZDPLOqyZcQtmnz" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">https://chat.whatsapp.com/EV8QJSVNZDPLOqyZcQtmnz</a>
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <div>
-                <strong className="text-white">Upcoming Stages:</strong> There are still multiple evaluation stages ahead, and our team will reach out to you.
               </div>
             </li>
           </ul>
