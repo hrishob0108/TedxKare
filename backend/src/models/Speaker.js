@@ -13,6 +13,13 @@ const speakerSchema = new mongoose.Schema(
     linkedin: { type: String, required: true, trim: true },
     additionalLinks: { type: String, trim: true },
     
+    // --- SECTION 2: Nominator Information (Only if not self-nominated) ---
+    nominatorName: { type: String, trim: true },
+    nominatorEmail: { type: String, trim: true, lowercase: true },
+    nominatorPhone: { type: String, trim: true },
+    nominatorOrganization: { type: String, trim: true },
+    nominatorRelationship: { type: String, trim: true },
+    
     // --- IDEA 1 (Required) ---
     whySpeak1: { type: String, required: true, trim: true },
     idea1Title: { type: String, required: true, trim: true },

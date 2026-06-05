@@ -26,6 +26,13 @@ const speakerValidation = [
   body('location').trim().notEmpty().withMessage('Location is required'),
   body('linkedin').trim().isURL().withMessage('Valid LinkedIn URL is required'),
   
+  // --- Nominator Information (Conditional: only validated if selfNomination is 'No, I am nominating another individual.') ---
+  body('nominatorName').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Nominator Name is required'),
+  body('nominatorEmail').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().isEmail().withMessage('Valid nominator email address is required'),
+  body('nominatorPhone').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Nominator phone number is required'),
+  body('nominatorOrganization').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Nominator organization name is required'),
+  body('nominatorRelationship').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Relationship with speaker is required'),
+  
   // --- Idea 1 (Required) ---
   body('whySpeak1').trim().notEmpty().withMessage('Explanation of why this speaker should speak is required'),
   body('idea1Title').trim().notEmpty().withMessage('Idea 1 Title is required'),

@@ -49,6 +49,13 @@ const SpeakerApply = () => {
     linkedin: '',
     additionalLinks: '',
     
+    // --- SECTION 1B: Nominator Information (Conditional) ---
+    nominatorName: '',
+    nominatorEmail: '',
+    nominatorPhone: '',
+    nominatorOrganization: '',
+    nominatorRelationship: '',
+    
     // --- IDEA 1 (Required) ---
     whySpeak1: '',
     idea1Title: '',
@@ -146,11 +153,13 @@ const SpeakerApply = () => {
   };
 
   // Client-side validations for each step
-  const validateStep = (currentStep) => {
+  const validateStep = (currentStepNum) => {
+    const activeStepConfig = stepsList[currentStepNum - 1] || {};
+    const stepKey = activeStepConfig.key;
     let isValid = true;
     form.setErrors({});
 
-    if (currentStep === 1) {
+    if (stepKey === 'profile') {
       // Validate profile
       if (!form.values.name.trim() || form.values.name.trim().length < 2) {
         form.setFieldError('name', 'Full Name is required (min 2 characters)');
@@ -182,6 +191,34 @@ const SpeakerApply = () => {
         form.setFieldError('linkedin', 'Valid LinkedIn profile URL is required');
         isValid = false;
       }
+    }
+
+    if (stepKey === 'nominator') {
+      // Validate nominator details
+      if (!form.values.nominatorName.trim()) {
+        form.setFieldError('nominatorName', 'Nominator Full Name is required');
+        isValid = false;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.values.nominatorEmail)) {
+        form.setFieldError('nominatorEmail', 'Valid nominator email address is required');
+        isValid = false;
+      }
+      if (!form.values.nominatorPhone.trim()) {
+        form.setFieldError('nominatorPhone', 'Nominator phone number is required');
+        isValid = false;
+      }
+      if (!form.values.nominatorOrganization.trim()) {
+        form.setFieldError('nominatorOrganization', 'Nominator organization name is required');
+        isValid = false;
+      }
+      if (!form.values.nominatorRelationship.trim()) {
+        form.setFieldError('nominatorRelationship', 'Relationship with the speaker is required');
+        isValid = false;
+      }
+    }
+
+    if (stepKey === 'idea1') {
       if (!form.values.whySpeak1.trim()) {
         form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
         isValid = false;
@@ -232,7 +269,7 @@ const SpeakerApply = () => {
       }
     }
 
-    if (currentStep === 2) {
+    if (stepKey === 'idea2') {
       if (!form.values.whySpeak2.trim()) {
         form.setFieldError('whySpeak2', 'Please explain why the speaker should speak for this idea');
         isValid = false;
@@ -283,7 +320,7 @@ const SpeakerApply = () => {
       }
     }
 
-    if (currentStep === 3) {
+    if (stepKey === 'idea3') {
       if (!form.values.whySpeak3.trim()) {
         form.setFieldError('whySpeak3', 'Please explain why the speaker should speak for this idea');
         isValid = false;
@@ -431,6 +468,28 @@ const SpeakerApply = () => {
 
   const form = useForm(initialValues, onSubmit);
 
+  const isSelfNominated = form.values.selfNomination === 'Yes, I am nominating myself.';
+  
+  const stepsList = isSelfNominated
+    ? [
+        { id: 1, label: '1. Profile', key: 'profile' },
+        { id: 2, label: '2. Idea 1', key: 'idea1' },
+        { id: 3, label: '3. Idea 2', key: 'idea2' },
+        { id: 4, label: '4. Idea 3', key: 'idea3' },
+        { id: 5, label: '5. Policy Checks', key: 'policy' }
+      ]
+    : [
+        { id: 1, label: '1. Profile', key: 'profile' },
+        { id: 2, label: '2. Nominator Info', key: 'nominator' },
+        { id: 3, label: '3. Idea 1', key: 'idea1' },
+        { id: 4, label: '4. Idea 2', key: 'idea2' },
+        { id: 5, label: '5. Idea 3', key: 'idea3' },
+        { id: 6, label: '6. Policy Checks', key: 'policy' }
+      ];
+
+  const currentStepKey = stepsList[step - 1]?.key || '';
+  const totalSteps = stepsList.length;
+
   // Helper to dynamically style fields based on error state
   const getInputClassName = (fieldName, baseType = 'input') => {
     const hasError = !!form.errors[fieldName];
@@ -547,16 +606,17 @@ const SpeakerApply = () => {
 
         {/* Wizard Steps indicator */}
         <div className="mb-10 max-w-xl mx-auto">
-          <div className="flex items-center justify-between text-xs text-gray-500 font-semibold mb-2 px-1">
-            <span className={step === 1 ? "text-ted-red" : ""}>1. Profile & Idea 1</span>
-            <span className={step === 2 ? "text-ted-red" : ""}>2. Idea 2</span>
-            <span className={step === 3 ? "text-ted-red" : ""}>3. Idea 3</span>
-            <span className={step === 4 ? "text-ted-red" : ""}>4. Policy Checks</span>
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold mb-2 px-1">
+            {stepsList.map((s) => (
+              <span key={s.id} className={step === s.id ? "text-ted-red" : ""}>
+                {s.label}
+              </span>
+            ))}
           </div>
           <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
             <div 
               className="h-full bg-ted-red transition-all duration-300 rounded-full" 
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(step / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -564,17 +624,17 @@ const SpeakerApply = () => {
         <form onSubmit={form.handleSubmit} className="space-y-8">
           <AnimatePresence mode="wait">
             
-            {/* ==================== STEP 1: SPEAKER PROFILE & IDEA 1 ==================== */}
-            {step === 1 && (
+            {/* ==================== STEP 1: SPEAKER PROFILE ==================== */}
+            {currentStepKey === 'profile' && (
               <motion.div
-                key="step1"
+                key="step-profile"
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
                 className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
               >
                 <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center gap-2">
-                  <span>👤</span> Section 1: Speaker Profile & Idea 1
+                  <span>👤</span> Section 1: Speaker Profile
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -655,7 +715,7 @@ const SpeakerApply = () => {
 
                   {/* Organization */}
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Company / Organization / Institution *</label>
+                    <label className="text-xs text-gray-300 font-bold">Name of the Organization, Institution, or Company the Speaker is Currently Associated With *</label>
                     <input
                       type="text"
                       name="organization"
@@ -712,23 +772,155 @@ const SpeakerApply = () => {
                   />
                 </div>
 
-                {/* Why believe should speak */}
+                <div className="flex justify-end pt-4">
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
+                  >
+                    Next Section <span>→</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ==================== STEP 2: NOMINATOR INFORMATION ==================== */}
+            {currentStepKey === 'nominator' && (
+              <motion.div
+                key="step-nominator"
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 15 }}
+                className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
+              >
+                <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center gap-2">
+                  <span>👤</span> Section 2: Nominator Information
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Nominator Name */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Your Full Name *</label>
+                    <input
+                      type="text"
+                      name="nominatorName"
+                      placeholder="Enter your full name"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.nominatorName}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.nominatorName && <p className="text-red-500 text-[10px]">{form.errors.nominatorName}</p>}
+                  </div>
+
+                  {/* Nominator Email */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Your Email Address *</label>
+                    <input
+                      type="email"
+                      name="nominatorEmail"
+                      placeholder="yourname@example.com"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.nominatorEmail}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.nominatorEmail && <p className="text-red-500 text-[10px]">{form.errors.nominatorEmail}</p>}
+                  </div>
+
+                  {/* Nominator Phone */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Your Phone Number *</label>
+                    <input
+                      type="text"
+                      name="nominatorPhone"
+                      placeholder="10-digit number"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.nominatorPhone}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.nominatorPhone && <p className="text-red-500 text-[10px]">{form.errors.nominatorPhone}</p>}
+                  </div>
+
+                  {/* Nominator Organization */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Name of Your Organization *</label>
+                    <input
+                      type="text"
+                      name="nominatorOrganization"
+                      placeholder="Name of association"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.nominatorOrganization}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.nominatorOrganization && <p className="text-red-500 text-[10px]">{form.errors.nominatorOrganization}</p>}
+                  </div>
+                </div>
+
+                {/* Nominator Relationship */}
                 <div className="space-y-1">
-                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
-                  <textarea
-                    name="whySpeak1"
-                    placeholder="Describe their speaking capabilities, unique background, and core alignment..."
-                    rows="3"
-                    className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                    value={form.values.whySpeak1}
+                  <label className="text-xs text-gray-300 font-bold">What is your relationship with the Speaker? *</label>
+                  <input
+                    type="text"
+                    name="nominatorRelationship"
+                    placeholder="e.g. Colleague, Professor, Friend"
+                    className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                    value={form.values.nominatorRelationship}
                     onChange={form.handleChange}
                     required
                   />
-                  {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
+                  {form.errors.nominatorRelationship && <p className="text-red-500 text-[10px]">{form.errors.nominatorRelationship}</p>}
                 </div>
 
-                <div className="border-t border-gray-800 pt-6 mt-4 space-y-4">
-                  <h3 className="text-sm font-bold text-ted-red uppercase tracking-wider">Potential talk ideas - Idea 1</h3>
+                <div className="flex items-center justify-between pt-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <span>←</span> Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
+                  >
+                    Next Section <span>→</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ==================== STEP: IDEA 1 ==================== */}
+            {currentStepKey === 'idea1' && (
+              <motion.div
+                key="step-idea1"
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 15 }}
+                className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
+              >
+                <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
+                  <span className="flex items-center gap-2"><span>💡</span> Section 2: First Idea Evaluation</span>
+                </h2>
+
+                <div className="space-y-5">
+                  {/* Why believe should speak */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
+                    <textarea
+                      name="whySpeak1"
+                      placeholder="Describe their speaking capabilities, unique background, and core alignment..."
+                      rows="3"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
+                      value={form.values.whySpeak1}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Idea 1 Title */}
@@ -782,7 +974,7 @@ const SpeakerApply = () => {
                     <label className="text-xs text-gray-300 font-bold">Describe the Speaker’s “Idea Worth Spreading.” *</label>
                     <textarea
                       name="idea1WorthSpreading"
-                      placeholder="What is the core message or insight that the audience will walk away with?"
+                      placeholder="What is the core message of this talk concept?"
                       rows="3"
                       className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
                       value={form.values.idea1WorthSpreading}
@@ -978,7 +1170,14 @@ const SpeakerApply = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex items-center justify-between pt-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <span>←</span> Back
+                  </button>
                   <button
                     type="button"
                     onClick={handleNext}
@@ -991,9 +1190,9 @@ const SpeakerApply = () => {
             )}
 
             {/* ==================== STEP 2: IDEA 2 (OPTIONAL) ==================== */}
-            {step === 2 && (
+            {currentStepKey === 'idea2' && (
               <motion.div
-                key="step2"
+                key="step-idea2"
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
@@ -1287,9 +1486,9 @@ const SpeakerApply = () => {
             )}
 
             {/* ==================== STEP 3: IDEA 3 (OPTIONAL) ==================== */}
-            {step === 3 && (
+            {currentStepKey === 'idea3' && (
               <motion.div
-                key="step3"
+                key="step-idea3"
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
@@ -1583,9 +1782,9 @@ const SpeakerApply = () => {
             )}
 
             {/* ==================== STEP 4: PROPOSED TALK & CONFIRMATIONS ==================== */}
-            {step === 4 && (
+            {currentStepKey === 'policy' && (
               <motion.div
-                key="step4"
+                key="step-policy"
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
