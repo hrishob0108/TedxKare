@@ -191,6 +191,10 @@ const SpeakerApply = () => {
         form.setFieldError('linkedin', 'Valid LinkedIn profile URL is required');
         isValid = false;
       }
+      if (!form.values.whySpeak1.trim()) {
+        form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
+        isValid = false;
+      }
     }
 
     if (stepKey === 'nominator') {
@@ -219,10 +223,6 @@ const SpeakerApply = () => {
     }
 
     if (stepKey === 'idea1') {
-      if (!form.values.whySpeak1.trim()) {
-        form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
-        isValid = false;
-      }
       if (!form.values.idea1Title.trim()) {
         form.setFieldError('idea1Title', 'Idea 1 Title is required');
         isValid = false;
@@ -270,10 +270,6 @@ const SpeakerApply = () => {
     }
 
     if (stepKey === 'idea2') {
-      if (!form.values.whySpeak2.trim()) {
-        form.setFieldError('whySpeak2', 'Please explain why the speaker should speak for this idea');
-        isValid = false;
-      }
       if (!form.values.idea2Title.trim()) {
         form.setFieldError('idea2Title', 'Idea 2 Title is required');
         isValid = false;
@@ -321,10 +317,6 @@ const SpeakerApply = () => {
     }
 
     if (stepKey === 'idea3') {
-      if (!form.values.whySpeak3.trim()) {
-        form.setFieldError('whySpeak3', 'Please explain why the speaker should speak for this idea');
-        isValid = false;
-      }
       if (!form.values.idea3Title.trim()) {
         form.setFieldError('idea3Title', 'Idea 3 Title is required');
         isValid = false;
@@ -772,6 +764,21 @@ const SpeakerApply = () => {
                   />
                 </div>
 
+                {/* Why believe should speak */}
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
+                  <textarea
+                    name="whySpeak1"
+                    placeholder="Describe their speaking capabilities, unique background, and core alignment..."
+                    rows="3"
+                    className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
+                    value={form.values.whySpeak1}
+                    onChange={form.handleChange}
+                    required
+                  />
+                  {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
+                </div>
+
                 <div className="flex justify-end pt-4">
                   <button
                     type="button"
@@ -907,21 +914,6 @@ const SpeakerApply = () => {
                 </h2>
 
                 <div className="space-y-5">
-                  {/* Why believe should speak */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
-                    <textarea
-                      name="whySpeak1"
-                      placeholder="Describe their speaking capabilities, unique background, and core alignment..."
-                      rows="3"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.whySpeak1}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
-                  </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Idea 1 Title */}
                     <div className="space-y-1">
@@ -1203,21 +1195,6 @@ const SpeakerApply = () => {
                 </h2>
 
                 <div className="space-y-5">
-                    {/* Why believe should speak for Idea 2 */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
-                      <textarea
-                        name="whySpeak2"
-                        placeholder="Describe their alignment regarding this specific second idea..."
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.whySpeak2}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.whySpeak2 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak2}</p>}
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {/* Idea 2 Title */}
                       <div className="space-y-1">
@@ -1499,21 +1476,6 @@ const SpeakerApply = () => {
                 </h2>
 
                 <div className="space-y-5">
-                    {/* Why believe should speak for Idea 3 */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
-                      <textarea
-                        name="whySpeak3"
-                        placeholder="Describe their alignment regarding this specific third idea..."
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.whySpeak3}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.whySpeak3 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak3}</p>}
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {/* Idea 3 Title */}
                       <div className="space-y-1">

@@ -48,7 +48,6 @@ const speakerValidation = [
   body('idea1Articles').trim().notEmpty().withMessage('Articles, videos, or work samples are required'),
 
   // --- Idea 2 (Conditional: only validated if idea2Title is provided) ---
-  body('whySpeak2').if(body('idea2Title').notEmpty()).trim().notEmpty().withMessage('Why speak for Idea 2 is required'),
   body('idea2Description').if(body('idea2Title').notEmpty()).trim().notEmpty().withMessage('Description for Idea 2 is required'),
   body('idea2Domain').if(body('idea2Title').notEmpty()).trim().notEmpty().withMessage('Domain for Idea 2 is required'),
   body('idea2WorthSpreading').if(body('idea2Title').notEmpty()).trim().notEmpty().withMessage('Worth spreading description for Idea 2 is required'),
@@ -61,7 +60,6 @@ const speakerValidation = [
   body('idea2Articles').if(body('idea2Title').notEmpty()).trim().notEmpty().withMessage('Articles, videos, or work samples for Idea 2 are required'),
 
   // --- Idea 3 (Conditional: only validated if idea3Title is provided) ---
-  body('whySpeak3').if(body('idea3Title').notEmpty()).trim().notEmpty().withMessage('Why speak for Idea 3 is required'),
   body('idea3Description').if(body('idea3Title').notEmpty()).trim().notEmpty().withMessage('Description for Idea 3 is required'),
   body('idea3Domain').if(body('idea3Title').notEmpty()).trim().notEmpty().withMessage('Domain for Idea 3 is required'),
   body('idea3WorthSpreading').if(body('idea3Title').notEmpty()).trim().notEmpty().withMessage('Worth spreading description for Idea 3 is required'),
