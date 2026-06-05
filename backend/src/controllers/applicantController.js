@@ -99,7 +99,7 @@ export const createApplication = async (req, res, next) => {
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array().map((err) => ({
-          field: err.param,
+          field: err.path || err.param,
           message: err.msg,
         })),
       });

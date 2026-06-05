@@ -36,6 +36,7 @@ const AdminDashboard = () => {
     domain: 'All',
     status: 'All',
     search: '',
+    nominationType: 'All',
   });
 
   // Domains list
@@ -67,6 +68,7 @@ const AdminDashboard = () => {
       domain: 'All',
       status: 'All',
       search: '',
+      nominationType: 'All',
     });
   };
 
@@ -175,13 +177,23 @@ const AdminDashboard = () => {
         filtered = filtered.filter((spk) => spk.status === filters.status);
       }
 
+      // Nomination Type filter
+      if (filters.nominationType && filters.nominationType !== 'All') {
+        if (filters.nominationType === 'Self') {
+          filtered = filtered.filter((spk) => spk.selfNomination === 'Yes, I am nominating myself.');
+        } else if (filters.nominationType === 'Third-Party') {
+          filtered = filtered.filter((spk) => spk.selfNomination !== 'Yes, I am nominating myself.');
+        }
+      }
+
       // Search filter
       if (filters.search) {
         filtered = filtered.filter(
           (spk) =>
             spk.name.toLowerCase().includes(filters.search.toLowerCase()) ||
             spk.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-            spk.title.toLowerCase().includes(filters.search.toLowerCase())
+            spk.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+            (spk.nominatorName && spk.nominatorName.toLowerCase().includes(filters.search.toLowerCase()))
         );
       }
 
@@ -293,11 +305,52 @@ const AdminDashboard = () => {
         Name: spk.name,
         Email: spk.email,
         Phone: spk.phone || '',
-        'Talk Title': spk.title,
-        Abstract: spk.abstract,
-        'Duration (Mins)': spk.durationMinutes,
-        Bio: spk.bio || '',
-        'Sample Link': spk.sampleLink || '',
+        Profession: spk.profession || '',
+        Organization: spk.organization || '',
+        Location: spk.location || '',
+        LinkedIn: spk.linkedin || '',
+        'Additional Links': spk.additionalLinks || '',
+        'Nomination Type': spk.selfNomination || 'Yes, I am nominating myself.',
+        'Nominator Name': spk.nominatorName || '',
+        'Nominator Email': spk.nominatorEmail || '',
+        'Nominator Phone': spk.nominatorPhone || '',
+        'Nominator Organization': spk.nominatorOrganization || '',
+        'Nominator Relationship': spk.nominatorRelationship || '',
+        'Why Should Speak': spk.whySpeak1 || spk.whyApply || '',
+        'Idea 1 Title': spk.idea1Title || spk.title || '',
+        'Idea 1 Domain': spk.idea1Domain || spk.idea1DomainLegacy || '',
+        'Idea 1 Worth Spreading': spk.idea1WorthSpreading || spk.idea1Sentence || '',
+        'Idea 1 Description': spk.idea1Description || spk.idea1DescriptionLegacy || spk.abstract || '',
+        'Idea 1 Relevance': spk.idea1Relevance || '',
+        'Idea 1 Challenge': spk.idea1Challenge || '',
+        'Idea 1 Impact': spk.idea1Impact || '',
+        'Idea 1 Scalability': spk.idea1Scalability || '',
+        'Idea 1 Lived Experience': spk.idea1LivedExperience || '',
+        'Idea 1 Lived Experience Desc': spk.idea1LivedExperienceDesc || '',
+        'Idea 1 Props': spk.idea1Props || '',
+        'Idea 1 Props Details': spk.idea1PropsDetails || '',
+        'Idea 1 Articles': spk.idea1Articles || '',
+        'Idea 1 Comments': spk.idea1Comments || '',
+        'Idea 2 Title': spk.idea2Title || '',
+        'Idea 2 Domain': spk.idea2Domain || spk.idea2DomainLegacy || '',
+        'Idea 2 Worth Spreading': spk.idea2WorthSpreading || spk.idea2Sentence || '',
+        'Idea 2 Description': spk.idea2Description || spk.idea2DescriptionLegacy || '',
+        'Idea 3 Title': spk.idea3Title || '',
+        'Idea 3 Domain': spk.idea3Domain || spk.idea3DomainLegacy || '',
+        'Idea 3 Worth Spreading': spk.idea3WorthSpreading || spk.idea3Sentence || '',
+        'Idea 3 Description': spk.idea3Description || spk.idea3DescriptionLegacy || '',
+        'Proposed Talk Title': spk.proposedTitle || spk.title || '',
+        'Proposed Abstract': spk.proposedDescription || spk.abstract || '',
+        'Proposed Qualifications': spk.proposedQualifications || spk.background || '',
+        'Sample Presentation Link': spk.sampleLink || '',
+        'Policy Comfort': spk.policyComfort || '',
+        'Fact-Checking Need': spk.factCheckingNeed || '',
+        'Willingness to Modify': spk.willingnessToModify || '',
+        'Solo Presentation Confirmed': spk.soloPresentationConfirmed ? 'Yes' : 'No',
+        'Duration Confirmed': spk.durationConfirmed ? 'Yes' : 'No',
+        'Complies Confirmed': spk.compliesConfirmed ? 'Yes' : 'No',
+        'Guidelines Aligned': spk.guidelinesAligned || '',
+        'How Learned': spk.howLearned || '',
         Status: spk.status,
         'Submitted On': format.date(spk.createdAt),
       }));
@@ -519,7 +572,7 @@ const AdminDashboard = () => {
             <input
               type="text"
               placeholder={activeTab === 'applicants' ? "Search by name or email..." : "Search by name, email, or talk title..."}
-              className={`input-field ${activeTab === 'applicants' ? 'col-span-1 md:col-span-2' : 'col-span-1 md:col-span-3'}`}
+              className={`input-field ${activeTab === 'applicants' ? 'col-span-1 md:col-span-2' : 'col-span-1 md:col-span-2'}`}
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             />
@@ -540,6 +593,22 @@ const AdminDashboard = () => {
                     {domain}
                   </option>
                 ))}
+              </select>
+            )}
+
+            {/* Nomination Type Filter (Only for Speaker Applications) */}
+            {activeTab === 'speakers' && (
+              <select
+                className="input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                }}
+                value={filters.nominationType || 'All'}
+                onChange={(e) => setFilters({ ...filters, nominationType: e.target.value })}
+              >
+                <option value="All">All Nominations</option>
+                <option value="Self">Self-Nominations</option>
+                <option value="Third-Party">Third-Party Nominations</option>
               </select>
             )}
 
@@ -655,6 +724,7 @@ const AdminDashboard = () => {
                   <tr className="border-b border-gray-700">
                     <th className="text-left py-4 px-4 font-semibold">Talk Title</th>
                     <th className="text-left py-4 px-4 font-semibold">Speaker</th>
+                    <th className="text-left py-4 px-4 font-semibold">Nomination Type</th>
                     <th className="text-left py-4 px-4 font-semibold">Email</th>
                     <th className="text-left py-4 px-4 font-semibold">Status</th>
                     <th className="text-left py-4 px-4 font-semibold">Submitted</th>
@@ -672,6 +742,15 @@ const AdminDashboard = () => {
                     >
                       <td className="py-4 px-4 font-medium truncate max-w-[200px]">{speaker.title}</td>
                       <td className="py-4 px-4">{speaker.name}</td>
+                      <td className="py-4 px-4">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                          speaker.selfNomination === 'Yes, I am nominating myself.'
+                            ? 'bg-blue-900/30 text-blue-300 border-blue-500/50'
+                            : 'bg-purple-900/30 text-purple-300 border-purple-500/50'
+                        }`}>
+                          {speaker.selfNomination === 'Yes, I am nominating myself.' ? 'Self' : 'Third-Party'}
+                        </span>
+                      </td>
                       <td className="py-4 px-4 text-gray-400">{speaker.email}</td>
                       <td className="py-4 px-4">
                         <span
@@ -1074,6 +1153,36 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
+
+                  {(selectedSpeaker.selfNomination === 'No, I am nominating another individual.' || selectedSpeaker.nominatorName) && (
+                    <div>
+                      <h4 className="text-ted-red font-bold mb-3 flex items-center gap-1.5 mt-6">
+                        <span>👤</span> Nominator Information
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-black/40 border border-gray-800/85 p-5 rounded-xl">
+                        <div>
+                          <p className="text-gray-400 text-xs">Nominator Full Name</p>
+                          <p className="font-semibold text-white text-base mt-0.5">{selectedSpeaker.nominatorName || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs">Relationship with Speaker</p>
+                          <p className="font-semibold text-white text-base mt-0.5">{selectedSpeaker.nominatorRelationship || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs">Nominator Email Address</p>
+                          <p className="font-semibold text-white break-all mt-0.5">{selectedSpeaker.nominatorEmail || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs">Nominator Phone Number</p>
+                          <p className="font-semibold text-white mt-0.5">{selectedSpeaker.nominatorPhone || 'N/A'}</p>
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                          <p className="text-gray-400 text-xs">Nominator Organization</p>
+                          <p className="font-semibold text-white mt-0.5">{selectedSpeaker.nominatorOrganization || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {selectedSpeaker.additionalLinks && (
                     <div>
