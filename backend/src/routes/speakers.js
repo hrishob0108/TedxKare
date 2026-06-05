@@ -24,7 +24,7 @@ const speakerValidation = [
   body('profession').trim().notEmpty().withMessage('Profession is required'),
   body('organization').trim().notEmpty().withMessage('Organization/Company name is required'),
   body('location').trim().notEmpty().withMessage('Location is required'),
-  body('linkedin').trim().isURL().withMessage('Valid LinkedIn URL is required'),
+  body('linkedin').trim().isURL({ require_protocol: false }).withMessage('Valid LinkedIn URL is required'),
   
   // --- Nominator Information (Conditional: only validated if selfNomination is 'No, I am nominating another individual.') ---
   body('nominatorName').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Nominator Name is required'),
@@ -78,9 +78,9 @@ const speakerValidation = [
   body('policyComfort').trim().notEmpty().withMessage('Recording policy comfort selection is required'),
   body('factCheckingNeed').trim().notEmpty().withMessage('Fact-checking and sensitive content selection is required'),
   body('willingnessToModify').trim().notEmpty().withMessage('Willingness to modify talk selection is required'),
-  body('soloPresentationConfirmed').isBoolean().withMessage('Solo presentation confirmation must be a boolean').equals('true').withMessage('You must confirm the presentation is delivered solo'),
-  body('durationConfirmed').isBoolean().withMessage('Duration confirmation must be a boolean').equals('true').withMessage('You must confirm the talk does not exceed 18 minutes'),
-  body('compliesConfirmed').isBoolean().withMessage('Guidelines confirmation must be a boolean').equals('true').withMessage('You must confirm compliance with TEDx content guidelines'),
+  body('soloPresentationConfirmed').isBoolean().withMessage('Solo presentation confirmation must be a boolean').custom((val) => val === true).withMessage('You must confirm the presentation is delivered solo'),
+  body('durationConfirmed').isBoolean().withMessage('Duration confirmation must be a boolean').custom((val) => val === true).withMessage('You must confirm the talk does not exceed 18 minutes'),
+  body('compliesConfirmed').isBoolean().withMessage('Guidelines confirmation must be a boolean').custom((val) => val === true).withMessage('You must confirm compliance with TEDx content guidelines'),
   body('guidelinesAligned').trim().notEmpty().withMessage('TEDx guideline alignment confirmation is required').equals('YES').withMessage('You must confirm alignment with TEDx guidelines'),
   body('howLearned').trim().notEmpty().withMessage('Information on how you learned about TEDxKARE is required'),
 ];

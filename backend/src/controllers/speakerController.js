@@ -20,7 +20,7 @@ export const createSpeaker = async (req, res, next) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         error: 'Validation failed',
-        details: errors.array().map((err) => ({ field: err.param, message: err.msg })),
+        details: errors.array().map((err) => ({ field: err.path || err.param, message: err.msg })),
       });
     }
 
