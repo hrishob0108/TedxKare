@@ -13,7 +13,7 @@ const Events = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date('June 12, 2026 16:00:00').getTime();
+    const target = new Date('August 23, 2026 16:00:00').getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
@@ -33,7 +33,7 @@ const Events = () => {
   const upcomingEvent = {
     title: <><span className="text-ted-red">TEDx</span><span className="font-light">KARE</span> 2026</>,
     theme: 'THE BIGBANG: Where Ideas Start',
-    date: 'Soon (June 2026)',
+    date: 'August 23, 2026',
     time: 'TBA',
     venue: 'Kalasalingam University',
     description: 'THE BIGBANG: Where ideas Start represents the beginning of powerful ideas that can change people, industries, and the future. Every innovation, discovery, movement, and success starts from a single thought. This theme brings together diverse voices and ideas that inspire change, creativity, and new possibilities. Credits: Thrivikram',
@@ -46,10 +46,7 @@ const Events = () => {
       { time: '08:00 PM', title: 'Closing Ceremony & Photo Session', desc: 'Vote of thanks from the organizing crew, volunteer accolades, and group photography.' }
     ],
     speakers: [
-      { name: 'Dr. Aris Thorne', role: 'Cognitive Neuroscientist', bio: 'Pioneering research in brain-computer interfaces to restore motor control and decode sensory patterns.' },
-      { name: 'Meera Deshmukh', role: 'Climate Adaptation Architect', bio: 'Designing resilient local infrastructure that leverages classical water harvesting to naturally cool urban areas.' },
-      { name: 'Aditya Sen', role: 'AI Ethics & Policy Advocate', bio: 'Shaping international frameworks to protect data privacy and ensure algorithms serve human rights.' },
-      { name: 'Riya Kapoor', role: 'Student Innovator & Founder', bio: 'Creating circular economy food packaging from marine organic waste, scaling it across campus.' }
+      { name: 'Will be announced soon', role: 'Speaker Nominations Active', bio: 'Our Selection Committee is currently reviewing talk proposals from the speaker nominations. The final speaker lineup for the TEDxKARE 2026 stage will be announced soon!' }
     ]
   };
 
@@ -93,7 +90,7 @@ const Events = () => {
               Ideas in <span className="bg-gradient-to-r from-ted-red via-red-500 to-red-600 bg-clip-text text-transparent">Action</span>
             </h1>
             <p className="text-gray-400 text-sm md:text-base max-w-xl mx-auto font-light leading-relaxed">
-              Explore our upcoming flagship summits, interactive sessions, and the rich legacy of ideas worth spreading.
+              Explore our upcoming flagship events, interactive sessions, and the rich legacy of ideas worth spreading.
             </p>
           </div>
 
@@ -138,7 +135,7 @@ const Events = () => {
                   <div className="space-y-6">
                     <div>
                       <span className="bg-ted-red/10 text-ted-red px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-block mb-3">
-                        Spring Summit 2026
+                        Big Bang 2026
                       </span>
                       <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
                         {upcomingEvent.title}
@@ -261,7 +258,7 @@ const Events = () => {
                     {upcomingEvent.speakers.map((speaker, index) => (
                       <div key={index} className="p-6 bg-gradient-to-br from-gray-900/30 to-black/20 border border-gray-800/80 rounded-2xl shadow-xl flex gap-4 hover:border-ted-red/30 transition-all duration-300">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-ted-red/10 border border-ted-red/20 text-ted-red font-bold flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
-                          {speaker.name.split(' ').map(n => n[0]).join('')}
+                          {speaker.name === 'Will be announced soon' ? '🎙️' : speaker.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="space-y-1.5">
                           <span className="inline-block px-2 py-0.5 rounded bg-ted-red/10 border border-ted-red/20 text-ted-red text-[9px] font-bold uppercase tracking-wider">
@@ -276,27 +273,11 @@ const Events = () => {
                 </div>
 
                 {/* Event Timeline / Schedule */}
-                <div className="p-6 md:p-8 bg-gray-950/40 border border-gray-900 rounded-3xl">
-                  <h3 className="text-2xl font-extrabold text-white mb-6">Summit Schedule</h3>
-                  <div className="relative border-l border-gray-800 ml-4 md:ml-6 space-y-8">
-                    {upcomingEvent.schedule.map((item, idx) => (
-                      <div key={idx} className="relative pl-6 md:pl-8">
-                        {/* Timeline Bullet Node */}
-                        <span className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full border border-ted-red bg-black flex items-center justify-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-ted-red"></span>
-                        </span>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                          <span className="text-ted-red font-extrabold text-sm whitespace-nowrap bg-ted-red/5 border border-ted-red/10 px-2 py-0.5 rounded-lg w-fit">
-                            {item.time}
-                          </span>
-                          <h4 className="font-extrabold text-base text-gray-200">{item.title}</h4>
-                        </div>
-                        <p className="text-gray-400 text-xs sm:text-sm mt-2 font-light leading-relaxed max-w-3xl">
-                          {item.desc}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="p-6 md:p-8 bg-gray-950/40 border border-gray-900 rounded-3xl text-center">
+                  <h3 className="text-2xl font-extrabold text-white mb-4">Event Schedule</h3>
+                  <p className="text-gray-400 text-sm md:text-base italic bg-black/30 p-6 rounded-2xl border border-gray-900/60 max-w-xl mx-auto">
+                    📅 The detailed schedule for TEDxKARE 2026 will be released soon. Check back soon for the session timings and topic outline!
+                  </p>
                 </div>
               </motion.div>
             ) : (

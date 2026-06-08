@@ -95,7 +95,7 @@ export const adminAPI = {
 // ==================== SETTINGS API ====================
 export const settingsAPI = {
   // Get public settings
-  getSettings: () => api.get('/settings'),
+  getSettings: (config) => api.get('/settings', config),
 
   // Update settings (admin only)
   updateSettings: (data) => api.patch('/settings', data),

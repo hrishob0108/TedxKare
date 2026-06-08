@@ -39,14 +39,21 @@ export const createSpeaker = async (req, res, next) => {
     const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '';
     const userAgent = req.headers['user-agent'] || '';
 
+    const proposedTitle = req.body.proposedTitle || req.body.idea1Title || '';
+    const proposedDescription = req.body.proposedDescription || req.body.idea1Description || '';
+    const proposedQualifications = req.body.proposedQualifications || req.body.whySpeak1 || '';
+
     const speakerData = {
       ...req.body,
+      proposedTitle,
+      proposedDescription,
+      proposedQualifications,
       // Backward compatibility mappings
-      title: req.body.proposedTitle,
-      abstract: req.body.proposedDescription,
+      title: proposedTitle,
+      abstract: proposedDescription,
       bio: `${req.body.profession} at ${req.body.organization}`,
       details: req.body.whySpeak1,
-      background: req.body.proposedQualifications,
+      background: proposedQualifications,
       whyApply: req.body.whySpeak1,
       idea1DomainLegacy: req.body.idea1Domain,
       idea1DescriptionLegacy: req.body.idea1Description,

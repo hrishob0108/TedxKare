@@ -310,10 +310,14 @@ const AdminDashboard = () => {
         Location: spk.location || '',
         LinkedIn: spk.linkedin || '',
         'Additional Links': spk.additionalLinks || '',
+        'First TEDx Talk': spk.firstTedxTalk || 'YES',
+        'Has Disability': spk.hasDisability || 'NO',
+        'Disability Details': spk.disabilityDetails || '',
         'Nomination Type': spk.selfNomination || 'Yes, I am nominating myself.',
         'Nominator Name': spk.nominatorName || '',
         'Nominator Email': spk.nominatorEmail || '',
         'Nominator Phone': spk.nominatorPhone || '',
+        'Nominator Location': spk.nominatorLocation || '',
         'Nominator Organization': spk.nominatorOrganization || '',
         'Nominator Relationship': spk.nominatorRelationship || '',
         'Why Should Speak': spk.whySpeak1 || spk.whyApply || '',
@@ -324,21 +328,65 @@ const AdminDashboard = () => {
         'Idea 1 Relevance': spk.idea1Relevance || '',
         'Idea 1 Challenge': spk.idea1Challenge || '',
         'Idea 1 Impact': spk.idea1Impact || '',
+        'Idea 1 Impact File': spk.idea1ImpactFileName || '',
+        'Idea 1 Evidence': spk.idea1Evidence || '',
+        'Idea 1 Evidence File': spk.idea1EvidenceFileName || '',
         'Idea 1 Scalability': spk.idea1Scalability || '',
         'Idea 1 Lived Experience': spk.idea1LivedExperience || '',
         'Idea 1 Lived Experience Desc': spk.idea1LivedExperienceDesc || '',
         'Idea 1 Props': spk.idea1Props || '',
         'Idea 1 Props Details': spk.idea1PropsDetails || '',
+        'Idea 1 Presented Before': spk.idea1PresentedBefore || '',
+        'Idea 1 Presented Before Details': spk.idea1PresentedBeforeDetails || '',
+        'Idea 1 Presented Before File': spk.idea1PresentedBeforeFileName || '',
         'Idea 1 Articles': spk.idea1Articles || '',
+        'Idea 1 New Surprising': spk.idea1NewSurprising || '',
+        'Idea 1 Target Audience': spk.idea1Audience || '',
         'Idea 1 Comments': spk.idea1Comments || '',
         'Idea 2 Title': spk.idea2Title || '',
         'Idea 2 Domain': spk.idea2Domain || spk.idea2DomainLegacy || '',
         'Idea 2 Worth Spreading': spk.idea2WorthSpreading || spk.idea2Sentence || '',
         'Idea 2 Description': spk.idea2Description || spk.idea2DescriptionLegacy || '',
+        'Idea 2 Relevance': spk.idea2Relevance || '',
+        'Idea 2 Challenge': spk.idea2Challenge || '',
+        'Idea 2 Impact': spk.idea2Impact || '',
+        'Idea 2 Impact File': spk.idea2ImpactFileName || '',
+        'Idea 2 Evidence': spk.idea2Evidence || '',
+        'Idea 2 Evidence File': spk.idea2EvidenceFileName || '',
+        'Idea 2 Scalability': spk.idea2Scalability || '',
+        'Idea 2 Lived Experience': spk.idea2LivedExperience || '',
+        'Idea 2 Lived Experience Desc': spk.idea2LivedExperienceDesc || '',
+        'Idea 2 Props': spk.idea2Props || '',
+        'Idea 2 Props Details': spk.idea2PropsDetails || '',
+        'Idea 2 Presented Before': spk.idea2PresentedBefore || '',
+        'Idea 2 Presented Before Details': spk.idea2PresentedBeforeDetails || '',
+        'Idea 2 Presented Before File': spk.idea2PresentedBeforeFileName || '',
+        'Idea 2 Articles': spk.idea2Articles || '',
+        'Idea 2 New Surprising': spk.idea2NewSurprising || '',
+        'Idea 2 Target Audience': spk.idea2Audience || '',
+        'Idea 2 Comments': spk.idea2Comments || '',
         'Idea 3 Title': spk.idea3Title || '',
         'Idea 3 Domain': spk.idea3Domain || spk.idea3DomainLegacy || '',
         'Idea 3 Worth Spreading': spk.idea3WorthSpreading || spk.idea3Sentence || '',
         'Idea 3 Description': spk.idea3Description || spk.idea3DescriptionLegacy || '',
+        'Idea 3 Relevance': spk.idea3Relevance || '',
+        'Idea 3 Challenge': spk.idea3Challenge || '',
+        'Idea 3 Impact': spk.idea3Impact || '',
+        'Idea 3 Impact File': spk.idea3ImpactFileName || '',
+        'Idea 3 Evidence': spk.idea3Evidence || '',
+        'Idea 3 Evidence File': spk.idea3EvidenceFileName || '',
+        'Idea 3 Scalability': spk.idea3Scalability || '',
+        'Idea 3 Lived Experience': spk.idea3LivedExperience || '',
+        'Idea 3 Lived Experience Desc': spk.idea3LivedExperienceDesc || '',
+        'Idea 3 Props': spk.idea3Props || '',
+        'Idea 3 Props Details': spk.idea3PropsDetails || '',
+        'Idea 3 Presented Before': spk.idea3PresentedBefore || '',
+        'Idea 3 Presented Before Details': spk.idea3PresentedBeforeDetails || '',
+        'Idea 3 Presented Before File': spk.idea3PresentedBeforeFileName || '',
+        'Idea 3 Articles': spk.idea3Articles || '',
+        'Idea 3 New Surprising': spk.idea3NewSurprising || '',
+        'Idea 3 Target Audience': spk.idea3Audience || '',
+        'Idea 3 Comments': spk.idea3Comments || '',
         'Proposed Talk Title': spk.proposedTitle || spk.title || '',
         'Proposed Abstract': spk.proposedDescription || spk.abstract || '',
         'Proposed Qualifications': spk.proposedQualifications || spk.background || '',
@@ -350,6 +398,7 @@ const AdminDashboard = () => {
         'Duration Confirmed': spk.durationConfirmed ? 'Yes' : 'No',
         'Complies Confirmed': spk.compliesConfirmed ? 'Yes' : 'No',
         'Guidelines Aligned': spk.guidelinesAligned || '',
+        'Has Additional Ideas': spk.hasAdditionalIdeas || 'NO',
         'How Learned': spk.howLearned || '',
         Status: spk.status,
         'Submitted On': format.date(spk.createdAt),
@@ -386,6 +435,264 @@ const AdminDashboard = () => {
       default:
         return 'bg-yellow-900/30 text-yellow-300 border-yellow-500/50';
     }
+  };
+
+  // Helper to render Idea Tab Content inside the speaker modal
+  const renderSpeakerModalIdeaTab = (num) => {
+    const key = `idea${num}`;
+    const ideaTitle = selectedSpeaker[`${key}Title`] || (num === 1 ? selectedSpeaker.title : '') || 'N/A';
+    const ideaDomain = selectedSpeaker[`${key}Domain`] || (num === 1 ? (selectedSpeaker.idea1DomainLegacy || selectedSpeaker.domain) : '') || 'N/A';
+    const ideaWorthSpreading = selectedSpeaker[`${key}WorthSpreading`] || (num === 1 ? selectedSpeaker.idea1Sentence : '') || 'N/A';
+    const ideaDescription = selectedSpeaker[`${key}Description`] || (num === 1 ? (selectedSpeaker.idea1DescriptionLegacy || selectedSpeaker.abstract) : '') || 'N/A';
+    const ideaRelevance = selectedSpeaker[`${key}Relevance`] || 'N/A';
+    const ideaChallenge = selectedSpeaker[`${key}Challenge`] || 'N/A';
+    const ideaImpact = selectedSpeaker[`${key}Impact`] || 'N/A';
+    const ideaScalability = selectedSpeaker[`${key}Scalability`] || 'N/A';
+    const ideaLivedExperience = selectedSpeaker[`${key}LivedExperience`] || 'NO';
+    const ideaLivedExperienceDesc = selectedSpeaker[`${key}LivedExperienceDesc`] || '';
+    const ideaProps = selectedSpeaker[`${key}Props`] || 'NO';
+    const ideaPropsDetails = selectedSpeaker[`${key}PropsDetails`] || '';
+    const ideaPresentedBefore = selectedSpeaker[`${key}PresentedBefore`] || 'NO';
+    const ideaPresentedBeforeDetails = selectedSpeaker[`${key}PresentedBeforeDetails`] || '';
+    const ideaArticles = selectedSpeaker[`${key}Articles`] || 'N/A';
+    const ideaNewSurprising = selectedSpeaker[`${key}NewSurprising`] || 'N/A';
+    const ideaAudience = selectedSpeaker[`${key}Audience`] || 'N/A';
+    const ideaComments = selectedSpeaker[`${key}Comments`] || '';
+
+    // Files
+    const generalFile = selectedSpeaker[`${key}File`];
+    const generalFileName = selectedSpeaker[`${key}FileName`];
+    const impactFile = selectedSpeaker[`${key}ImpactFile`];
+    const impactFileName = selectedSpeaker[`${key}ImpactFileName`];
+    const evidenceFile = selectedSpeaker[`${key}EvidenceFile`];
+    const evidenceFileName = selectedSpeaker[`${key}EvidenceFileName`];
+    const presentedBeforeFile = selectedSpeaker[`${key}PresentedBeforeFile`];
+    const presentedBeforeFileName = selectedSpeaker[`${key}PresentedBeforeFileName`];
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
+          <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
+                {num === 1 ? 'Primary Idea' : num === 2 ? 'Second Idea (Optional)' : 'Third Idea (Optional)'}
+              </span>
+              <h4 className="text-lg font-bold text-white mt-1">{ideaTitle}</h4>
+            </div>
+            <div className="md:text-right">
+              <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
+              <span className="text-sm font-semibold text-white">{ideaDomain}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-sm">
+            {/* Crux / Worth Spreading */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
+                "{ideaWorthSpreading}"
+              </p>
+            </div>
+
+            {/* Description */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaDescription}
+              </p>
+            </div>
+
+            {/* Why relevant */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaRelevance}
+              </p>
+            </div>
+
+            {/* Challenge / Gap */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaChallenge}
+              </p>
+            </div>
+
+            {/* Impact */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaImpact}
+              </p>
+            </div>
+
+            {/* Scalability */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaScalability}
+              </p>
+            </div>
+
+            {/* Lived Experience */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
+              <div className="col-span-1">
+                <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
+                <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${ideaLivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
+                  {ideaLivedExperience}
+                </span>
+              </div>
+              {ideaLivedExperience === 'YES' && ideaLivedExperienceDesc && (
+                <div className="col-span-2 text-xs">
+                  <span className="text-gray-400 block font-bold">Details:</span>
+                  <p className="text-gray-300">{ideaLivedExperienceDesc}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Props */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
+              <div className="col-span-1">
+                <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
+                <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${ideaProps === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
+                  {ideaProps}
+                </span>
+              </div>
+              {ideaProps === 'YES' && ideaPropsDetails && (
+                <div className="col-span-2 text-xs">
+                  <span className="text-gray-400 block font-bold">Details:</span>
+                  <p className="text-gray-300">{ideaPropsDetails}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Presented Before */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
+              <div className="col-span-1">
+                <span className="text-xs text-gray-400 font-bold block">Presented Publicly Before?</span>
+                <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${ideaPresentedBefore === 'YES' ? 'bg-purple-950/60 text-purple-400 border border-purple-500/20' : 'bg-gray-800 text-gray-400'}`}>
+                  {ideaPresentedBefore}
+                </span>
+              </div>
+              {ideaPresentedBefore === 'YES' && ideaPresentedBeforeDetails && (
+                <div className="col-span-2 text-xs">
+                  <span className="text-gray-400 block font-bold">Details:</span>
+                  <p className="text-gray-300">{ideaPresentedBeforeDetails}</p>
+                </div>
+              )}
+            </div>
+
+            {/* New / Surprising aspect */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">What makes this idea new, surprising, or thought-provoking?</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaNewSurprising}
+              </p>
+            </div>
+
+            {/* Target Audience */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Target Audience & Who Benefits Most:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaAudience}
+              </p>
+            </div>
+
+            {/* Articles / Links */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
+              <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
+                {ideaArticles}
+              </p>
+            </div>
+
+            {/* Attachments Section */}
+            <div className="pt-4 border-t border-gray-800/80 space-y-3">
+              <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Supporting Attachments</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* General File */}
+                <div className="bg-gray-800/40 border border-gray-800 p-3 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">General Attachment</p>
+                    <p className="text-xs font-medium text-white truncate mt-0.5">{generalFileName || 'None'}</p>
+                  </div>
+                  {generalFile && (
+                    <button
+                      type="button"
+                      onClick={() => downloadBase64File(generalFile, generalFileName)}
+                      className="px-2.5 py-1.5 bg-ted-red hover:bg-red-700 text-white rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shrink-0"
+                    >
+                      Download
+                    </button>
+                  )}
+                </div>
+
+                {/* Impact File */}
+                <div className="bg-gray-800/40 border border-gray-800 p-3 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Impact Attachment</p>
+                    <p className="text-xs font-medium text-white truncate mt-0.5">{impactFileName || 'None'}</p>
+                  </div>
+                  {impactFile && (
+                    <button
+                      type="button"
+                      onClick={() => downloadBase64File(impactFile, impactFileName)}
+                      className="px-2.5 py-1.5 bg-ted-red hover:bg-red-700 text-white rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shrink-0"
+                    >
+                      Download
+                    </button>
+                  )}
+                </div>
+
+                {/* Evidence File */}
+                <div className="bg-gray-800/40 border border-gray-800 p-3 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Evidence Attachment</p>
+                    <p className="text-xs font-medium text-white truncate mt-0.5">{evidenceFileName || 'None'}</p>
+                  </div>
+                  {evidenceFile && (
+                    <button
+                      type="button"
+                      onClick={() => downloadBase64File(evidenceFile, evidenceFileName)}
+                      className="px-2.5 py-1.5 bg-ted-red hover:bg-red-700 text-white rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shrink-0"
+                    >
+                      Download
+                    </button>
+                  )}
+                </div>
+
+                {/* Presented Before File */}
+                <div className="bg-gray-800/40 border border-gray-800 p-3 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Presentation Attachment</p>
+                    <p className="text-xs font-medium text-white truncate mt-0.5">{presentedBeforeFileName || 'None'}</p>
+                  </div>
+                  {presentedBeforeFile && (
+                    <button
+                      type="button"
+                      onClick={() => downloadBase64File(presentedBeforeFile, presentedBeforeFileName)}
+                      className="px-2.5 py-1.5 bg-ted-red hover:bg-red-700 text-white rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shrink-0"
+                    >
+                      Download
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Comments */}
+            {ideaComments && (
+              <div className="pt-2 border-t border-gray-850">
+                <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
+                <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
+                  "{ideaComments}"
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -1151,6 +1458,20 @@ const AdminDashboard = () => {
                           <p className="text-gray-500 italic mt-0.5">Not provided</p>
                         )}
                       </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">First TEDx Talk?</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.firstTedxTalk || 'YES'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Has Disability?</p>
+                        <p className="font-semibold text-white mt-0.5">{selectedSpeaker.hasDisability || 'NO'}</p>
+                      </div>
+                      {selectedSpeaker.hasDisability === 'YES' && (
+                        <div className="md:col-span-2">
+                          <p className="text-gray-400 text-xs">Disability/Accommodations Details</p>
+                          <p className="font-semibold text-white mt-0.5 bg-black/60 p-2.5 rounded-xl border border-gray-800 leading-relaxed text-xs">{selectedSpeaker.disabilityDetails || 'None specified'}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1175,6 +1496,10 @@ const AdminDashboard = () => {
                         <div>
                           <p className="text-gray-400 text-xs">Nominator Phone Number</p>
                           <p className="font-semibold text-white mt-0.5">{selectedSpeaker.nominatorPhone || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs">Nominator Location</p>
+                          <p className="font-semibold text-white mt-0.5">{selectedSpeaker.nominatorLocation || 'N/A'}</p>
                         </div>
                         <div className="col-span-1 md:col-span-2">
                           <p className="text-gray-400 text-xs">Nominator Organization</p>
@@ -1229,469 +1554,13 @@ const AdminDashboard = () => {
               )}
 
               {/* TAB 2: Idea 1 */}
-              {speakerModalTab === 'idea1' && (
-                <div className="space-y-6">
-                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
-                          Primary Idea
-                        </span>
-                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea1Title || selectedSpeaker.title || 'N/A'}</h4>
-                      </div>
-                      <div className="md:text-right">
-                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
-                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea1Domain || selectedSpeaker.idea1DomainLegacy || 'N/A'}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 text-sm">
-                      {/* Crux / Worth Spreading */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
-                          "{selectedSpeaker.idea1WorthSpreading || selectedSpeaker.idea1Sentence || 'N/A'}"
-                        </p>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                          {selectedSpeaker.idea1Description || selectedSpeaker.idea1DescriptionLegacy || selectedSpeaker.abstract || 'N/A'}
-                        </p>
-                      </div>
-
-                      {/* Why relevant */}
-                      {selectedSpeaker.idea1Relevance && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea1Relevance}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Challenge / Gap */}
-                      {selectedSpeaker.idea1Challenge && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea1Challenge}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Impact */}
-                      {selectedSpeaker.idea1Impact && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea1Impact}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Scalability */}
-                      {selectedSpeaker.idea1Scalability && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea1Scalability}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Lived Experience */}
-                      {selectedSpeaker.idea1LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea1LivedExperience}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea1LivedExperience === 'YES' && selectedSpeaker.idea1LivedExperienceDesc && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea1LivedExperienceDesc}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Props */}
-                      {selectedSpeaker.idea1Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea1Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea1Props}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea1Props === 'YES' && selectedSpeaker.idea1PropsDetails && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea1PropsDetails}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Articles / Links */}
-                      {selectedSpeaker.idea1Articles && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
-                            {selectedSpeaker.idea1Articles}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* File Attachment */}
-                      <div className="pt-2 border-t border-gray-800/80">
-                        {selectedSpeaker.idea1File ? (
-                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
-                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea1FileName || 'attachment_1'}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => downloadBase64File(selectedSpeaker.idea1File, selectedSpeaker.idea1FileName)}
-                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
-                            >
-                              <span>📥</span> Download
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
-                        )}
-                      </div>
-
-                      {/* Comments */}
-                      {selectedSpeaker.idea1Comments && (
-                        <div>
-                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
-                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
-                            "{selectedSpeaker.idea1Comments}"
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {speakerModalTab === 'idea1' && renderSpeakerModalIdeaTab(1)}
 
               {/* TAB 3: Idea 2 */}
-              {speakerModalTab === 'idea2' && (selectedSpeaker.idea2Title || selectedSpeaker.idea2Sentence) && (
-                <div className="space-y-6">
-                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
-                          Second Idea (Optional)
-                        </span>
-                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea2Title || 'N/A'}</h4>
-                      </div>
-                      <div className="md:text-right">
-                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
-                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea2Domain || selectedSpeaker.idea2DomainLegacy || 'N/A'}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 text-sm">
-                      {/* Crux / Worth Spreading */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
-                          "{selectedSpeaker.idea2WorthSpreading || selectedSpeaker.idea2Sentence || 'N/A'}"
-                        </p>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                          {selectedSpeaker.idea2Description || selectedSpeaker.idea2DescriptionLegacy || 'N/A'}
-                        </p>
-                      </div>
-
-                      {/* Why relevant */}
-                      {selectedSpeaker.idea2Relevance && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea2Relevance}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Challenge / Gap */}
-                      {selectedSpeaker.idea2Challenge && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea2Challenge}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Impact */}
-                      {selectedSpeaker.idea2Impact && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea2Impact}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Scalability */}
-                      {selectedSpeaker.idea2Scalability && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea2Scalability}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Lived Experience */}
-                      {selectedSpeaker.idea2LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea2LivedExperience}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea2LivedExperience === 'YES' && selectedSpeaker.idea2LivedExperienceDesc && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea2LivedExperienceDesc}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Props */}
-                      {selectedSpeaker.idea2Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea2Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea2Props}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea2Props === 'YES' && selectedSpeaker.idea2PropsDetails && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea2PropsDetails}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Articles / Links */}
-                      {selectedSpeaker.idea2Articles && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
-                            {selectedSpeaker.idea2Articles}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* File Attachment */}
-                      <div className="pt-2 border-t border-gray-800/80">
-                        {selectedSpeaker.idea2File ? (
-                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
-                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea2FileName || 'attachment_2'}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => downloadBase64File(selectedSpeaker.idea2File, selectedSpeaker.idea2FileName)}
-                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
-                            >
-                              <span>📥</span> Download
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
-                        )}
-                      </div>
-
-                      {/* Comments */}
-                      {selectedSpeaker.idea2Comments && (
-                        <div>
-                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
-                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
-                            "{selectedSpeaker.idea2Comments}"
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {speakerModalTab === 'idea2' && (selectedSpeaker.idea2Title || selectedSpeaker.idea2Sentence) && renderSpeakerModalIdeaTab(2)}
 
               {/* TAB 4: Idea 3 */}
-              {speakerModalTab === 'idea3' && (selectedSpeaker.idea3Title || selectedSpeaker.idea3Sentence) && (
-                <div className="space-y-6">
-                  <div className="bg-black/40 border border-gray-800/85 p-5 rounded-xl space-y-4">
-                    <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-gray-800 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-ted-red bg-red-950/40 border border-red-500/20 px-2.5 py-0.5 rounded-full mb-1 inline-block">
-                          Third Idea (Optional)
-                        </span>
-                        <h4 className="text-lg font-bold text-white mt-1">{selectedSpeaker.idea3Title || 'N/A'}</h4>
-                      </div>
-                      <div className="md:text-right">
-                        <span className="text-xs text-gray-400 block font-medium">Domain / Category:</span>
-                        <span className="text-sm font-semibold text-white">{selectedSpeaker.idea3Domain || selectedSpeaker.idea3DomainLegacy || 'N/A'}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 text-sm">
-                      {/* Crux / Worth Spreading */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">The "Idea Worth Spreading" Crux:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800 italic">
-                          "{selectedSpeaker.idea3WorthSpreading || selectedSpeaker.idea3Sentence || 'N/A'}"
-                        </p>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <span className="text-xs text-gray-400 font-bold block mb-1">Detailed Description:</span>
-                        <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                          {selectedSpeaker.idea3Description || selectedSpeaker.idea3DescriptionLegacy || 'N/A'}
-                        </p>
-                      </div>
-
-                      {/* Why relevant */}
-                      {selectedSpeaker.idea3Relevance && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Relevance in Today's World:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea3Relevance}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Challenge / Gap */}
-                      {selectedSpeaker.idea3Challenge && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Challenge / Issue / Gap Addressed:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea3Challenge}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Impact */}
-                      {selectedSpeaker.idea3Impact && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea3Impact}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Scalability */}
-                      {selectedSpeaker.idea3Scalability && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Scalability & Adaptability:</span>
-                          <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
-                            {selectedSpeaker.idea3Scalability}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Lived Experience */}
-                      {selectedSpeaker.idea3LivedExperience && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Lived Experience?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3LivedExperience === 'YES' ? 'bg-green-950/60 text-green-400 border border-green-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea3LivedExperience}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea3LivedExperience === 'YES' && selectedSpeaker.idea3LivedExperienceDesc && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea3LivedExperienceDesc}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Props */}
-                      {selectedSpeaker.idea3Props && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/30 border border-gray-800 p-3 rounded-xl">
-                          <div className="col-span-1">
-                            <span className="text-xs text-gray-400 font-bold block">Requires Props/Materials?</span>
-                            <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded ${selectedSpeaker.idea3Props === 'YES' ? 'bg-yellow-950/60 text-yellow-400 border border-yellow-500/20' : 'bg-gray-800 text-gray-400'}`}>
-                              {selectedSpeaker.idea3Props}
-                            </span>
-                          </div>
-                          {selectedSpeaker.idea3Props === 'YES' && selectedSpeaker.idea3PropsDetails && (
-                            <div className="col-span-2 text-xs">
-                              <span className="text-gray-400 block font-bold">Details:</span>
-                              <p className="text-gray-300">{selectedSpeaker.idea3PropsDetails}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Articles / Links */}
-                      {selectedSpeaker.idea3Articles && (
-                        <div>
-                          <span className="text-xs text-gray-400 font-bold block mb-1">Work Samples / Relevant Links:</span>
-                          <p className="text-gray-300 whitespace-pre-line bg-black/40 border border-gray-800 p-3 rounded-xl text-xs leading-relaxed">
-                            {selectedSpeaker.idea3Articles}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* File Attachment */}
-                      <div className="pt-2 border-t border-gray-800/80">
-                        {selectedSpeaker.idea3File ? (
-                          <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-400 font-bold uppercase">Supporting Attachment</p>
-                              <p className="text-sm font-medium text-white truncate max-w-xs mt-0.5">{selectedSpeaker.idea3FileName || 'attachment_3'}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => downloadBase64File(selectedSpeaker.idea3File, selectedSpeaker.idea3FileName)}
-                              className="px-4 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
-                            >
-                              <span>📥</span> Download
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-gray-500 italic">No attachment uploaded for this idea</p>
-                        )}
-                      </div>
-
-                      {/* Comments */}
-                      {selectedSpeaker.idea3Comments && (
-                        <div>
-                          <span className="text-xs text-gray-400 block mb-1 font-bold">Additional Comments / Remarks:</span>
-                          <p className="bg-gray-800/20 border border-gray-800 p-3 rounded-xl text-xs text-gray-300 italic">
-                            "{selectedSpeaker.idea3Comments}"
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {speakerModalTab === 'idea3' && (selectedSpeaker.idea3Title || selectedSpeaker.idea3Sentence) && renderSpeakerModalIdeaTab(3)}
 
               {/* TAB 5: Policy & Confirmations */}
               {speakerModalTab === 'policy' && (
