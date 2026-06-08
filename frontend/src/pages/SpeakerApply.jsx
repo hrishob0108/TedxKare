@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useForm, useApi } from '../hooks/useApi';
+import { useForm, useApi, useLocalStorage } from '../hooks/useApi';
 import { speakerAPI, settingsAPI } from '../utils/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -25,14 +25,25 @@ const SpeakerApply = () => {
 
   useEffect(() => {
     const checkStatus = async () => {
-      try {
-        const response = await settingsAPI.getSettings();
-        setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
-      } catch (err) {
-        console.error('Failed to fetch registration status', err);
-      } finally {
-        setIsCheckingStatus(false);
+      let attempts = 3;
+      while (attempts > 0) {
+        try {
+          // Use a shorter 4-second timeout to handle cold start retries quickly
+          const response = await settingsAPI.getSettings({ timeout: 4000 });
+          setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
+          setIsCheckingStatus(false);
+          return;
+        } catch (err) {
+          attempts--;
+          console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+          if (attempts > 0) {
+            // Wait 2.5 seconds before retrying to give the backend server time to spin up
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+          }
+        }
       }
+      setSpeakerRegistrationOpen(false);
+      setIsCheckingStatus(false);
     };
     checkStatus();
   }, []);
@@ -48,11 +59,15 @@ const SpeakerApply = () => {
     location: '',
     linkedin: '',
     additionalLinks: '',
+    firstTedxTalk: 'YES',
+    hasDisability: 'NO',
+    disabilityDetails: '',
     
     // --- SECTION 1B: Nominator Information (Conditional) ---
     nominatorName: '',
     nominatorEmail: '',
     nominatorPhone: '',
+    nominatorLocation: '',
     nominatorOrganization: '',
     nominatorRelationship: '',
     
@@ -65,14 +80,25 @@ const SpeakerApply = () => {
     idea1Relevance: '',
     idea1Challenge: '',
     idea1Impact: '',
+    idea1ImpactFile: '',
+    idea1ImpactFileName: '',
+    idea1Evidence: '',
+    idea1EvidenceFile: '',
+    idea1EvidenceFileName: '',
     idea1Scalability: '',
     idea1LivedExperience: 'NO',
     idea1LivedExperienceDesc: '',
     idea1Props: 'NO',
     idea1PropsDetails: '',
+    idea1PresentedBefore: 'NO',
+    idea1PresentedBeforeDetails: '',
+    idea1PresentedBeforeFile: '',
+    idea1PresentedBeforeFileName: '',
     idea1Articles: '',
     idea1File: '', // Base64
     idea1FileName: '',
+    idea1NewSurprising: '',
+    idea1Audience: '',
     idea1Comments: '',
 
     // --- SECTION 2: IDEA 2 (Optional) ---
@@ -84,14 +110,25 @@ const SpeakerApply = () => {
     idea2Relevance: '',
     idea2Challenge: '',
     idea2Impact: '',
+    idea2ImpactFile: '',
+    idea2ImpactFileName: '',
+    idea2Evidence: '',
+    idea2EvidenceFile: '',
+    idea2EvidenceFileName: '',
     idea2Scalability: '',
     idea2LivedExperience: 'NO',
     idea2LivedExperienceDesc: '',
     idea2Props: 'NO',
     idea2PropsDetails: '',
+    idea2PresentedBefore: 'NO',
+    idea2PresentedBeforeDetails: '',
+    idea2PresentedBeforeFile: '',
+    idea2PresentedBeforeFileName: '',
     idea2Articles: '',
     idea2File: '', // Base64
     idea2FileName: '',
+    idea2NewSurprising: '',
+    idea2Audience: '',
     idea2Comments: '',
 
     // --- SECTION 3: IDEA 3 (Optional) ---
@@ -103,14 +140,25 @@ const SpeakerApply = () => {
     idea3Relevance: '',
     idea3Challenge: '',
     idea3Impact: '',
+    idea3ImpactFile: '',
+    idea3ImpactFileName: '',
+    idea3Evidence: '',
+    idea3EvidenceFile: '',
+    idea3EvidenceFileName: '',
     idea3Scalability: '',
     idea3LivedExperience: 'NO',
     idea3LivedExperienceDesc: '',
     idea3Props: 'NO',
     idea3PropsDetails: '',
+    idea3PresentedBefore: 'NO',
+    idea3PresentedBeforeDetails: '',
+    idea3PresentedBeforeFile: '',
+    idea3PresentedBeforeFileName: '',
     idea3Articles: '',
     idea3File: '', // Base64
     idea3FileName: '',
+    idea3NewSurprising: '',
+    idea3Audience: '',
     idea3Comments: '',
 
     // --- SECTION 4: Proposed Talk & Confirmations ---
@@ -124,6 +172,7 @@ const SpeakerApply = () => {
     durationConfirmed: false,
     compliesConfirmed: false,
     guidelinesAligned: 'YES',
+    hasAdditionalIdeas: 'YES',
     howLearned: '',
 
     website: '', // Honeypot
@@ -195,6 +244,14 @@ const SpeakerApply = () => {
         form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
         isValid = false;
       }
+      if (!form.values.firstTedxTalk) {
+        form.setFieldError('firstTedxTalk', 'Specify if this will be the speaker\'s first TEDx talk');
+        isValid = false;
+      }
+      if (!form.values.hasDisability) {
+        form.setFieldError('hasDisability', 'Please select if the speaker has any disability');
+        isValid = false;
+      }
     }
 
     if (stepKey === 'nominator') {
@@ -210,6 +267,10 @@ const SpeakerApply = () => {
       }
       if (!form.values.nominatorPhone.trim()) {
         form.setFieldError('nominatorPhone', 'Nominator phone number is required');
+        isValid = false;
+      }
+      if (!form.values.nominatorLocation.trim()) {
+        form.setFieldError('nominatorLocation', 'Nominator location is required');
         isValid = false;
       }
       if (!form.values.nominatorOrganization.trim()) {
@@ -251,6 +312,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea1Impact', 'Measurable impact description is required');
         isValid = false;
       }
+      if (!form.values.idea1Evidence.trim()) {
+        form.setFieldError('idea1Evidence', 'Evidence/research supporting claims is required');
+        isValid = false;
+      }
       if (!form.values.idea1Scalability.trim()) {
         form.setFieldError('idea1Scalability', 'Scalability description is required');
         isValid = false;
@@ -263,8 +328,20 @@ const SpeakerApply = () => {
         form.setFieldError('idea1PropsDetails', 'Please describe the props/materials');
         isValid = false;
       }
+      if (form.values.idea1PresentedBefore === 'YES' && !form.values.idea1PresentedBeforeDetails.trim()) {
+        form.setFieldError('idea1PresentedBeforeDetails', 'Please describe where this has been shared');
+        isValid = false;
+      }
       if (!form.values.idea1Articles.trim()) {
         form.setFieldError('idea1Articles', 'Relevant links, videos, or work samples are required');
+        isValid = false;
+      }
+      if (!form.values.idea1NewSurprising.trim()) {
+        form.setFieldError('idea1NewSurprising', 'Explain what makes this idea new/surprising');
+        isValid = false;
+      }
+      if (!form.values.idea1Audience.trim()) {
+        form.setFieldError('idea1Audience', 'Explain who would benefit most');
         isValid = false;
       }
     }
@@ -298,6 +375,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea2Impact', 'Measurable impact description is required');
         isValid = false;
       }
+      if (!form.values.idea2Evidence.trim()) {
+        form.setFieldError('idea2Evidence', 'Evidence/research supporting claims is required');
+        isValid = false;
+      }
       if (!form.values.idea2Scalability.trim()) {
         form.setFieldError('idea2Scalability', 'Scalability description is required');
         isValid = false;
@@ -310,8 +391,20 @@ const SpeakerApply = () => {
         form.setFieldError('idea2PropsDetails', 'Please describe the props/materials');
         isValid = false;
       }
+      if (form.values.idea2PresentedBefore === 'YES' && !form.values.idea2PresentedBeforeDetails.trim()) {
+        form.setFieldError('idea2PresentedBeforeDetails', 'Please describe where this has been shared');
+        isValid = false;
+      }
       if (!form.values.idea2Articles.trim()) {
         form.setFieldError('idea2Articles', 'Relevant links, videos, or work samples are required');
+        isValid = false;
+      }
+      if (!form.values.idea2NewSurprising.trim()) {
+        form.setFieldError('idea2NewSurprising', 'Explain what makes this idea new/surprising');
+        isValid = false;
+      }
+      if (!form.values.idea2Audience.trim()) {
+        form.setFieldError('idea2Audience', 'Explain who would benefit most');
         isValid = false;
       }
     }
@@ -345,6 +438,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea3Impact', 'Measurable impact description is required');
         isValid = false;
       }
+      if (!form.values.idea3Evidence.trim()) {
+        form.setFieldError('idea3Evidence', 'Evidence/research supporting claims is required');
+        isValid = false;
+      }
       if (!form.values.idea3Scalability.trim()) {
         form.setFieldError('idea3Scalability', 'Scalability description is required');
         isValid = false;
@@ -357,8 +454,43 @@ const SpeakerApply = () => {
         form.setFieldError('idea3PropsDetails', 'Please describe the props/materials');
         isValid = false;
       }
+      if (form.values.idea3PresentedBefore === 'YES' && !form.values.idea3PresentedBeforeDetails.trim()) {
+        form.setFieldError('idea3PresentedBeforeDetails', 'Please describe where this has been shared');
+        isValid = false;
+      }
       if (!form.values.idea3Articles.trim()) {
         form.setFieldError('idea3Articles', 'Relevant links, videos, or work samples are required');
+        isValid = false;
+      }
+      if (!form.values.idea3NewSurprising.trim()) {
+        form.setFieldError('idea3NewSurprising', 'Explain what makes this idea new/surprising');
+        isValid = false;
+      }
+      if (!form.values.idea3Audience.trim()) {
+        form.setFieldError('idea3Audience', 'Explain who would benefit most');
+        isValid = false;
+      }
+    }
+
+    if (stepKey === 'policy') {
+      if (!form.values.soloPresentationConfirmed) {
+        form.setFieldError('soloPresentationConfirmed', 'You must confirm the presentation is solo');
+        isValid = false;
+      }
+      if (!form.values.durationConfirmed) {
+        form.setFieldError('durationConfirmed', 'You must confirm the talk does not exceed 18 minutes');
+        isValid = false;
+      }
+      if (!form.values.compliesConfirmed) {
+        form.setFieldError('compliesConfirmed', 'You must confirm compliance with TEDx content guidelines');
+        isValid = false;
+      }
+      if (form.values.guidelinesAligned !== 'YES') {
+        form.setFieldError('guidelinesAligned', 'You must confirm alignment with TEDx content guidelines');
+        isValid = false;
+      }
+      if (!form.values.howLearned.trim()) {
+        form.setFieldError('howLearned', 'Information on how you learned about TEDxKARE is required');
         isValid = false;
       }
     }
@@ -382,25 +514,7 @@ const SpeakerApply = () => {
   };
 
   const onSubmit = async (values) => {
-    // Validate Step 4
-    if (!values.proposedTitle.trim()) {
-      form.setFieldError('proposedTitle', 'Proposed Talk Title is required');
-      setValidationError('Proposed Talk Title is required.');
-      window.scrollTo(0, 0);
-      return;
-    }
-    if (!values.proposedDescription.trim()) {
-      form.setFieldError('proposedDescription', 'Talk originality and sharing explanation is required');
-      setValidationError('Talk description and explanation are required.');
-      window.scrollTo(0, 0);
-      return;
-    }
-    if (!values.proposedQualifications.trim()) {
-      form.setFieldError('proposedQualifications', 'Qualifications highlight is required');
-      setValidationError('Qualifications highlight is required.');
-      window.scrollTo(0, 0);
-      return;
-    }
+    // Validate Step 4 Policy Confirmations
     if (!values.soloPresentationConfirmed) {
       form.setFieldError('soloPresentationConfirmed', 'You must confirm the presentation is solo');
       setValidationError('Please confirm that the presentation is solo.');
@@ -434,10 +548,16 @@ const SpeakerApply = () => {
 
     setValidationError('');
 
-    const submitValues = { ...values };
+    const submitValues = {
+      ...values,
+      proposedTitle: values.idea1Title,
+      proposedDescription: values.idea1Description,
+      proposedQualifications: values.whySpeak1
+    };
 
     try {
       await request(() => speakerAPI.submitSpeaker(submitValues));
+      removeStoredDraft();
       setSubmitSuccess(true);
       setTimeout(() => {
         navigate('/thank-you-speaker');
@@ -458,29 +578,44 @@ const SpeakerApply = () => {
     }
   };
 
-  const form = useForm(initialValues, onSubmit);
+  const [storedDraft, setStoredDraft, removeStoredDraft] = useLocalStorage('tedxkare_speaker_draft', initialValues);
+  const form = useForm(storedDraft, onSubmit);
+
+  useEffect(() => {
+    // Exclude large base64 file data to avoid localStorage QuotaExceededError
+    const valuesCopy = { ...form.values };
+    for (let i = 1; i <= 3; i++) {
+      valuesCopy[`idea${i}File`] = '';
+      valuesCopy[`idea${i}ImpactFile`] = '';
+      valuesCopy[`idea${i}EvidenceFile`] = '';
+      valuesCopy[`idea${i}PresentedBeforeFile`] = '';
+    }
+    setStoredDraft(valuesCopy);
+  }, [form.values, setStoredDraft]);
 
   const isSelfNominated = form.values.selfNomination === 'Yes, I am nominating myself.';
-  
-  const stepsList = isSelfNominated
-    ? [
-        { id: 1, label: '1. Profile', key: 'profile' },
-        { id: 2, label: '2. Idea 1', key: 'idea1' },
-        { id: 3, label: '3. Idea 2', key: 'idea2' },
-        { id: 4, label: '4. Idea 3', key: 'idea3' },
-        { id: 5, label: '5. Policy Checks', key: 'policy' }
-      ]
-    : [
-        { id: 1, label: '1. Profile', key: 'profile' },
-        { id: 2, label: '2. Nominator Info', key: 'nominator' },
-        { id: 3, label: '3. Idea 1', key: 'idea1' },
-        { id: 4, label: '4. Idea 2', key: 'idea2' },
-        { id: 5, label: '5. Idea 3', key: 'idea3' },
-        { id: 6, label: '6. Policy Checks', key: 'policy' }
-      ];
+  const hasAdditional = form.values.hasAdditionalIdeas === 'YES';
+
+  const stepsList = [];
+  let currentId = 1;
+  stepsList.push({ id: currentId++, label: '1. Profile', key: 'profile' });
+  if (!isSelfNominated) {
+    stepsList.push({ id: currentId++, label: `${currentId - 1}. Nominator Info`, key: 'nominator' });
+  }
+  stepsList.push({ id: currentId++, label: `${currentId - 1}. Idea 1`, key: 'idea1' });
+  stepsList.push({ id: currentId++, label: `${currentId - 1}. Idea 2`, key: 'idea2' });
+  stepsList.push({ id: currentId++, label: `${currentId - 1}. Idea 3`, key: 'idea3' });
+  stepsList.push({ id: currentId++, label: `${currentId - 1}. Policy Checks`, key: 'policy' });
 
   const currentStepKey = stepsList[step - 1]?.key || '';
   const totalSteps = stepsList.length;
+
+  // Adjust step if it exceeds totalSteps (due to dynamic list resizing)
+  useEffect(() => {
+    if (step > totalSteps && totalSteps > 0) {
+      setStep(totalSteps);
+    }
+  }, [totalSteps, step]);
 
   // Helper to dynamically style fields based on error state
   const getInputClassName = (fieldName, baseType = 'input') => {
@@ -493,6 +628,465 @@ const SpeakerApply = () => {
       ? 'border-red-500/50 focus:border-red-500 shadow-sm shadow-red-950/20'
       : 'border-gray-800 focus:border-ted-red';
     return `w-full bg-black/60 border ${borderClass} rounded-xl ${pxClass} py-2.5 text-white placeholder-gray-600 focus:outline-none text-sm ${resizeClass}`;
+  };
+
+  const renderIdeaStep = (num) => {
+    const key = `idea${num}`;
+    const stepTitle = num === 1 ? 'Primary Talk Idea Details' : num === 2 ? 'Second Talk Idea Details' : 'Third Talk Idea Details';
+    
+    return (
+      <motion.div
+        key={`step-idea${num}`}
+        initial={{ opacity: 0, x: -15 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 15 }}
+        className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
+      >
+        <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
+          <span className="flex items-center gap-2"><span>💡</span> Section 3: {stepTitle}</span>
+        </h2>
+
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Title */}
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">Proposed Talk Title *</label>
+              <input
+                type="text"
+                name={`${key}Title`}
+                placeholder="Enter Talk Title"
+                className={getInputClassName(`${key}Title`)}
+                value={form.values[`${key}Title`]}
+                onChange={form.handleChange}
+                required
+              />
+              {form.errors[`${key}Title`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Title`]}</p>}
+            </div>
+
+            {/* Domain */}
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">Domain / Category *</label>
+              <select
+                name={`${key}Domain`}
+                className={getInputClassName(`${key}Domain`, 'select')}
+                value={form.values[`${key}Domain`]}
+                onChange={form.handleChange}
+                required
+              >
+                <option value="">-- Select Domain --</option>
+                <option value="Technology">Technology</option>
+                <option value="Science">Science</option>
+                <option value="Education">Education</option>
+                <option value="Health">Health</option>
+                <option value="Business">Business</option>
+                <option value="Arts">Arts</option>
+                <option value="Social Impact">Social Impact</option>
+                <option value="Sustainability">Sustainability</option>
+                <option value="Personal Development">Personal Development</option>
+                <option value="Other">Other</option>
+              </select>
+              {form.errors[`${key}Domain`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Domain`]}</p>}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Idea Summary (Recommended: 150–300 words. Explain concept, why it matters, and key insight) *</label>
+            <textarea
+              name={`${key}Description`}
+              placeholder="Provide a detailed overview of the idea..."
+              rows="4"
+              className={getInputClassName(`${key}Description`, 'textarea')}
+              value={form.values[`${key}Description`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Description`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Description`]}</p>}
+          </div>
+
+          {/* Worth Spreading */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">What is the core message or key takeaway of this talk? *</label>
+            <textarea
+              name={`${key}WorthSpreading`}
+              placeholder="Explain the concept's single most important message..."
+              rows="3"
+              className={getInputClassName(`${key}WorthSpreading`, 'textarea')}
+              value={form.values[`${key}WorthSpreading`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}WorthSpreading`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}WorthSpreading`]}</p>}
+          </div>
+
+          {/* Relevance */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Why is this idea particularly relevant today? *</label>
+            <textarea
+              name={`${key}Relevance`}
+              placeholder="What current challenge, trend, opportunity, or societal need makes this idea timely and important?"
+              rows="3"
+              className={getInputClassName(`${key}Relevance`, 'textarea')}
+              value={form.values[`${key}Relevance`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Relevance`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Relevance`]}</p>}
+          </div>
+
+          {/* Challenge */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">What problem, gap, misconception, or challenge does this idea address? *</label>
+            <textarea
+              name={`${key}Challenge`}
+              placeholder="Explain what challenge, misconception, or issue this idea aims to solve..."
+              rows="3"
+              className={getInputClassName(`${key}Challenge`, 'textarea')}
+              value={form.values[`${key}Challenge`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Challenge`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Challenge`]}</p>}
+          </div>
+
+          {/* Impact + Attachment */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-300 font-bold">What evidence demonstrates the impact of this idea or the speaker's work? *</label>
+            <textarea
+              name={`${key}Impact`}
+              placeholder="Please share measurable outcomes, case studies, achievements, research findings, community impact, or other indicators of success..."
+              rows="3"
+              className={getInputClassName(`${key}Impact`, 'textarea')}
+              value={form.values[`${key}Impact`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Impact`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Impact`]}</p>}
+            
+            <div className="flex items-center gap-3 pt-1">
+              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
+                Upload Impact Proof
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, `${key}Impact`)}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                />
+              </label>
+              {form.values[`${key}ImpactFileName`] ? (
+                <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
+                  <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values[`${key}ImpactFileName`]}</span>
+                  <button
+                    type="button"
+                    onClick={() => clearFile(`${key}Impact`)}
+                    className="text-red-500 hover:text-red-400 font-bold text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[10px] text-gray-500">Optional impact document attachment (Max 10 MB)</span>
+              )}
+            </div>
+            {form.errors[`${key}ImpactFile`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}ImpactFile`]}</p>}
+          </div>
+
+          {/* Evidence + Attachment */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-300 font-bold">What evidence, research, data, publications, or external sources support the claims made in this idea? *</label>
+            <textarea
+              name={`${key}Evidence`}
+              placeholder="TEDx talks should be grounded in credible evidence, expertise, lived experience, or demonstrated impact. Please provide details or links..."
+              rows="3"
+              className={getInputClassName(`${key}Evidence`, 'textarea')}
+              value={form.values[`${key}Evidence`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Evidence`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Evidence`]}</p>}
+            
+            <div className="flex items-center gap-3 pt-1">
+              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
+                Upload Supporting Sources
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, `${key}Evidence`)}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                />
+              </label>
+              {form.values[`${key}EvidenceFileName`] ? (
+                <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
+                  <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values[`${key}EvidenceFileName`]}</span>
+                  <button
+                    type="button"
+                    onClick={() => clearFile(`${key}Evidence`)}
+                    className="text-red-500 hover:text-red-400 font-bold text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[10px] text-gray-500">Optional evidence document attachment (Max 10 MB)</span>
+              )}
+            </div>
+            {form.errors[`${key}EvidenceFile`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}EvidenceFile`]}</p>}
+          </div>
+
+          {/* Scalability */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Can this idea be applied, adapted, or replicated in other communities, industries, or contexts? Please explain. *</label>
+            <textarea
+              name={`${key}Scalability`}
+              placeholder="Describe how this idea can be adapted by others..."
+              rows="3"
+              className={getInputClassName(`${key}Scalability`, 'textarea')}
+              value={form.values[`${key}Scalability`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Scalability`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Scalability`]}</p>}
+          </div>
+
+          {/* Lived Experience */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">Does the speaker have personal or lived experience connected to this idea? *</label>
+              <select
+                name={`${key}LivedExperience`}
+                className={getInputClassName(`${key}LivedExperience`, 'select')}
+                value={form.values[`${key}LivedExperience`]}
+                onChange={form.handleChange}
+                required
+              >
+                <option value="NO">NO</option>
+                <option value="YES">YES</option>
+              </select>
+            </div>
+
+            {/* Props */}
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">Will the speaker use demonstrations, props, prototypes, multimedia, or physical materials? *</label>
+              <select
+                name={`${key}Props`}
+                className={getInputClassName(`${key}Props`, 'select')}
+                value={form.values[`${key}Props`]}
+                onChange={form.handleChange}
+                required
+              >
+                <option value="NO">NO</option>
+                <option value="YES">YES</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Lived Experience Details */}
+          {form.values[`${key}LivedExperience`] === 'YES' && (
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">If yes, how has the speaker's personal experience shaped their understanding of this idea and influenced their work? *</label>
+              <textarea
+                name={`${key}LivedExperienceDesc`}
+                placeholder="Briefly explain details..."
+                rows="3"
+                className={getInputClassName(`${key}LivedExperienceDesc`, 'textarea')}
+                value={form.values[`${key}LivedExperienceDesc`]}
+                onChange={form.handleChange}
+                required
+              />
+              {form.errors[`${key}LivedExperienceDesc`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}LivedExperienceDesc`]}</p>}
+            </div>
+          )}
+
+          {/* Props Details */}
+          {form.values[`${key}Props`] === 'YES' && (
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">If yes, please provide details of any materials, equipment, demonstrations, or technical requirements. *</label>
+              <textarea
+                name={`${key}PropsDetails`}
+                placeholder="Briefly explain details..."
+                rows="3"
+                className={getInputClassName(`${key}PropsDetails`, 'textarea')}
+                value={form.values[`${key}PropsDetails`]}
+                onChange={form.handleChange}
+                required
+              />
+              {form.errors[`${key}PropsDetails`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}PropsDetails`]}</p>}
+            </div>
+          )}
+
+          {/* Presented Before */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Has the speaker presented this idea publicly before? *</label>
+            <select
+              name={`${key}PresentedBefore`}
+              className={getInputClassName(`${key}PresentedBefore`, 'select')}
+              value={form.values[`${key}PresentedBefore`]}
+              onChange={form.handleChange}
+              required
+            >
+              <option value="NO">NO</option>
+              <option value="YES">YES</option>
+            </select>
+          </div>
+
+          {/* Presented Before Details */}
+          {form.values[`${key}PresentedBefore`] === 'YES' && (
+            <div className="space-y-2">
+              <label className="text-xs text-gray-300 font-bold">If yes, please provide details of previous presentations, events, publications, podcasts, interviews, or platforms where this idea has been shared. *</label>
+              <textarea
+                name={`${key}PresentedBeforeDetails`}
+                placeholder="Share details of where this has been presented..."
+                rows="3"
+                className={getInputClassName(`${key}PresentedBeforeDetails`, 'textarea')}
+                value={form.values[`${key}PresentedBeforeDetails`]}
+                onChange={form.handleChange}
+                required
+              />
+              {form.errors[`${key}PresentedBeforeDetails`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}PresentedBeforeDetails`]}</p>}
+              
+              <div className="flex items-center gap-3 pt-1">
+                <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
+                  Upload Presentation Proof
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => handleFileChange(e, `${key}PresentedBefore`)}
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  />
+                </label>
+                {form.values[`${key}PresentedBeforeFileName`] ? (
+                  <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
+                    <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values[`${key}PresentedBeforeFileName`]}</span>
+                    <button
+                      type="button"
+                      onClick={() => clearFile(`${key}PresentedBefore`)}
+                      className="text-red-500 hover:text-red-400 font-bold text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-gray-500">Optional presentation document attachment (Max 10 MB)</span>
+                )}
+              </div>
+              {form.errors[`${key}PresentedBeforeFile`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}PresentedBeforeFile`]}</p>}
+            </div>
+          )}
+
+          {/* New / Surprising aspect */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">What makes this idea new, surprising, thought-provoking, or worth spreading? *</label>
+            <textarea
+              name={`${key}NewSurprising`}
+              placeholder="Describe the unique insight, perspective, discovery, approach, or lesson that audiences are unlikely to have encountered before..."
+              rows="3"
+              className={getInputClassName(`${key}NewSurprising`, 'textarea')}
+              value={form.values[`${key}NewSurprising`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}NewSurprising`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}NewSurprising`]}</p>}
+          </div>
+
+          {/* Target Audience */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Who would benefit most from hearing this talk, and why? *</label>
+            <textarea
+              name={`${key}Audience`}
+              placeholder="Describe the primary audience and the value, perspective, or action they may gain from this idea..."
+              rows="3"
+              className={getInputClassName(`${key}Audience`, 'textarea')}
+              value={form.values[`${key}Audience`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Audience`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Audience`]}</p>}
+          </div>
+
+          {/* Articles / work samples */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Please share relevant links, videos, or work samples related to the speaker. *</label>
+            <textarea
+              name={`${key}Articles`}
+              placeholder="Enter comma-separated URLs or details..."
+              rows="3"
+              className={getInputClassName(`${key}Articles`, 'textarea')}
+              value={form.values[`${key}Articles`]}
+              onChange={form.handleChange}
+              required
+            />
+            {form.errors[`${key}Articles`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Articles`]}</p>}
+          </div>
+
+          {/* Document upload (General/Additional) */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-300 font-bold block">Please upload any additional supporting documents or media related to the Speaker, if any</label>
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
+                Choose Document
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, key)}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                />
+              </label>
+              {form.values[`${key}FileName`] ? (
+                <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
+                  <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values[`${key}FileName`]}</span>
+                  <button
+                    type="button"
+                    onClick={() => clearFile(key)}
+                    className="text-red-500 hover:text-red-400 font-bold text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[10px] text-gray-500">No file uploaded. Max size 10 MB.</span>
+              )}
+            </div>
+            {form.errors[`${key}File`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}File`]}</p>}
+          </div>
+
+          {/* Comments */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-300 font-bold">Is there anything else the Selection Committee should know about this speaker or idea? (Optional)</label>
+            <textarea
+              name={`${key}Comments`}
+              placeholder="Add any extra comments here..."
+              rows="2"
+              className={getInputClassName(`${key}Comments`, 'textarea')}
+              value={form.values[`${key}Comments`]}
+              onChange={form.handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
+          >
+            <span>←</span> Back
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
+          >
+            {num === 1 ? (
+              <>Next Section (Idea 2) <span>→</span></>
+            ) : num === 2 ? (
+              <>Next Section (Idea 3) <span>→</span></>
+            ) : (
+              <>Next Section (Policy Checks) <span>→</span></>
+            )}
+          </button>
+        </div>
+      </motion.div>
+    );
   };
 
   if (isCheckingStatus) {
@@ -749,6 +1343,39 @@ const SpeakerApply = () => {
                     />
                     {form.errors.linkedin && <p className="text-red-500 text-[10px]">{form.errors.linkedin}</p>}
                   </div>
+
+                  {/* Will this be Speaker's first TEDx Talk? */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Will this be the Speaker's first TEDx Talk? *</label>
+                    <select
+                      name="firstTedxTalk"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.firstTedxTalk}
+                      onChange={form.handleChange}
+                      required
+                    >
+                      <option value="YES">Yes</option>
+                      <option value="NO">No</option>
+                    </select>
+                    {form.errors.firstTedxTalk && <p className="text-red-500 text-[10px]">{form.errors.firstTedxTalk}</p>}
+                  </div>
+
+                  {/* Does the Speaker have any disability? */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Does the Speaker have any disability? *</label>
+                    <select
+                      name="hasDisability"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.hasDisability}
+                      onChange={form.handleChange}
+                      required
+                    >
+                      <option value="NO">No</option>
+                      <option value="YES">Yes</option>
+                      <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+                    </select>
+                    {form.errors.hasDisability && <p className="text-red-500 text-[10px]">{form.errors.hasDisability}</p>}
+                  </div>
                 </div>
 
                 {/* Additional Links */}
@@ -763,6 +1390,21 @@ const SpeakerApply = () => {
                     onChange={form.handleChange}
                   />
                 </div>
+
+                {/* Disability details if YES */}
+                {form.values.hasDisability === 'YES' && (
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Please specify any accessibility requirements or accommodations needed (Optional)</label>
+                    <textarea
+                      name="disabilityDetails"
+                      placeholder="e.g. Wheelchair access, sign language interpreter, low lighting stage setups, etc..."
+                      rows="2"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
+                      value={form.values.disabilityDetails}
+                      onChange={form.handleChange}
+                    />
+                  </div>
+                )}
 
                 {/* Why believe should speak */}
                 <div className="space-y-1">
@@ -850,6 +1492,21 @@ const SpeakerApply = () => {
                     {form.errors.nominatorPhone && <p className="text-red-500 text-[10px]">{form.errors.nominatorPhone}</p>}
                   </div>
 
+                  {/* Nominator Location */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-300 font-bold">Your Location (City, State/Province, Country) *</label>
+                    <input
+                      type="text"
+                      name="nominatorLocation"
+                      placeholder="e.g. Chennai, Tamil Nadu, India"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
+                      value={form.values.nominatorLocation}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.nominatorLocation && <p className="text-red-500 text-[10px]">{form.errors.nominatorLocation}</p>}
+                  </div>
+
                   {/* Nominator Organization */}
                   <div className="space-y-1">
                     <label className="text-xs text-gray-300 font-bold">Name of Your Organization *</label>
@@ -900,848 +1557,10 @@ const SpeakerApply = () => {
               </motion.div>
             )}
 
-            {/* ==================== STEP: IDEA 1 ==================== */}
-            {currentStepKey === 'idea1' && (
-              <motion.div
-                key="step-idea1"
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 15 }}
-                className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
-              >
-                <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
-                  <span className="flex items-center gap-2"><span>💡</span> Section 2: First Idea Evaluation</span>
-                </h2>
-
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Idea 1 Title */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">IDEA 1 – TITLE *</label>
-                      <input
-                        type="text"
-                        name="idea1Title"
-                        placeholder="Enter Idea 1 Title"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                        value={form.values.idea1Title}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea1Title && <p className="text-red-500 text-[10px]">{form.errors.idea1Title}</p>}
-                    </div>
-
-                    {/* Idea 1 Domain */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">DOMAIN - IDEA 1 *</label>
-                      <input
-                        type="text"
-                        name="idea1Domain"
-                        placeholder="e.g. Science, Technology, Business"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                        value={form.values.idea1Domain}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea1Domain && <p className="text-red-500 text-[10px]">{form.errors.idea1Domain}</p>}
-                    </div>
-                  </div>
-
-                  {/* Idea 1 Description */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">DESCRIPTION - IDEA 1 *</label>
-                    <textarea
-                      name="idea1Description"
-                      placeholder="Provide a detailed description of this talk idea..."
-                      rows="3"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Description}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Description && <p className="text-red-500 text-[10px]">{form.errors.idea1Description}</p>}
-                  </div>
-
-                  {/* Worth Spreading */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Describe the Speaker’s “Idea Worth Spreading.” *</label>
-                    <textarea
-                      name="idea1WorthSpreading"
-                      placeholder="What is the core message of this talk concept?"
-                      rows="3"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1WorthSpreading}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1WorthSpreading && <p className="text-red-500 text-[10px]">{form.errors.idea1WorthSpreading}</p>}
-                  </div>
-
-                  {/* Relevance */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Why is this idea relevant in today’s world? *</label>
-                    <textarea
-                      name="idea1Relevance"
-                      placeholder="Explain the modern relevance, context, or urgency..."
-                      rows="2.5"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Relevance}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Relevance && <p className="text-red-500 text-[10px]">{form.errors.idea1Relevance}</p>}
-                  </div>
-
-                  {/* Challenge */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">What challenge, issue, or gap does this idea aim to address? *</label>
-                    <textarea
-                      name="idea1Challenge"
-                      placeholder="What problem does it tackle?"
-                      rows="2.5"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Challenge}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Challenge && <p className="text-red-500 text-[10px]">{form.errors.idea1Challenge}</p>}
-                  </div>
-
-                  {/* Impact */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">How has the Speaker created measurable, visible, or meaningful impact through their work or idea? *</label>
-                    <textarea
-                      name="idea1Impact"
-                      placeholder="Provide data, metrics, or examples of real-world results..."
-                      rows="2.5"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Impact}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Impact && <p className="text-red-500 text-[10px]">{form.errors.idea1Impact}</p>}
-                  </div>
-
-                  {/* Scalability */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Is the Speaker's idea scalable, adaptable, or replicable beyond their community or field? Please explain. *</label>
-                    <textarea
-                      name="idea1Scalability"
-                      placeholder="Describe the adaptability of the talk concept..."
-                      rows="2.5"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Scalability}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Scalability && <p className="text-red-500 text-[10px]">{form.errors.idea1Scalability}</p>}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Lived Experience */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Does the Speaker have personal or lived experience connected to this idea? *</label>
-                      <select
-                        name="idea1LivedExperience"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                        value={form.values.idea1LivedExperience}
-                        onChange={form.handleChange}
-                        required
-                      >
-                        <option value="NO">NO</option>
-                        <option value="YES">YES</option>
-                      </select>
-                    </div>
-
-                    {/* Props */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Will the speaker be using any props, demonstrations, or physical materials during the TEDx talk? *</label>
-                      <select
-                        name="idea1Props"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                        value={form.values.idea1Props}
-                        onChange={form.handleChange}
-                        required
-                      >
-                        <option value="NO">NO</option>
-                        <option value="YES">YES</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Lived Experience Details */}
-                  {form.values.idea1LivedExperience === 'YES' && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">If yes, please briefly describe the lived experience and how it connects to the idea. *</label>
-                      <textarea
-                        name="idea1LivedExperienceDesc"
-                        placeholder="Detail the connection..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea1LivedExperienceDesc}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea1LivedExperienceDesc && <p className="text-red-500 text-[10px]">{form.errors.idea1LivedExperienceDesc}</p>}
-                    </div>
-                  )}
-
-                  {/* Props Details */}
-                  {form.values.idea1Props === 'YES' && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">If Yes, Please provide details of the props, equipment, or materials the speaker plans to use. *</label>
-                      <textarea
-                        name="idea1PropsDetails"
-                        placeholder="Detail the props/materials..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea1PropsDetails}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea1PropsDetails && <p className="text-red-500 text-[10px]">{form.errors.idea1PropsDetails}</p>}
-                    </div>
-                  )}
-
-                  {/* Articles / work samples */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Please share relevant articles, videos, interviews, podcasts, achievements, or work samples related to the Speaker. *</label>
-                    <textarea
-                      name="idea1Articles"
-                      placeholder="Comma-separated URLs or text details..."
-                      rows="2.5"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Articles}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.idea1Articles && <p className="text-red-500 text-[10px]">{form.errors.idea1Articles}</p>}
-                  </div>
-
-                  {/* Document upload */}
-                  <div className="space-y-2">
-                    <label className="text-xs text-gray-300 font-bold block">Please upload any supporting documents or media related to the Speaker, If any</label>
-                    <div className="flex items-center gap-3">
-                      <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
-                        Choose Document
-                        <input
-                          type="file"
-                          className="hidden"
-                          onChange={(e) => handleFileChange(e, 'idea1')}
-                          accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                        />
-                      </label>
-                      {form.values.idea1FileName ? (
-                        <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
-                          <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values.idea1FileName}</span>
-                          <button
-                            type="button"
-                            onClick={() => clearFile('idea1')}
-                            className="text-red-500 hover:text-red-400 font-bold text-xs"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-gray-500">No file uploaded. Max size 10 MB.</span>
-                      )}
-                    </div>
-                    {form.errors.idea1File && <p className="text-red-500 text-[10px]">{form.errors.idea1File}</p>}
-                  </div>
-
-                  {/* Comments */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
-                    <textarea
-                      name="idea1Comments"
-                      placeholder="Add any extra comments here..."
-                      rows="2"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.idea1Comments}
-                      onChange={form.handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
-                  >
-                    <span>←</span> Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
-                  >
-                    Next Section <span>→</span>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ==================== STEP 2: IDEA 2 (OPTIONAL) ==================== */}
-            {currentStepKey === 'idea2' && (
-              <motion.div
-                key="step-idea2"
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 15 }}
-                className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
-              >
-                <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
-                  <span className="flex items-center gap-2"><span>💡</span> Section 2: Second Idea Evaluation</span>
-                </h2>
-
-                <div className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Idea 2 Title */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">IDEA 2 – TITLE *</label>
-                        <input
-                          type="text"
-                          name="idea2Title"
-                          placeholder="Enter Idea 2 Title"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea2Title}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea2Title && <p className="text-red-500 text-[10px]">{form.errors.idea2Title}</p>}
-                      </div>
-
-                      {/* Idea 2 Domain */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">DOMAIN - IDEA 2 *</label>
-                        <input
-                          type="text"
-                          name="idea2Domain"
-                          placeholder="e.g. Science, Technology, Business"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea2Domain}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea2Domain && <p className="text-red-500 text-[10px]">{form.errors.idea2Domain}</p>}
-                      </div>
-                    </div>
-
-                    {/* Idea 2 Description */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">DESCRIPTION - IDEA 2 *</label>
-                      <textarea
-                        name="idea2Description"
-                        placeholder="Provide a detailed description of this second talk idea..."
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Description}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Description && <p className="text-red-500 text-[10px]">{form.errors.idea2Description}</p>}
-                    </div>
-
-                    {/* Worth Spreading */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Describe the Speaker’s “Idea Worth Spreading.” *</label>
-                      <textarea
-                        name="idea2WorthSpreading"
-                        placeholder="What is the core message of this second talk concept?"
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2WorthSpreading}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2WorthSpreading && <p className="text-red-500 text-[10px]">{form.errors.idea2WorthSpreading}</p>}
-                    </div>
-
-                    {/* Relevance */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why is this idea relevant in today’s world? *</label>
-                      <textarea
-                        name="idea2Relevance"
-                        placeholder="Explain why this second topic is relevant today..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Relevance}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Relevance && <p className="text-red-500 text-[10px]">{form.errors.idea2Relevance}</p>}
-                    </div>
-
-                    {/* Challenge */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">What challenge, issue, or gap does this idea aim to address? *</label>
-                      <textarea
-                        name="idea2Challenge"
-                        placeholder="What problem does it tackle?"
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Challenge}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Challenge && <p className="text-red-500 text-[10px]">{form.errors.idea2Challenge}</p>}
-                    </div>
-
-                    {/* Impact */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">How has the Speaker created measurable, visible, or meaningful impact through their work or idea? *</label>
-                      <textarea
-                        name="idea2Impact"
-                        placeholder="Describe results and metrics..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Impact}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Impact && <p className="text-red-500 text-[10px]">{form.errors.idea2Impact}</p>}
-                    </div>
-
-                    {/* Scalability */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Is the Speaker’s idea scalable, adaptable, or replicable beyond their community or field? Please explain. *</label>
-                      <textarea
-                        name="idea2Scalability"
-                        placeholder="Explain the scalability..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Scalability}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Scalability && <p className="text-red-500 text-[10px]">{form.errors.idea2Scalability}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Lived Experience */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">Does the Speaker have personal or lived experience connected to this idea? *</label>
-                        <select
-                          name="idea2LivedExperience"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea2LivedExperience}
-                          onChange={form.handleChange}
-                          required
-                        >
-                          <option value="NO">NO</option>
-                          <option value="YES">YES</option>
-                        </select>
-                      </div>
-
-                      {/* Props */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">Will the speaker be using any props, demonstrations, or physical materials during the TEDx talk? *</label>
-                        <select
-                          name="idea2Props"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea2Props}
-                          onChange={form.handleChange}
-                          required
-                        >
-                          <option value="NO">NO</option>
-                          <option value="YES">YES</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Lived Experience Details */}
-                    {form.values.idea2LivedExperience === 'YES' && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">If yes, please briefly describe the lived experience and how it connects to the idea. *</label>
-                        <textarea
-                          name="idea2LivedExperienceDesc"
-                          placeholder="Detail the connection..."
-                          rows="2.5"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                          value={form.values.idea2LivedExperienceDesc}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea2LivedExperienceDesc && <p className="text-red-500 text-[10px]">{form.errors.idea2LivedExperienceDesc}</p>}
-                      </div>
-                    )}
-
-                    {/* Props Details */}
-                    {form.values.idea2Props === 'YES' && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">If Yes, Please provide details of the props, equipment, or materials the speaker plans to use. *</label>
-                        <textarea
-                          name="idea2PropsDetails"
-                          placeholder="Detail the props/materials..."
-                          rows="2.5"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                          value={form.values.idea2PropsDetails}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea2PropsDetails && <p className="text-red-500 text-[10px]">{form.errors.idea2PropsDetails}</p>}
-                      </div>
-                    )}
-
-                    {/* Articles / work samples */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Please share relevant articles, videos, interviews, podcasts, achievements, or work samples related to the Speaker . *</label>
-                      <textarea
-                        name="idea2Articles"
-                        placeholder="Comma-separated URLs or text details..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Articles}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea2Articles && <p className="text-red-500 text-[10px]">{form.errors.idea2Articles}</p>}
-                    </div>
-
-                    {/* Document upload */}
-                    <div className="space-y-2">
-                      <label className="text-xs text-gray-300 font-bold block">Please upload any supporting documents or media related to the Speaker, If any</label>
-                      <div className="flex items-center gap-3">
-                        <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
-                          Choose Document
-                          <input
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => handleFileChange(e, 'idea2')}
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                          />
-                        </label>
-                        {form.values.idea2FileName ? (
-                          <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
-                            <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values.idea2FileName}</span>
-                            <button
-                              type="button"
-                              onClick={() => clearFile('idea2')}
-                              className="text-red-500 hover:text-red-400 font-bold text-xs"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-gray-500">No file uploaded. Max size 10 MB.</span>
-                        )}
-                      </div>
-                      {form.errors.idea2File && <p className="text-red-500 text-[10px]">{form.errors.idea2File}</p>}
-                    </div>
-
-                    {/* Comments */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
-                      <textarea
-                        name="idea2Comments"
-                        placeholder="Add any extra comments here..."
-                        rows="2"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea2Comments}
-                        onChange={form.handleChange}
-                      />
-                    </div>
-                  </div>
-
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
-                  >
-                    <span>←</span> Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
-                  >
-                    Next Section <span>→</span>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ==================== STEP 3: IDEA 3 (OPTIONAL) ==================== */}
-            {currentStepKey === 'idea3' && (
-              <motion.div
-                key="step-idea3"
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 15 }}
-                className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
-              >
-                <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center justify-between">
-                  <span className="flex items-center gap-2"><span>💡</span> Section 3: Third Idea Evaluation</span>
-                </h2>
-
-                <div className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Idea 3 Title */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">IDEA 3 – TITLE *</label>
-                        <input
-                          type="text"
-                          name="idea3Title"
-                          placeholder="Enter Idea 3 Title"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea3Title}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea3Title && <p className="text-red-500 text-[10px]">{form.errors.idea3Title}</p>}
-                      </div>
-
-                      {/* Idea 3 Domain */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">DOMAIN - IDEA 3 *</label>
-                        <input
-                          type="text"
-                          name="idea3Domain"
-                          placeholder="e.g. Science, Technology, Business"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea3Domain}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea3Domain && <p className="text-red-500 text-[10px]">{form.errors.idea3Domain}</p>}
-                      </div>
-                    </div>
-
-                    {/* Idea 3 Description */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">DESCRIPTION - IDEA 3 *</label>
-                      <textarea
-                        name="idea3Description"
-                        placeholder="Provide a detailed description of this third talk idea..."
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Description}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Description && <p className="text-red-500 text-[10px]">{form.errors.idea3Description}</p>}
-                    </div>
-
-                    {/* Worth Spreading */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Describe the Speaker's “Idea Worth Spreading.” *</label>
-                      <textarea
-                        name="idea3WorthSpreading"
-                        placeholder="What is the core message of this third talk concept?"
-                        rows="3"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3WorthSpreading}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3WorthSpreading && <p className="text-red-500 text-[10px]">{form.errors.idea3WorthSpreading}</p>}
-                    </div>
-
-                    {/* Relevance */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Why is this idea relevant in today’s world? *</label>
-                      <textarea
-                        name="idea3Relevance"
-                        placeholder="Explain why this third topic is relevant today..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Relevance}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Relevance && <p className="text-red-500 text-[10px]">{form.errors.idea3Relevance}</p>}
-                    </div>
-
-                    {/* Challenge */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">What challenge, issue, or gap does this idea aim to address? *</label>
-                      <textarea
-                        name="idea3Challenge"
-                        placeholder="What problem does it tackle?"
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Challenge}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Challenge && <p className="text-red-500 text-[10px]">{form.errors.idea3Challenge}</p>}
-                    </div>
-
-                    {/* Impact */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">How has the Speaker created measurable, visible, or meaningful impact through their work or idea? *</label>
-                      <textarea
-                        name="idea3Impact"
-                        placeholder="Describe results and metrics..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Impact}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Impact && <p className="text-red-500 text-[10px]">{form.errors.idea3Impact}</p>}
-                    </div>
-
-                    {/* Scalability */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Is the Speaker’s idea scalable, adaptable, or replicable beyond their community or field? Please explain. *</label>
-                      <textarea
-                        name="idea3Scalability"
-                        placeholder="Explain the scalability..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Scalability}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Scalability && <p className="text-red-500 text-[10px]">{form.errors.idea3Scalability}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Lived Experience */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">Does the Speaker have personal or lived experience connected to this idea? *</label>
-                        <select
-                          name="idea3LivedExperience"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea3LivedExperience}
-                          onChange={form.handleChange}
-                          required
-                        >
-                          <option value="NO">NO</option>
-                          <option value="YES">YES</option>
-                        </select>
-                      </div>
-
-                      {/* Props */}
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">Will the speaker be using any props, demonstrations, or physical materials during the TEDx talk? *</label>
-                        <select
-                          name="idea3Props"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
-                          value={form.values.idea3Props}
-                          onChange={form.handleChange}
-                          required
-                        >
-                          <option value="NO">NO</option>
-                          <option value="YES">YES</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Lived Experience Details */}
-                    {form.values.idea3LivedExperience === 'YES' && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">If yes, please briefly describe the lived experience and how it connects to the idea. *</label>
-                        <textarea
-                          name="idea3LivedExperienceDesc"
-                          placeholder="Detail the connection..."
-                          rows="2.5"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                          value={form.values.idea3LivedExperienceDesc}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea3LivedExperienceDesc && <p className="text-red-500 text-[10px]">{form.errors.idea3LivedExperienceDesc}</p>}
-                      </div>
-                    )}
-
-                    {/* Props Details */}
-                    {form.values.idea3Props === 'YES' && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-300 font-bold">If Yes, Please provide details of the props, equipment, or materials the speaker plans to use. *</label>
-                        <textarea
-                          name="idea3PropsDetails"
-                          placeholder="Detail the props/materials..."
-                          rows="2.5"
-                          className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                          value={form.values.idea3PropsDetails}
-                          onChange={form.handleChange}
-                          required
-                        />
-                        {form.errors.idea3PropsDetails && <p className="text-red-500 text-[10px]">{form.errors.idea3PropsDetails}</p>}
-                      </div>
-                    )}
-
-                    {/* Articles / work samples */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Please share relevant articles, videos, interviews, podcasts, achievements, or work samples related to the Speaker. *</label>
-                      <textarea
-                        name="idea3Articles"
-                        placeholder="Comma-separated URLs or text details..."
-                        rows="2.5"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Articles}
-                        onChange={form.handleChange}
-                        required
-                      />
-                      {form.errors.idea3Articles && <p className="text-red-500 text-[10px]">{form.errors.idea3Articles}</p>}
-                    </div>
-
-                    {/* Document upload */}
-                    <div className="space-y-2">
-                      <label className="text-xs text-gray-300 font-bold block">Please upload any supporting documents or media related to the Speaker ,If any</label>
-                      <div className="flex items-center gap-3">
-                        <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
-                          Choose Document
-                          <input
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => handleFileChange(e, 'idea3')}
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                          />
-                        </label>
-                        {form.values.idea3FileName ? (
-                          <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
-                            <span className="text-[10px] text-gray-300 truncate max-w-xs">{form.values.idea3FileName}</span>
-                            <button
-                              type="button"
-                              onClick={() => clearFile('idea3')}
-                              className="text-red-500 hover:text-red-400 font-bold text-xs"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-gray-500">No file uploaded. Max size 10 MB.</span>
-                        )}
-                      </div>
-                      {form.errors.idea3File && <p className="text-red-500 text-[10px]">{form.errors.idea3File}</p>}
-                    </div>
-
-                    {/* Comments */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold">Any additional comments, recommendations, or notes for the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Selection Committee?</label>
-                      <textarea
-                        name="idea3Comments"
-                        placeholder="Add any extra comments here..."
-                        rows="2"
-                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                        value={form.values.idea3Comments}
-                        onChange={form.handleChange}
-                      />
-                    </div>
-                  </div>
-
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="px-5 py-2.5 bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
-                  >
-                    <span>←</span> Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="px-6 py-2.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-red-950/20"
-                  >
-                    Next Section <span>→</span>
-                  </button>
-                </div>
-              </motion.div>
-            )}
+            {/* ==================== SECTION 3: TALK IDEA DETAILS ==================== */}
+            {currentStepKey === 'idea1' && renderIdeaStep(1)}
+            {currentStepKey === 'idea2' && renderIdeaStep(2)}
+            {currentStepKey === 'idea3' && renderIdeaStep(3)}
 
             {/* ==================== STEP 4: PROPOSED TALK & CONFIRMATIONS ==================== */}
             {currentStepKey === 'policy' && (
@@ -1753,54 +1572,11 @@ const SpeakerApply = () => {
                 className="bg-gray-900/30 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 backdrop-blur-sm"
               >
                 <h2 className="text-xl font-bold border-b border-gray-800 pb-3 text-ted-red flex items-center gap-2">
-                  <span>📝</span> Section 4: Talk Details & Policy Confirmations
+                  <span>📝</span> Section 4: Policies & Compliance
                 </h2>
 
                 <div className="space-y-5">
-                  {/* Proposed Talk Title */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold block">Proposed Talk Title *</label>
-                    <input
-                      type="text"
-                      name="proposedTitle"
-                      placeholder="Enter Proposed Talk Title"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm"
-                      value={form.values.proposedTitle}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.proposedTitle && <p className="text-red-500 text-[10px]">{form.errors.proposedTitle}</p>}
-                  </div>
 
-                  {/* Describe originality/relevance */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold block">Describe the speaker’s idea and explain why it is original, relevant, and worth sharing. Include any evidence, research, expertise, or experience that supports the idea *</label>
-                    <textarea
-                      name="proposedDescription"
-                      placeholder="Provide detailed evidence, originality claims, and core value points..."
-                      rows="3"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.proposedDescription}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.proposedDescription && <p className="text-red-500 text-[10px]">{form.errors.proposedDescription}</p>}
-                  </div>
-
-                  {/* Qualifications */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-300 font-bold block">Why is the speaker qualified to deliver this talk? Please highlight the speaker’s experience, expertise, achievements, or speaking background related to the topic. *</label>
-                    <textarea
-                      name="proposedQualifications"
-                      placeholder="List speaking experience, degrees, awards, or subject matter expert credentials..."
-                      rows="3"
-                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                      value={form.values.proposedQualifications}
-                      onChange={form.handleChange}
-                      required
-                    />
-                    {form.errors.proposedQualifications && <p className="text-red-500 text-[10px]">{form.errors.proposedQualifications}</p>}
-                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Policy Comfort */}

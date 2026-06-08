@@ -129,7 +129,7 @@ const SpeakerThankYou = () => {
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
               <div>
-                <strong className="text-white">Application Review:</strong> The Selection Committee will carefully review your proposed talk title, abstract, and category alignment.
+                <strong className="text-white">Application Review:</strong> The Selection Committee will carefully review your proposed talk titles, abstracts, and category alignment. Please note that only 1 of your 3 submitted talk ideas will be selected.
               </div>
             </li>
             <li className="flex items-start gap-3">

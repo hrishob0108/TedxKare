@@ -143,7 +143,7 @@ const Home = () => {
 
   // Countdown clock effect
   useEffect(() => {
-    const target = new Date('June 12, 2026 16:00:00').getTime();
+    const target = new Date('August 23, 2026 16:00:00').getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
@@ -200,7 +200,7 @@ const Home = () => {
   ];
 
   const events = [
-    { title: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit</>, date: 'June 12, 2026', location: 'KARE Main Auditorium' },
+    { title: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Big Bang</>, date: 'August 23, 2026', location: 'KARE Main Auditorium' },
   ];
 
   return (
@@ -621,7 +621,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs uppercase tracking-wider font-bold">Date & Time</p>
-                    <p className="font-semibold text-gray-200 mt-0.5">Soon · June 2026</p>
+                    <p className="font-semibold text-gray-200 mt-0.5">August 23, 2026</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -969,7 +969,7 @@ const Home = () => {
                   Upcoming Event Details
                 </span>
                 <h3 className="text-3xl font-extrabold mt-3 text-white">
-                  <span className="text-ted-red">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit
+                  <span className="text-ted-red">TEDx</span><span className="text-white font-light">KARE</span> Big Bang
                 </h3>
                 <p className="text-gray-400 mt-1">
                   Theme: <span className="text-white font-semibold">Igniting Minds, Creating Impact</span>
@@ -980,7 +980,7 @@ const Home = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 border-t border-b border-gray-800 py-4 text-sm">
                 <div>
                   <p className="text-gray-400">📅 Date & Time</p>
-                  <p className="font-semibold text-gray-200 mt-1">June 12, 2026 · 04:00 PM IST</p>
+                  <p className="font-semibold text-gray-200 mt-1">August 23, 2026 · 04:00 PM IST</p>
                 </div>
                 <div>
                   <p className="text-gray-400">📍 Venue</p>
@@ -990,32 +990,17 @@ const Home = () => {
 
               {/* About */}
               <div className="mb-6">
-                <h4 className="font-bold text-lg text-white mb-2">About the Summit</h4>
+                <h4 className="font-bold text-lg text-white mb-2">About the Event</h4>
                 <p className="text-gray-300 text-sm leading-relaxed font-light">
-                  Join us for an extraordinary evening of ideas worth spreading. The <span className="text-ted-red font-black">TEDx</span><span className="text-white font-light">KARE</span> Spring Summit features a curated lineup of thought leaders, student innovators, and changemakers sharing powerful insights across science, culture, technology, and leadership.
+                  Join us for an extraordinary evening of ideas worth spreading. The <span className="text-ted-red font-black">TEDx</span><span className="text-white font-light">KARE</span> Big Bang features a curated lineup of thought leaders, student innovators, and changemakers sharing powerful insights across science, culture, technology, and leadership.
                 </p>
               </div>
 
               {/* Schedule */}
               <div className="mb-8">
                 <h4 className="font-bold text-lg text-white mb-3">Event Schedule</h4>
-                <div className="space-y-3 text-sm">
-                  {[
-                    { time: '04:00 PM', title: 'Registration & Networking', desc: 'Pick up badges, interact with fellow attendees.' },
-                    { time: '04:30 PM', title: 'Opening Ceremony', desc: 'Welcome address, introductory video, and cultural performace.' },
-                    { time: '05:00 PM', title: 'TEDx Talks: Session 1', desc: 'Featured talks on technology, AI ethics, and student entrepreneurship.' },
-                    { time: '06:15 PM', title: 'High-Tea & Interactions', desc: 'Interact with speakers, view innovation booths.' },
-                    { time: '06:45 PM', title: 'TEDx Talks: Session 2', desc: 'Inspiring talks on social impact, education, and community growth.' },
-                    { time: '08:00 PM', title: 'Closing Ceremony', desc: 'Organizer vote of thanks, photo sessions.' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex gap-4 items-start">
-                      <div className="text-ted-red font-bold whitespace-nowrap min-w-[70px]">{item.time}</div>
-                      <div>
-                        <div className="font-semibold text-gray-200">{item.title}</div>
-                        <div className="text-gray-400 text-xs mt-0.5 font-light">{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="p-4 bg-black/60 border border-gray-800 rounded-xl text-center">
+                  <p className="text-gray-400 text-sm italic">The detailed event schedule will be released soon. Stay tuned for updates!</p>
                 </div>
               </div>
 

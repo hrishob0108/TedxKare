@@ -46,14 +46,25 @@ const Apply = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const checkStatus = async () => {
-      try {
-        const response = await settingsAPI.getSettings();
-        setRegistrationOpen(response.data.data.teamRegistrationOpen ?? response.data.data.registrationOpen);
-      } catch (err) {
-        console.error('Failed to fetch registration status', err);
-      } finally {
-        setIsCheckingStatus(false);
+      let attempts = 3;
+      while (attempts > 0) {
+        try {
+          // Use a shorter 4-second timeout to handle cold start retries quickly
+          const response = await settingsAPI.getSettings({ timeout: 4000 });
+          setRegistrationOpen(response.data.data.teamRegistrationOpen ?? response.data.data.registrationOpen);
+          setIsCheckingStatus(false);
+          return;
+        } catch (err) {
+          attempts--;
+          console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+          if (attempts > 0) {
+            // Wait 2.5 seconds before retrying to give the backend server time to spin up
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+          }
+        }
       }
+      setRegistrationOpen(false);
+      setIsCheckingStatus(false);
     };
     checkStatus();
   }, []);
