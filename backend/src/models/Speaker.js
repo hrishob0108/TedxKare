@@ -35,7 +35,7 @@ const speakerSchema = new mongoose.Schema(
     idea1Impact: { type: String, required: true, trim: true },
     idea1ImpactFile: { type: String }, // Base64 document
     idea1ImpactFileName: { type: String },
-    idea1Evidence: { type: String, required: true, trim: true },
+    idea1Evidence: { type: String, trim: true },
     idea1EvidenceFile: { type: String }, // Base64 document
     idea1EvidenceFileName: { type: String },
     idea1Scalability: { type: String, required: true, trim: true },
@@ -47,10 +47,10 @@ const speakerSchema = new mongoose.Schema(
     idea1PresentedBeforeDetails: { type: String, trim: true },
     idea1PresentedBeforeFile: { type: String }, // Base64 document
     idea1PresentedBeforeFileName: { type: String },
-    idea1Articles: { type: String, required: true, trim: true },
+    idea1Articles: { type: String, trim: true },
     idea1File: { type: String }, // Base64 document
     idea1FileName: { type: String },
-    idea1NewSurprising: { type: String, required: true, trim: true },
+    idea1NewSurprising: { type: String, trim: true },
     idea1Audience: { type: String, trim: true },
     idea1Comments: { type: String, trim: true },
 
@@ -65,7 +65,7 @@ const speakerSchema = new mongoose.Schema(
     idea2Impact: { type: String, required: true, trim: true },
     idea2ImpactFile: { type: String },
     idea2ImpactFileName: { type: String },
-    idea2Evidence: { type: String, required: true, trim: true },
+    idea2Evidence: { type: String, trim: true },
     idea2EvidenceFile: { type: String },
     idea2EvidenceFileName: { type: String },
     idea2Scalability: { type: String, required: true, trim: true },
@@ -77,10 +77,10 @@ const speakerSchema = new mongoose.Schema(
     idea2PresentedBeforeDetails: { type: String, trim: true },
     idea2PresentedBeforeFile: { type: String },
     idea2PresentedBeforeFileName: { type: String },
-    idea2Articles: { type: String, required: true, trim: true },
+    idea2Articles: { type: String, trim: true },
     idea2File: { type: String }, // Base64 document
     idea2FileName: { type: String },
-    idea2NewSurprising: { type: String, required: true, trim: true },
+    idea2NewSurprising: { type: String, trim: true },
     idea2Audience: { type: String, trim: true },
     idea2Comments: { type: String, trim: true },
 
@@ -95,7 +95,7 @@ const speakerSchema = new mongoose.Schema(
     idea3Impact: { type: String, required: true, trim: true },
     idea3ImpactFile: { type: String },
     idea3ImpactFileName: { type: String },
-    idea3Evidence: { type: String, required: true, trim: true },
+    idea3Evidence: { type: String, trim: true },
     idea3EvidenceFile: { type: String },
     idea3EvidenceFileName: { type: String },
     idea3Scalability: { type: String, required: true, trim: true },
@@ -107,10 +107,10 @@ const speakerSchema = new mongoose.Schema(
     idea3PresentedBeforeDetails: { type: String, trim: true },
     idea3PresentedBeforeFile: { type: String },
     idea3PresentedBeforeFileName: { type: String },
-    idea3Articles: { type: String, required: true, trim: true },
+    idea3Articles: { type: String, trim: true },
     idea3File: { type: String }, // Base64 document
     idea3FileName: { type: String },
-    idea3NewSurprising: { type: String, required: true, trim: true },
+    idea3NewSurprising: { type: String, trim: true },
     idea3Audience: { type: String, trim: true },
     idea3Comments: { type: String, trim: true },
 
@@ -127,6 +127,7 @@ const speakerSchema = new mongoose.Schema(
     guidelinesAligned: { type: String, required: true, trim: true }, // YES or NO
     hasAdditionalIdeas: { type: String, required: true, trim: true }, // YES or NO
     howLearned: { type: String, required: true, trim: true },
+    additionalComments: { type: String, trim: true },
 
     // --- Backward compatibility fields (Optional in schema) ---
     age: { type: Number },

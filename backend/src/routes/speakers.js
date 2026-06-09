@@ -38,22 +38,32 @@ const speakerValidation = [
   body('nominatorRelationship').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Relationship with speaker is required'),
   
   // --- Idea 1 (Required) ---
-  body('whySpeak1').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Explanation of why this speaker should speak is required'),
+  body('whySpeak1').trim().notEmpty().withMessage('Explanation of why the speaker should speak or be selected is required'),
   body('idea1Title').trim().notEmpty().withMessage('Idea 1 Title is required'),
   body('idea1Description').trim().notEmpty().withMessage('Idea 1 Description is required'),
   body('idea1Domain').trim().notEmpty().withMessage('Idea 1 Domain is required'),
   body('idea1WorthSpreading').trim().notEmpty().withMessage('Description of what makes this idea worth spreading is required'),
   body('idea1Relevance').trim().notEmpty().withMessage('Explanation of why this idea is relevant is required'),
   body('idea1Challenge').trim().notEmpty().withMessage('Challenge or gap this idea addresses is required'),
-  body('idea1Impact').trim().notEmpty().withMessage('Description of measurable impact is required'),
-  body('idea1Evidence').trim().notEmpty().withMessage('Evidence and sources supporting claims are required'),
+  body('idea1Impact').custom((value, { req }) => {
+    if (!value && !req.body.idea1ImpactFile) {
+      throw new Error('Description of measurable impact or impact proof document upload is required');
+    }
+    return true;
+  }),
+  body('idea1Evidence').custom((value, { req }) => {
+    if (!value && !req.body.idea1EvidenceFile) {
+      throw new Error('Evidence paragraph or document upload is required');
+    }
+    return true;
+  }),
   body('idea1Scalability').trim().notEmpty().withMessage('Scalability explanation is required'),
   body('idea1LivedExperience').trim().notEmpty().withMessage('Lived experience indicator is required'),
   body('idea1Props').trim().notEmpty().withMessage('Props usage indicator is required'),
   body('idea1PresentedBefore').trim().notEmpty().withMessage('Previous presentation indicator is required'),
   body('idea1PresentedBeforeDetails').if(body('idea1PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details are required'),
-  body('idea1Articles').trim().notEmpty().withMessage('Articles, videos, or work samples are required'),
-  body('idea1NewSurprising').trim().notEmpty().withMessage('Explanation of what makes this idea new/surprising is required'),
+  body('idea1Articles').optional().trim(),
+  body('idea1NewSurprising').trim().notEmpty().withMessage('Description of what makes the idea new and surprising is required'),
   body('idea1Audience').optional().trim(),
 
   // --- Idea 2 (Required) ---
@@ -63,15 +73,25 @@ const speakerValidation = [
   body('idea2WorthSpreading').trim().notEmpty().withMessage('Worth spreading description for Idea 2 is required'),
   body('idea2Relevance').trim().notEmpty().withMessage('Relevance description for Idea 2 is required'),
   body('idea2Challenge').trim().notEmpty().withMessage('Challenge or gap description for Idea 2 is required'),
-  body('idea2Impact').trim().notEmpty().withMessage('Impact description for Idea 2 is required'),
-  body('idea2Evidence').trim().notEmpty().withMessage('Evidence and sources for Idea 2 are required'),
+  body('idea2Impact').custom((value, { req }) => {
+    if (!value && !req.body.idea2ImpactFile) {
+      throw new Error('Description of measurable impact or impact proof document upload is required for Idea 2');
+    }
+    return true;
+  }),
+  body('idea2Evidence').custom((value, { req }) => {
+    if (!value && !req.body.idea2EvidenceFile) {
+      throw new Error('Evidence paragraph or document upload is required for Idea 2');
+    }
+    return true;
+  }),
   body('idea2Scalability').trim().notEmpty().withMessage('Scalability description for Idea 2 is required'),
   body('idea2LivedExperience').trim().notEmpty().withMessage('Lived experience indicator for Idea 2 is required'),
   body('idea2Props').trim().notEmpty().withMessage('Props usage indicator for Idea 2 is required'),
   body('idea2PresentedBefore').trim().notEmpty().withMessage('Previous presentation indicator for Idea 2 is required'),
   body('idea2PresentedBeforeDetails').if(body('idea2PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details for Idea 2 are required'),
-  body('idea2Articles').trim().notEmpty().withMessage('Articles, videos, or work samples for Idea 2 are required'),
-  body('idea2NewSurprising').trim().notEmpty().withMessage('What makes Idea 2 surprising is required'),
+  body('idea2Articles').optional().trim(),
+  body('idea2NewSurprising').trim().notEmpty().withMessage('Description of what makes the idea new and surprising is required for Idea 2'),
   body('idea2Audience').optional().trim(),
 
   // --- Idea 3 (Required) ---
@@ -81,15 +101,25 @@ const speakerValidation = [
   body('idea3WorthSpreading').trim().notEmpty().withMessage('Worth spreading description for Idea 3 is required'),
   body('idea3Relevance').trim().notEmpty().withMessage('Relevance description for Idea 3 is required'),
   body('idea3Challenge').trim().notEmpty().withMessage('Challenge or gap description for Idea 3 is required'),
-  body('idea3Impact').trim().notEmpty().withMessage('Impact description for Idea 3 is required'),
-  body('idea3Evidence').trim().notEmpty().withMessage('Evidence and sources for Idea 3 are required'),
+  body('idea3Impact').custom((value, { req }) => {
+    if (!value && !req.body.idea3ImpactFile) {
+      throw new Error('Description of measurable impact or impact proof document upload is required for Idea 3');
+    }
+    return true;
+  }),
+  body('idea3Evidence').custom((value, { req }) => {
+    if (!value && !req.body.idea3EvidenceFile) {
+      throw new Error('Evidence paragraph or document upload is required for Idea 3');
+    }
+    return true;
+  }),
   body('idea3Scalability').trim().notEmpty().withMessage('Scalability description for Idea 3 is required'),
   body('idea3LivedExperience').trim().notEmpty().withMessage('Lived experience indicator for Idea 3 is required'),
   body('idea3Props').trim().notEmpty().withMessage('Props usage indicator for Idea 3 is required'),
   body('idea3PresentedBefore').trim().notEmpty().withMessage('Previous presentation indicator for Idea 3 is required'),
   body('idea3PresentedBeforeDetails').if(body('idea3PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details for Idea 3 are required'),
-  body('idea3Articles').trim().notEmpty().withMessage('Articles, videos, or work samples for Idea 3 are required'),
-  body('idea3NewSurprising').trim().notEmpty().withMessage('What makes Idea 3 surprising is required'),
+  body('idea3Articles').optional().trim(),
+  body('idea3NewSurprising').trim().notEmpty().withMessage('Description of what makes the idea new and surprising is required for Idea 3'),
   body('idea3Audience').optional().trim(),
 
   // --- SECTION 4: Proposed Talk & Confirmations ---
@@ -105,6 +135,7 @@ const speakerValidation = [
   body('guidelinesAligned').trim().notEmpty().withMessage('TEDx guideline alignment confirmation is required').equals('YES').withMessage('You must confirm alignment with TEDx guidelines'),
   body('hasAdditionalIdeas').trim().notEmpty().withMessage('Please specify if you have additional talk ideas'),
   body('howLearned').trim().notEmpty().withMessage('Information on how you learned about TEDxKARE is required'),
+  body('additionalComments').optional().trim(),
 ];
 
 // Public: create speaker submission

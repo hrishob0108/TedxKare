@@ -14,6 +14,7 @@ const SpeakerApply = () => {
   const { loading, error, request, clearError } = useApi();
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   
   // Section states
   const [validationError, setValidationError] = useState('');
@@ -23,28 +24,31 @@ const SpeakerApply = () => {
     window.scrollTo(0, 0);
   }, [step]);
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      let attempts = 3;
-      while (attempts > 0) {
-        try {
-          // Use a shorter 4-second timeout to handle cold start retries quickly
-          const response = await settingsAPI.getSettings({ timeout: 4000 });
-          setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
-          setIsCheckingStatus(false);
-          return;
-        } catch (err) {
-          attempts--;
-          console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
-          if (attempts > 0) {
-            // Wait 2.5 seconds before retrying to give the backend server time to spin up
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-          }
+  const checkStatus = async () => {
+    setConnectionError(false);
+    setIsCheckingStatus(true);
+    let attempts = 50;
+    while (attempts > 0) {
+      try {
+        // Use a shorter 4-second timeout to handle cold start retries quickly
+        const response = await settingsAPI.getSettings({ timeout: 4000 });
+        setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
+        setIsCheckingStatus(false);
+        return;
+      } catch (err) {
+        attempts--;
+        console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+        if (attempts > 0) {
+          // Wait 3 seconds before retrying to give the backend server time to spin up
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         }
       }
-      setSpeakerRegistrationOpen(false);
-      setIsCheckingStatus(false);
-    };
+    }
+    setConnectionError(true);
+    setIsCheckingStatus(false);
+  };
+
+  useEffect(() => {
     checkStatus();
   }, []);
 
@@ -76,6 +80,7 @@ const SpeakerApply = () => {
     idea1Title: '',
     idea1Description: '',
     idea1Domain: '',
+    idea1DomainCustom: '',
     idea1WorthSpreading: '',
     idea1Relevance: '',
     idea1Challenge: '',
@@ -106,6 +111,7 @@ const SpeakerApply = () => {
     idea2Title: '',
     idea2Description: '',
     idea2Domain: '',
+    idea2DomainCustom: '',
     idea2WorthSpreading: '',
     idea2Relevance: '',
     idea2Challenge: '',
@@ -136,6 +142,7 @@ const SpeakerApply = () => {
     idea3Title: '',
     idea3Description: '',
     idea3Domain: '',
+    idea3DomainCustom: '',
     idea3WorthSpreading: '',
     idea3Relevance: '',
     idea3Challenge: '',
@@ -174,6 +181,10 @@ const SpeakerApply = () => {
     guidelinesAligned: 'YES',
     hasAdditionalIdeas: 'YES',
     howLearned: '',
+    additionalComments: '',
+    infoAccuracyConfirmed: false,
+    originalityConfirmed: false,
+    noGuaranteeConfirmed: false,
 
     website: '', // Honeypot
   };
@@ -248,6 +259,10 @@ const SpeakerApply = () => {
         form.setFieldError('hasDisability', 'Please select if the speaker has any disability');
         isValid = false;
       }
+      if (isSelfNominated && !form.values.whySpeak1.trim()) {
+        form.setFieldError('whySpeak1', 'Please explain why you believe you should be selected to speak');
+        isValid = false;
+      }
     }
 
     if (stepKey === 'nominator') {
@@ -296,6 +311,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea1Domain', 'Domain/Category is required');
         isValid = false;
       }
+      if (form.values.idea1Domain === 'Other' && !form.values.idea1DomainCustom.trim()) {
+        form.setFieldError('idea1DomainCustom', 'Please specify your custom domain/category');
+        isValid = false;
+      }
       if (!form.values.idea1WorthSpreading.trim()) {
         form.setFieldError('idea1WorthSpreading', 'Describe the Idea Worth Spreading');
         isValid = false;
@@ -308,12 +327,12 @@ const SpeakerApply = () => {
         form.setFieldError('idea1Challenge', 'Challenge/gap is required');
         isValid = false;
       }
-      if (!form.values.idea1Impact.trim()) {
-        form.setFieldError('idea1Impact', 'Measurable impact description is required');
+      if (!form.values.idea1Impact.trim() && !form.values.idea1ImpactFile) {
+        form.setFieldError('idea1Impact', 'Please provide a paragraph or upload proof of impact');
         isValid = false;
       }
-      if (!form.values.idea1Evidence.trim()) {
-        form.setFieldError('idea1Evidence', 'Evidence/research supporting claims is required');
+      if (!form.values.idea1Evidence.trim() && !form.values.idea1EvidenceFile) {
+        form.setFieldError('idea1Evidence', 'Please provide evidence or support claims (paragraph or attachment)');
         isValid = false;
       }
       if (!form.values.idea1Scalability.trim()) {
@@ -332,12 +351,8 @@ const SpeakerApply = () => {
         form.setFieldError('idea1PresentedBeforeDetails', 'Please describe where this has been shared');
         isValid = false;
       }
-      if (!form.values.idea1Articles.trim()) {
-        form.setFieldError('idea1Articles', 'Relevant links, videos, or work samples are required');
-        isValid = false;
-      }
       if (!form.values.idea1NewSurprising.trim()) {
-        form.setFieldError('idea1NewSurprising', 'Explain what makes this idea new/surprising');
+        form.setFieldError('idea1NewSurprising', 'Please describe what makes this idea new and surprising');
         isValid = false;
       }
     }
@@ -355,6 +370,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea2Domain', 'Domain/Category is required');
         isValid = false;
       }
+      if (form.values.idea2Domain === 'Other' && !form.values.idea2DomainCustom.trim()) {
+        form.setFieldError('idea2DomainCustom', 'Please specify your custom domain/category');
+        isValid = false;
+      }
       if (!form.values.idea2WorthSpreading.trim()) {
         form.setFieldError('idea2WorthSpreading', 'Describe the Idea Worth Spreading');
         isValid = false;
@@ -367,12 +386,12 @@ const SpeakerApply = () => {
         form.setFieldError('idea2Challenge', 'Challenge/gap is required');
         isValid = false;
       }
-      if (!form.values.idea2Impact.trim()) {
-        form.setFieldError('idea2Impact', 'Measurable impact description is required');
+      if (!form.values.idea2Impact.trim() && !form.values.idea2ImpactFile) {
+        form.setFieldError('idea2Impact', 'Please provide a paragraph or upload proof of impact');
         isValid = false;
       }
-      if (!form.values.idea2Evidence.trim()) {
-        form.setFieldError('idea2Evidence', 'Evidence/research supporting claims is required');
+      if (!form.values.idea2Evidence.trim() && !form.values.idea2EvidenceFile) {
+        form.setFieldError('idea2Evidence', 'Please provide evidence or support claims (paragraph or attachment)');
         isValid = false;
       }
       if (!form.values.idea2Scalability.trim()) {
@@ -391,12 +410,8 @@ const SpeakerApply = () => {
         form.setFieldError('idea2PresentedBeforeDetails', 'Please describe where this has been shared');
         isValid = false;
       }
-      if (!form.values.idea2Articles.trim()) {
-        form.setFieldError('idea2Articles', 'Relevant links, videos, or work samples are required');
-        isValid = false;
-      }
       if (!form.values.idea2NewSurprising.trim()) {
-        form.setFieldError('idea2NewSurprising', 'Explain what makes this idea new/surprising');
+        form.setFieldError('idea2NewSurprising', 'Please describe what makes this idea new and surprising');
         isValid = false;
       }
     }
@@ -414,6 +429,10 @@ const SpeakerApply = () => {
         form.setFieldError('idea3Domain', 'Domain/Category is required');
         isValid = false;
       }
+      if (form.values.idea3Domain === 'Other' && !form.values.idea3DomainCustom.trim()) {
+        form.setFieldError('idea3DomainCustom', 'Please specify your custom domain/category');
+        isValid = false;
+      }
       if (!form.values.idea3WorthSpreading.trim()) {
         form.setFieldError('idea3WorthSpreading', 'Describe the Idea Worth Spreading');
         isValid = false;
@@ -426,12 +445,12 @@ const SpeakerApply = () => {
         form.setFieldError('idea3Challenge', 'Challenge/gap is required');
         isValid = false;
       }
-      if (!form.values.idea3Impact.trim()) {
-        form.setFieldError('idea3Impact', 'Measurable impact description is required');
+      if (!form.values.idea3Impact.trim() && !form.values.idea3ImpactFile) {
+        form.setFieldError('idea3Impact', 'Please provide a paragraph or upload proof of impact');
         isValid = false;
       }
-      if (!form.values.idea3Evidence.trim()) {
-        form.setFieldError('idea3Evidence', 'Evidence/research supporting claims is required');
+      if (!form.values.idea3Evidence.trim() && !form.values.idea3EvidenceFile) {
+        form.setFieldError('idea3Evidence', 'Please provide evidence or support claims (paragraph or attachment)');
         isValid = false;
       }
       if (!form.values.idea3Scalability.trim()) {
@@ -450,12 +469,8 @@ const SpeakerApply = () => {
         form.setFieldError('idea3PresentedBeforeDetails', 'Please describe where this has been shared');
         isValid = false;
       }
-      if (!form.values.idea3Articles.trim()) {
-        form.setFieldError('idea3Articles', 'Relevant links, videos, or work samples are required');
-        isValid = false;
-      }
       if (!form.values.idea3NewSurprising.trim()) {
-        form.setFieldError('idea3NewSurprising', 'Explain what makes this idea new/surprising');
+        form.setFieldError('idea3NewSurprising', 'Please describe what makes this idea new and surprising');
         isValid = false;
       }
     }
@@ -477,8 +492,24 @@ const SpeakerApply = () => {
         form.setFieldError('guidelinesAligned', 'You must confirm alignment with TEDx content guidelines');
         isValid = false;
       }
+      if (!form.values.hasAdditionalIdeas) {
+        form.setFieldError('hasAdditionalIdeas', 'Please specify if you have additional talk ideas');
+        isValid = false;
+      }
       if (!form.values.howLearned.trim()) {
         form.setFieldError('howLearned', 'Information on how you learned about TEDxKARE is required');
+        isValid = false;
+      }
+      if (!form.values.infoAccuracyConfirmed) {
+        form.setFieldError('infoAccuracyConfirmed', 'You must confirm this declaration');
+        isValid = false;
+      }
+      if (!form.values.originalityConfirmed) {
+        form.setFieldError('originalityConfirmed', 'You must confirm this declaration');
+        isValid = false;
+      }
+      if (!form.values.noGuaranteeConfirmed) {
+        form.setFieldError('noGuaranteeConfirmed', 'You must confirm this declaration');
         isValid = false;
       }
     }
@@ -527,9 +558,33 @@ const SpeakerApply = () => {
       window.scrollTo(0, 0);
       return;
     }
+    if (!values.hasAdditionalIdeas) {
+      form.setFieldError('hasAdditionalIdeas', 'Please specify if you have additional talk ideas');
+      setValidationError('Please specify if you have additional talk ideas.');
+      window.scrollTo(0, 0);
+      return;
+    }
     if (!values.howLearned.trim()) {
       form.setFieldError('howLearned', 'Information on how you learned about TEDxKARE is required');
       setValidationError('Please specify how you learned about TEDxKARE.');
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (!values.infoAccuracyConfirmed) {
+      form.setFieldError('infoAccuracyConfirmed', 'You must confirm this declaration');
+      setValidationError('Please confirm all declaration and consent checkboxes.');
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (!values.originalityConfirmed) {
+      form.setFieldError('originalityConfirmed', 'You must confirm this declaration');
+      setValidationError('Please confirm all declaration and consent checkboxes.');
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (!values.noGuaranteeConfirmed) {
+      form.setFieldError('noGuaranteeConfirmed', 'You must confirm this declaration');
+      setValidationError('Please confirm all declaration and consent checkboxes.');
       window.scrollTo(0, 0);
       return;
     }
@@ -540,7 +595,10 @@ const SpeakerApply = () => {
       ...values,
       proposedTitle: values.idea1Title,
       proposedDescription: values.idea1Description,
-      proposedQualifications: values.whySpeak1
+      proposedQualifications: values.whySpeak1,
+      idea1Domain: values.idea1Domain === 'Other' ? values.idea1DomainCustom : values.idea1Domain,
+      idea2Domain: values.idea2Domain === 'Other' ? values.idea2DomainCustom : values.idea2Domain,
+      idea3Domain: values.idea3Domain === 'Other' ? values.idea3DomainCustom : values.idea3Domain,
     };
 
     try {
@@ -636,9 +694,9 @@ const SpeakerApply = () => {
 
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Title */}
+            {/* 1. Proposed Talk Title */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">Proposed Talk Title *</label>
+              <label className="text-xs text-gray-300 font-bold">1. Proposed Talk Title *</label>
               <input
                 type="text"
                 name={`${key}Title`}
@@ -651,9 +709,9 @@ const SpeakerApply = () => {
               {form.errors[`${key}Title`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Title`]}</p>}
             </div>
 
-            {/* Domain */}
+            {/* 2. Domain/Category */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">Domain / Category *</label>
+              <label className="text-xs text-gray-300 font-bold">2. Domain/Category *</label>
               <select
                 name={`${key}Domain`}
                 className={getInputClassName(`${key}Domain`, 'select')}
@@ -677,9 +735,29 @@ const SpeakerApply = () => {
             </div>
           </div>
 
-          {/* Description */}
+          {/* Conditional 2b. Custom Domain/Category */}
+          {form.values[`${key}Domain`] === 'Other' && (
+            <div className="space-y-1">
+              <label className="text-xs text-gray-300 font-bold">Specify Custom Domain / Category *</label>
+              <input
+                type="text"
+                name={`${key}DomainCustom`}
+                placeholder="Type your custom Domain / Category here"
+                className={getInputClassName(`${key}DomainCustom`)}
+                value={form.values[`${key}DomainCustom`]}
+                onChange={form.handleChange}
+                required
+              />
+              {form.errors[`${key}DomainCustom`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}DomainCustom`]}</p>}
+            </div>
+          )}
+
+          {/* 3. Idea Summary */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Idea Summary (Recommended: 150–300 words. Explain concept, why it matters, and key insight) *</label>
+            <label className="text-xs text-gray-300 font-bold">3. Idea Summary (Recommended: 150–300 words) *</label>
+            <p className="text-[10px] text-gray-400 -mt-1 mb-1">
+              Provide a concise overview of the idea the speaker intends to present. Explain the concept, why it matters, and the key insight or perspective the audience should understand.
+            </p>
             <textarea
               name={`${key}Description`}
               placeholder="Provide a detailed overview of the idea..."
@@ -692,9 +770,9 @@ const SpeakerApply = () => {
             {form.errors[`${key}Description`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Description`]}</p>}
           </div>
 
-          {/* Worth Spreading */}
+          {/* 4. What is the core message or key takeaway of this talk? */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">What is the core message or key takeaway of this talk? *</label>
+            <label className="text-xs text-gray-300 font-bold">4. What is the core message or key takeaway of this talk? *</label>
             <textarea
               name={`${key}WorthSpreading`}
               placeholder="Explain the concept's single most important message..."
@@ -707,12 +785,15 @@ const SpeakerApply = () => {
             {form.errors[`${key}WorthSpreading`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}WorthSpreading`]}</p>}
           </div>
 
-          {/* Relevance */}
+          {/* 5. Why is this idea particularly relevant today? */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Why is this idea particularly relevant today? *</label>
+            <label className="text-xs text-gray-300 font-bold">5. Why is this idea particularly relevant today? *</label>
+            <p className="text-[10px] text-gray-400 -mt-1 mb-1">
+              What current challenge, trend, opportunity, or societal need makes this idea timely and important?
+            </p>
             <textarea
               name={`${key}Relevance`}
-              placeholder="What current challenge, trend, opportunity, or societal need makes this idea timely and important?"
+              placeholder="Explain why this idea is timely and important..."
               rows="3"
               className={getInputClassName(`${key}Relevance`, 'textarea')}
               value={form.values[`${key}Relevance`]}
@@ -722,9 +803,9 @@ const SpeakerApply = () => {
             {form.errors[`${key}Relevance`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Relevance`]}</p>}
           </div>
 
-          {/* Challenge */}
+          {/* 6. What problem, gap, misconception, or challenge does this idea address? */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">What problem, gap, misconception, or challenge does this idea address? *</label>
+            <label className="text-xs text-gray-300 font-bold">6. What problem, gap, misconception, or challenge does this idea address? *</label>
             <textarea
               name={`${key}Challenge`}
               placeholder="Explain what challenge, misconception, or issue this idea aims to solve..."
@@ -737,17 +818,19 @@ const SpeakerApply = () => {
             {form.errors[`${key}Challenge`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Challenge`]}</p>}
           </div>
 
-          {/* Impact + Attachment */}
+          {/* 7. What evidence demonstrates the impact of this idea or the speaker's work? + Attachment */}
           <div className="space-y-2">
-            <label className="text-xs text-gray-300 font-bold">What evidence demonstrates the impact of this idea or the speaker's work? *</label>
+            <label className="text-xs text-gray-300 font-bold">7. What evidence demonstrates the impact of this idea or the speaker's work? *</label>
+            <p className="text-[10px] text-gray-400 -mt-1 mb-1">
+              Please share measurable outcomes, case studies, achievements, research findings, community impact, or other indicators of success. (Provide a short paragraph or upload an attachment, or both.)
+            </p>
             <textarea
               name={`${key}Impact`}
-              placeholder="Please share measurable outcomes, case studies, achievements, research findings, community impact, or other indicators of success..."
+              placeholder="Please share evidence of impact..."
               rows="3"
               className={getInputClassName(`${key}Impact`, 'textarea')}
               value={form.values[`${key}Impact`]}
               onChange={form.handleChange}
-              required
             />
             {form.errors[`${key}Impact`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Impact`]}</p>}
             
@@ -779,23 +862,25 @@ const SpeakerApply = () => {
             {form.errors[`${key}ImpactFile`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}ImpactFile`]}</p>}
           </div>
 
-          {/* Evidence + Attachment */}
+          {/* 8. What evidence, research, data, publications, or external sources support the claims made in this idea? + Attachment */}
           <div className="space-y-2">
-            <label className="text-xs text-gray-300 font-bold">What evidence, research, data, publications, or external sources support the claims made in this idea? *</label>
+            <label className="text-xs text-gray-300 font-bold">8. What evidence, research, data, publications, or external sources support the claims made in this idea? *</label>
+            <p className="text-[10px] text-gray-400 -mt-1 mb-1">
+              Please provide links or references where applicable. TEDx talks should be grounded in credible evidence, expertise, lived experience, or demonstrated impact. (Provide a short paragraph or upload an attachment, or both.)
+            </p>
             <textarea
               name={`${key}Evidence`}
-              placeholder="TEDx talks should be grounded in credible evidence, expertise, lived experience, or demonstrated impact. Please provide details or links..."
+              placeholder="Please provide supporting sources, research, links, or references..."
               rows="3"
               className={getInputClassName(`${key}Evidence`, 'textarea')}
               value={form.values[`${key}Evidence`]}
               onChange={form.handleChange}
-              required
             />
             {form.errors[`${key}Evidence`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Evidence`]}</p>}
             
             <div className="flex items-center gap-3 pt-1">
               <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
-                Upload Supporting Sources
+                Upload Supporting Evidence
                 <input
                   type="file"
                   className="hidden"
@@ -821,9 +906,9 @@ const SpeakerApply = () => {
             {form.errors[`${key}EvidenceFile`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}EvidenceFile`]}</p>}
           </div>
 
-          {/* Scalability */}
+          {/* 9. Can this idea be applied, adapted, or replicated in other communities, industries, or contexts? Please explain. */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Can this idea be applied, adapted, or replicated in other communities, industries, or contexts? Please explain. *</label>
+            <label className="text-xs text-gray-300 font-bold">9. Can this idea be applied, adapted, or replicated in other communities, industries, or contexts? Please explain. *</label>
             <textarea
               name={`${key}Scalability`}
               placeholder="Describe how this idea can be adapted by others..."
@@ -836,10 +921,11 @@ const SpeakerApply = () => {
             {form.errors[`${key}Scalability`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Scalability`]}</p>}
           </div>
 
-          {/* Lived Experience */}
+          {/* Q10 & Q12 Select Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* 10. Does the speaker have personal or lived experience connected to this idea? */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">Does the speaker have personal or lived experience connected to this idea? *</label>
+              <label className="text-xs text-gray-300 font-bold">10. Does the speaker have personal or lived experience connected to this idea? *</label>
               <select
                 name={`${key}LivedExperience`}
                 className={getInputClassName(`${key}LivedExperience`, 'select')}
@@ -847,14 +933,14 @@ const SpeakerApply = () => {
                 onChange={form.handleChange}
                 required
               >
-                <option value="NO">NO</option>
-                <option value="YES">YES</option>
+                <option value="NO">No</option>
+                <option value="YES">Yes</option>
               </select>
             </div>
 
-            {/* Props */}
+            {/* 12. Will the speaker use demonstrations, props, prototypes, multimedia elements, or physical materials during the talk? */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">Will the speaker use demonstrations, props, prototypes, multimedia, or physical materials? *</label>
+              <label className="text-xs text-gray-300 font-bold">12. Will the speaker use demonstrations, props, prototypes, multimedia elements, or physical materials during the talk? *</label>
               <select
                 name={`${key}Props`}
                 className={getInputClassName(`${key}Props`, 'select')}
@@ -862,19 +948,19 @@ const SpeakerApply = () => {
                 onChange={form.handleChange}
                 required
               >
-                <option value="NO">NO</option>
-                <option value="YES">YES</option>
+                <option value="NO">No</option>
+                <option value="YES">Yes</option>
               </select>
             </div>
           </div>
 
-          {/* Lived Experience Details */}
+          {/* 11. Lived Experience Details */}
           {form.values[`${key}LivedExperience`] === 'YES' && (
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">If yes, how has the speaker's personal experience shaped their understanding of this idea and influenced their work? *</label>
+              <label className="text-xs text-gray-300 font-bold">11. If yes, how has the speaker's personal experience shaped their understanding of this idea and influenced their work? *</label>
               <textarea
                 name={`${key}LivedExperienceDesc`}
-                placeholder="Briefly explain details..."
+                placeholder="Describe details of the lived experience..."
                 rows="3"
                 className={getInputClassName(`${key}LivedExperienceDesc`, 'textarea')}
                 value={form.values[`${key}LivedExperienceDesc`]}
@@ -885,13 +971,13 @@ const SpeakerApply = () => {
             </div>
           )}
 
-          {/* Props Details */}
+          {/* 13. Props Details */}
           {form.values[`${key}Props`] === 'YES' && (
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-bold">If yes, please provide details of any materials, equipment, demonstrations, or technical requirements. *</label>
+              <label className="text-xs text-gray-300 font-bold">13. If yes, please provide details of any materials, equipment, demonstrations, or technical requirements. *</label>
               <textarea
                 name={`${key}PropsDetails`}
-                placeholder="Briefly explain details..."
+                placeholder="Briefly explain technical or prop details..."
                 rows="3"
                 className={getInputClassName(`${key}PropsDetails`, 'textarea')}
                 value={form.values[`${key}PropsDetails`]}
@@ -902,9 +988,9 @@ const SpeakerApply = () => {
             </div>
           )}
 
-          {/* Presented Before */}
+          {/* 14. Has the speaker presented this idea publicly before? (Yes/No) */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Has the speaker presented this idea publicly before? *</label>
+            <label className="text-xs text-gray-300 font-bold">14. Has the speaker presented this idea publicly before? *</label>
             <select
               name={`${key}PresentedBefore`}
               className={getInputClassName(`${key}PresentedBefore`, 'select')}
@@ -912,15 +998,15 @@ const SpeakerApply = () => {
               onChange={form.handleChange}
               required
             >
-              <option value="NO">NO</option>
-              <option value="YES">YES</option>
+              <option value="NO">No</option>
+              <option value="YES">Yes</option>
             </select>
           </div>
 
-          {/* Presented Before Details */}
+          {/* 15. If yes, details + upload */}
           {form.values[`${key}PresentedBefore`] === 'YES' && (
             <div className="space-y-2">
-              <label className="text-xs text-gray-300 font-bold">If yes, please provide details of previous presentations, events, publications, podcasts, interviews, or platforms where this idea has been shared. *</label>
+              <label className="text-xs text-gray-300 font-bold">15. If yes, please provide details of previous presentations, events, publications, podcasts, interviews, or platforms where this idea has been shared. *</label>
               <textarea
                 name={`${key}PresentedBeforeDetails`}
                 placeholder="Share details of where this has been presented..."
@@ -961,12 +1047,15 @@ const SpeakerApply = () => {
             </div>
           )}
 
-          {/* New / Surprising aspect */}
+          {/* 16. What makes this idea new, surprising, thought-provoking, or worth spreading? */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">What makes this idea new, surprising, thought-provoking, or worth spreading? *</label>
+            <label className="text-xs text-gray-300 font-bold">16. What makes this idea new, surprising, thought-provoking, or worth spreading? *</label>
+            <p className="text-[10px] text-gray-400 -mt-1 mb-1">
+              Describe the unique insight, perspective, discovery, approach, or lesson that audiences are unlikely to have encountered before.
+            </p>
             <textarea
               name={`${key}NewSurprising`}
-              placeholder="Describe the unique insight, perspective, discovery, approach, or lesson that audiences are unlikely to have encountered before..."
+              placeholder="Explain what makes this idea unique and thought-provoking..."
               rows="3"
               className={getInputClassName(`${key}NewSurprising`, 'textarea')}
               value={form.values[`${key}NewSurprising`]}
@@ -976,24 +1065,22 @@ const SpeakerApply = () => {
             {form.errors[`${key}NewSurprising`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}NewSurprising`]}</p>}
           </div>
 
-
-          {/* Articles / work samples */}
+          {/* 17. Is there anything else the Selection Committee should know about this speaker or idea? (Optional) */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Please share relevant links, videos, or work samples related to the speaker. *</label>
+            <label className="text-xs text-gray-300 font-bold">17. Is there anything else the Selection Committee should know about this speaker or idea? (Optional)</label>
             <textarea
-              name={`${key}Articles`}
-              placeholder="Enter comma-separated URLs or details..."
+              name={`${key}Comments`}
+              placeholder="Add any extra comments or information here..."
               rows="3"
-              className={getInputClassName(`${key}Articles`, 'textarea')}
-              value={form.values[`${key}Articles`]}
+              className={getInputClassName(`${key}Comments`, 'textarea')}
+              value={form.values[`${key}Comments`]}
               onChange={form.handleChange}
-              required
             />
-            {form.errors[`${key}Articles`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Articles`]}</p>}
+            {form.errors[`${key}Comments`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Comments`]}</p>}
           </div>
 
           {/* Document upload (General/Additional) */}
-          <div className="space-y-2">
+          <div className="space-y-2 pt-2">
             <label className="text-xs text-gray-300 font-bold block">Please upload any additional supporting documents or media related to the Speaker, if any</label>
             <div className="flex items-center gap-3">
               <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 hover:border-gray-700 text-white text-xs font-bold rounded-lg transition-colors">
@@ -1023,18 +1110,6 @@ const SpeakerApply = () => {
             {form.errors[`${key}File`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}File`]}</p>}
           </div>
 
-          {/* Comments */}
-          <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Is there anything else the Selection Committee should know about this speaker or idea? (Optional)</label>
-            <textarea
-              name={`${key}Comments`}
-              placeholder="Add any extra comments here..."
-              rows="2"
-              className={getInputClassName(`${key}Comments`, 'textarea')}
-              value={form.values[`${key}Comments`]}
-              onChange={form.handleChange}
-            />
-          </div>
         </div>
 
         <div className="flex items-center justify-between pt-4">
@@ -1065,8 +1140,41 @@ const SpeakerApply = () => {
 
   if (isCheckingStatus) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
+        <p className="text-gray-400 text-xs animate-pulse">Connecting to server, please wait...</p>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 pb-16 relative overflow-hidden flex flex-col justify-between">
+        <Navbar />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-ted-red/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="flex-1 flex items-center justify-center p-4 z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl shadow-red-900/20"
+          >
+            <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">📡</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4 text-white">Connection Error</h2>
+            <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+              We are having trouble connecting to the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> server. 
+              The server may be starting up. Please check your internet connection or click below to retry.
+            </p>
+            <button
+              onClick={checkStatus}
+              className="w-full btn-primary py-3 font-semibold rounded-xl bg-ted-red hover:bg-red-700 transition-colors text-white"
+            >
+              Retry Connection
+            </button>
+          </motion.div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -1380,6 +1488,22 @@ const SpeakerApply = () => {
                   </div>
                 )}
 
+                {isSelfNominated && (
+                  <div className="space-y-1 pt-2">
+                    <label className="text-xs text-gray-300 font-bold block">Why do you believe you should be selected to speak at TEDxKARE? *</label>
+                    <textarea
+                      name="whySpeak1"
+                      placeholder="Describe your capabilities, unique background, and core alignment..."
+                      rows="3"
+                      className={getInputClassName('whySpeak1', 'textarea')}
+                      value={form.values.whySpeak1}
+                      onChange={form.handleChange}
+                      required
+                    />
+                    {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
+                  </div>
+                )}
+
 
                 <div className="flex justify-end pt-4">
                   <button
@@ -1550,13 +1674,15 @@ const SpeakerApply = () => {
                   <span>📝</span> Section 4: Policies & Compliance
                 </h2>
 
-                <div className="space-y-5">
+                <div className="space-y-6">
+                  <div className="text-sm font-bold text-ted-red border-b border-gray-850 pb-1">
+                    Speaker Readiness and Content Compliance
+                  </div>
 
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {/* Policy Comfort */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* 1. Policy Comfort */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold block">Is the Speaker comfortable with TEDx recording, publishing, and distribution? *</label>
+                      <label className="text-xs text-gray-300 font-bold block">1. How comfortable is the Speaker with TEDx recording, publication, and global online distribution of their talk? *</label>
                       <select
                         name="policyComfort"
                         className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
@@ -1569,11 +1695,12 @@ const SpeakerApply = () => {
                         <option value="Unsure">Unsure</option>
                         <option value="Not Comfortable">Not Comfortable</option>
                       </select>
+                      {form.errors.policyComfort && <p className="text-red-500 text-[10px]">{form.errors.policyComfort}</p>}
                     </div>
 
-                    {/* Fact-Checking */}
+                    {/* 2. Fact-Checking */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold block">Could this topic require additional fact-checking or involve sensitive content? *</label>
+                      <label className="text-xs text-gray-300 font-bold block">2. Does the proposed topic require additional fact-checking, expert review, or careful handling due to potentially sensitive content? *</label>
                       <select
                         name="factCheckingNeed"
                         className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
@@ -1584,13 +1711,14 @@ const SpeakerApply = () => {
                         <option value="No Significant Concerns">No Significant Concerns</option>
                         <option value="Minor Fact-Checking Required">Minor Fact-Checking Required</option>
                         <option value="Potentially Sensitive or Controversial">Potentially Sensitive or Controversial</option>
-                        <option value="Highly Controversial Topic">Highly Controversial Topic</option>
+                        <option value="Highly Controversial">Highly Controversial</option>
                       </select>
+                      {form.errors.factCheckingNeed && <p className="text-red-500 text-[10px]">{form.errors.factCheckingNeed}</p>}
                     </div>
 
-                    {/* Content Willingness */}
+                    {/* 3. Content Willingness */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold block">Is Speaker willing to modify talk if requested to align with TEDx guidelines? *</label>
+                      <label className="text-xs text-gray-300 font-bold block">3. If selected, is the Speaker willing to refine or adapt the talk in collaboration with the TEDxKARE team to ensure compliance with TEDx content guidelines? *</label>
                       <select
                         name="willingnessToModify"
                         className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
@@ -1603,13 +1731,72 @@ const SpeakerApply = () => {
                         <option value="Unsure">Unsure</option>
                         <option value="Unwilling">Unwilling</option>
                       </select>
+                      {form.errors.willingnessToModify && <p className="text-red-500 text-[10px]">{form.errors.willingnessToModify}</p>}
                     </div>
-                  </div>
 
-                  {/* Prohibited Content & Guidelines Alignment */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    {/* 4. Solo presentation */}
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-300 font-bold block">Confirm proposed talk aligns with guidelines and does not include prohibited content (politics, religious proselytizing, pseudoscience, sales pitches) *</label>
+                      <label className="text-xs text-gray-300 font-bold block">4. The talk will be delivered as a solo presentation. *</label>
+                      <select
+                        name="soloPresentationConfirmed"
+                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                        value={form.values.soloPresentationConfirmed ? 'YES' : form.values.soloPresentationConfirmed === false ? 'NO' : ''}
+                        onChange={(e) => {
+                          const val = e.target.value === 'YES';
+                          form.setFieldValue('soloPresentationConfirmed', val);
+                        }}
+                        required
+                      >
+                        <option value="">Select option</option>
+                        <option value="YES">Yes</option>
+                        <option value="NO">No</option>
+                      </select>
+                      {form.errors.soloPresentationConfirmed && <p className="text-red-500 text-[10px]">{form.errors.soloPresentationConfirmed}</p>}
+                    </div>
+
+                    {/* 5. Max 18 mins */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-300 font-bold block">5. The talk will not exceed 18 minutes. *</label>
+                      <select
+                        name="durationConfirmed"
+                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                        value={form.values.durationConfirmed ? 'YES' : form.values.durationConfirmed === false ? 'NO' : ''}
+                        onChange={(e) => {
+                          const val = e.target.value === 'YES';
+                          form.setFieldValue('durationConfirmed', val);
+                        }}
+                        required
+                      >
+                        <option value="">Select option</option>
+                        <option value="YES">Yes</option>
+                        <option value="NO">No</option>
+                      </select>
+                      {form.errors.durationConfirmed && <p className="text-red-500 text-[10px]">{form.errors.durationConfirmed}</p>}
+                    </div>
+
+                    {/* 6. Complies with guidelines */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-300 font-bold block">6. The content will comply with TEDx content guidelines. *</label>
+                      <select
+                        name="compliesConfirmed"
+                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                        value={form.values.compliesConfirmed ? 'YES' : form.values.compliesConfirmed === false ? 'NO' : ''}
+                        onChange={(e) => {
+                          const val = e.target.value === 'YES';
+                          form.setFieldValue('compliesConfirmed', val);
+                        }}
+                        required
+                      >
+                        <option value="">Select option</option>
+                        <option value="YES">Yes</option>
+                        <option value="NO">No</option>
+                      </select>
+                      {form.errors.compliesConfirmed && <p className="text-red-500 text-[10px]">{form.errors.compliesConfirmed}</p>}
+                    </div>
+
+                    {/* 7. Prohibited Content */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-300 font-bold block">7. Please confirm that the proposed talk does not include prohibited content such as political campaigning, religious proselytizing, pseudoscience, fundraising appeals, direct product promotion, or commercial advertising. *</label>
                       <select
                         name="guidelinesAligned"
                         className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
@@ -1617,15 +1804,31 @@ const SpeakerApply = () => {
                         onChange={form.handleChange}
                         required
                       >
-                        <option value="YES">YES</option>
+                        <option value="YES">Yes</option>
                         <option value="No">No</option>
                       </select>
                       {form.errors.guidelinesAligned && <p className="text-red-500 text-[10px]">{form.errors.guidelinesAligned}</p>}
                     </div>
 
-                    {/* How Learned */}
+                    {/* 8. Additional Ideas */}
                     <div className="space-y-1">
-                       <label className="text-xs text-gray-300 font-light block">How did you learn about <span className="text-ted-red font-bold">TEDx</span><span className="text-gray-300 font-light">KARE</span>? *</label>
+                      <label className="text-xs text-gray-300 font-bold block">8. Do you have additional talk ideas you would like TEDxKARE to consider? *</label>
+                      <select
+                        name="hasAdditionalIdeas"
+                        className="w-full bg-black/60 border border-gray-800 rounded-xl px-3 py-2.5 text-white focus:border-ted-red focus:outline-none text-sm"
+                        value={form.values.hasAdditionalIdeas}
+                        onChange={form.handleChange}
+                        required
+                      >
+                        <option value="YES">Yes</option>
+                        <option value="NO">No</option>
+                      </select>
+                      {form.errors.hasAdditionalIdeas && <p className="text-red-500 text-[10px]">{form.errors.hasAdditionalIdeas}</p>}
+                    </div>
+
+                    {/* 9. How Learned */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-300 font-bold block">9. How did you hear about TEDxKARE? *</label>
                       <input
                         type="text"
                         name="howLearned"
@@ -1639,57 +1842,70 @@ const SpeakerApply = () => {
                     </div>
                   </div>
 
-                  {/* Confirmation Checklist boxes */}
+                  {/* 10. Additional Comments */}
+                  <div className="space-y-1 pt-2">
+                    <label className="text-xs text-gray-300 font-bold block">10. Any additional comments, recommendations, or information you would like to share with the TEDxKARE Selection Committee? (Optional)</label>
+                    <textarea
+                      name="additionalComments"
+                      placeholder="Enter comments here..."
+                      rows="3"
+                      className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
+                      value={form.values.additionalComments}
+                      onChange={form.handleChange}
+                    />
+                  </div>
+
+                  {/* Declaration & Consent (Required) */}
                   <div className="bg-black/40 border border-gray-800 rounded-xl p-5 space-y-3.5 mt-3">
-                    <span className="text-xs text-ted-red font-bold uppercase tracking-wider block">Please confirm the following rules:</span>
+                    <span className="text-xs text-ted-red font-bold uppercase tracking-wider block">Declaration & Consent (Required)</span>
 
-                    {/* Solo presentation */}
+                    {/* infoAccuracyConfirmed */}
                     <label className="flex items-start gap-3 cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        name="soloPresentationConfirmed"
-                        checked={form.values.soloPresentationConfirmed}
+                        name="infoAccuracyConfirmed"
+                        checked={form.values.infoAccuracyConfirmed}
                         onChange={form.handleChange}
                         className="mt-1 rounded accent-ted-red"
                         required
                       />
                       <span className="text-xs text-gray-300 leading-normal">
-                        Will be delivered as a solo presentation *
+                        I hereby declare that all information provided in this application is accurate and complete to the best of my knowledge. *
                       </span>
                     </label>
-                    {form.errors.soloPresentationConfirmed && <p className="text-red-500 text-[10px]">{form.errors.soloPresentationConfirmed}</p>}
+                    {form.errors.infoAccuracyConfirmed && <p className="text-red-500 text-[10px]">{form.errors.infoAccuracyConfirmed}</p>}
 
-                    {/* Max 18 mins */}
+                    {/* originalityConfirmed */}
                     <label className="flex items-start gap-3 cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        name="durationConfirmed"
-                        checked={form.values.durationConfirmed}
+                        name="originalityConfirmed"
+                        checked={form.values.originalityConfirmed}
                         onChange={form.handleChange}
                         className="mt-1 rounded accent-ted-red"
                         required
                       />
                       <span className="text-xs text-gray-300 leading-normal">
-                        Will not exceed 18 minutes *
+                        I confirm that the idea submitted is original or has been shared with the speaker's knowledge and authorization. *
                       </span>
                     </label>
-                    {form.errors.durationConfirmed && <p className="text-red-500 text-[10px]">{form.errors.durationConfirmed}</p>}
+                    {form.errors.originalityConfirmed && <p className="text-red-500 text-[10px]">{form.errors.originalityConfirmed}</p>}
 
-                    {/* Complies with guidelines */}
+                    {/* noGuaranteeConfirmed */}
                     <label className="flex items-start gap-3 cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        name="compliesConfirmed"
-                        checked={form.values.compliesConfirmed}
+                        name="noGuaranteeConfirmed"
+                        checked={form.values.noGuaranteeConfirmed}
                         onChange={form.handleChange}
                         className="mt-1 rounded accent-ted-red"
                         required
                       />
                       <span className="text-xs text-gray-300 leading-normal">
-                        Complies with TEDx content guidelines *
+                        I understand that submission of this application does not guarantee selection as a TEDxKARE speaker. *
                       </span>
                     </label>
-                    {form.errors.compliesConfirmed && <p className="text-red-500 text-[10px]">{form.errors.compliesConfirmed}</p>}
+                    {form.errors.noGuaranteeConfirmed && <p className="text-red-500 text-[10px]">{form.errors.noGuaranteeConfirmed}</p>}
                   </div>
                 </div>
 
