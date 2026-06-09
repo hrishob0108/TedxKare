@@ -240,10 +240,6 @@ const SpeakerApply = () => {
         form.setFieldError('linkedin', 'Valid LinkedIn profile URL is required');
         isValid = false;
       }
-      if (!form.values.whySpeak1.trim()) {
-        form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
-        isValid = false;
-      }
       if (!form.values.firstTedxTalk) {
         form.setFieldError('firstTedxTalk', 'Specify if this will be the speaker\'s first TEDx talk');
         isValid = false;
@@ -279,6 +275,10 @@ const SpeakerApply = () => {
       }
       if (!form.values.nominatorRelationship.trim()) {
         form.setFieldError('nominatorRelationship', 'Relationship with the speaker is required');
+        isValid = false;
+      }
+      if (!form.values.whySpeak1.trim()) {
+        form.setFieldError('whySpeak1', 'Please explain why the speaker should speak');
         isValid = false;
       }
     }
@@ -340,10 +340,6 @@ const SpeakerApply = () => {
         form.setFieldError('idea1NewSurprising', 'Explain what makes this idea new/surprising');
         isValid = false;
       }
-      if (!form.values.idea1Audience.trim()) {
-        form.setFieldError('idea1Audience', 'Explain who would benefit most');
-        isValid = false;
-      }
     }
 
     if (stepKey === 'idea2') {
@@ -403,10 +399,6 @@ const SpeakerApply = () => {
         form.setFieldError('idea2NewSurprising', 'Explain what makes this idea new/surprising');
         isValid = false;
       }
-      if (!form.values.idea2Audience.trim()) {
-        form.setFieldError('idea2Audience', 'Explain who would benefit most');
-        isValid = false;
-      }
     }
 
     if (stepKey === 'idea3') {
@@ -464,10 +456,6 @@ const SpeakerApply = () => {
       }
       if (!form.values.idea3NewSurprising.trim()) {
         form.setFieldError('idea3NewSurprising', 'Explain what makes this idea new/surprising');
-        isValid = false;
-      }
-      if (!form.values.idea3Audience.trim()) {
-        form.setFieldError('idea3Audience', 'Explain who would benefit most');
         isValid = false;
       }
     }
@@ -988,20 +976,6 @@ const SpeakerApply = () => {
             {form.errors[`${key}NewSurprising`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}NewSurprising`]}</p>}
           </div>
 
-          {/* Target Audience */}
-          <div className="space-y-1">
-            <label className="text-xs text-gray-300 font-bold">Who would benefit most from hearing this talk, and why? *</label>
-            <textarea
-              name={`${key}Audience`}
-              placeholder="Describe the primary audience and the value, perspective, or action they may gain from this idea..."
-              rows="3"
-              className={getInputClassName(`${key}Audience`, 'textarea')}
-              value={form.values[`${key}Audience`]}
-              onChange={form.handleChange}
-              required
-            />
-            {form.errors[`${key}Audience`] && <p className="text-red-500 text-[10px]">{form.errors[`${key}Audience`]}</p>}
-          </div>
 
           {/* Articles / work samples */}
           <div className="space-y-1">
@@ -1406,20 +1380,6 @@ const SpeakerApply = () => {
                   </div>
                 )}
 
-                {/* Why believe should speak */}
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
-                  <textarea
-                    name="whySpeak1"
-                    placeholder="Describe their speaking capabilities, unique background, and core alignment..."
-                    rows="3"
-                    className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
-                    value={form.values.whySpeak1}
-                    onChange={form.handleChange}
-                    required
-                  />
-                  {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
-                </div>
 
                 <div className="flex justify-end pt-4">
                   <button
@@ -1536,6 +1496,21 @@ const SpeakerApply = () => {
                     required
                   />
                   {form.errors.nominatorRelationship && <p className="text-red-500 text-[10px]">{form.errors.nominatorRelationship}</p>}
+                </div>
+
+                {/* Why believe should speak */}
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-300 font-bold">Why do you believe this Speaker should speak at <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *</label>
+                  <textarea
+                    name="whySpeak1"
+                    placeholder="Describe their speaking capabilities, unique background, and core alignment..."
+                    rows="3"
+                    className="w-full bg-black/60 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:border-ted-red focus:outline-none text-sm resize-none"
+                    value={form.values.whySpeak1}
+                    onChange={form.handleChange}
+                    required
+                  />
+                  {form.errors.whySpeak1 && <p className="text-red-500 text-[10px]">{form.errors.whySpeak1}</p>}
                 </div>
 
                 <div className="flex items-center justify-between pt-4">

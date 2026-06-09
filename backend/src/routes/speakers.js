@@ -38,7 +38,7 @@ const speakerValidation = [
   body('nominatorRelationship').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Relationship with speaker is required'),
   
   // --- Idea 1 (Required) ---
-  body('whySpeak1').trim().notEmpty().withMessage('Explanation of why this speaker should speak is required'),
+  body('whySpeak1').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Explanation of why this speaker should speak is required'),
   body('idea1Title').trim().notEmpty().withMessage('Idea 1 Title is required'),
   body('idea1Description').trim().notEmpty().withMessage('Idea 1 Description is required'),
   body('idea1Domain').trim().notEmpty().withMessage('Idea 1 Domain is required'),
@@ -54,7 +54,7 @@ const speakerValidation = [
   body('idea1PresentedBeforeDetails').if(body('idea1PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details are required'),
   body('idea1Articles').trim().notEmpty().withMessage('Articles, videos, or work samples are required'),
   body('idea1NewSurprising').trim().notEmpty().withMessage('Explanation of what makes this idea new/surprising is required'),
-  body('idea1Audience').trim().notEmpty().withMessage('Target audience description is required'),
+  body('idea1Audience').optional().trim(),
 
   // --- Idea 2 (Required) ---
   body('idea2Title').trim().notEmpty().withMessage('Idea 2 Title is required'),
@@ -72,7 +72,7 @@ const speakerValidation = [
   body('idea2PresentedBeforeDetails').if(body('idea2PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details for Idea 2 are required'),
   body('idea2Articles').trim().notEmpty().withMessage('Articles, videos, or work samples for Idea 2 are required'),
   body('idea2NewSurprising').trim().notEmpty().withMessage('What makes Idea 2 surprising is required'),
-  body('idea2Audience').trim().notEmpty().withMessage('Target audience for Idea 2 is required'),
+  body('idea2Audience').optional().trim(),
 
   // --- Idea 3 (Required) ---
   body('idea3Title').trim().notEmpty().withMessage('Idea 3 Title is required'),
@@ -90,12 +90,12 @@ const speakerValidation = [
   body('idea3PresentedBeforeDetails').if(body('idea3PresentedBefore').equals('YES')).trim().notEmpty().withMessage('Previous presentation details for Idea 3 are required'),
   body('idea3Articles').trim().notEmpty().withMessage('Articles, videos, or work samples for Idea 3 are required'),
   body('idea3NewSurprising').trim().notEmpty().withMessage('What makes Idea 3 surprising is required'),
-  body('idea3Audience').trim().notEmpty().withMessage('Target audience for Idea 3 is required'),
+  body('idea3Audience').optional().trim(),
 
   // --- SECTION 4: Proposed Talk & Confirmations ---
   body('proposedTitle').trim().notEmpty().withMessage('Proposed Talk Title is required'),
   body('proposedDescription').trim().notEmpty().withMessage('Talk originality and sharing explanation is required'),
-  body('proposedQualifications').trim().notEmpty().withMessage('Qualifications highlight is required'),
+  body('proposedQualifications').if(body('selfNomination').equals('No, I am nominating another individual.')).trim().notEmpty().withMessage('Qualifications highlight is required'),
   body('policyComfort').trim().notEmpty().withMessage('Recording policy comfort selection is required'),
   body('factCheckingNeed').trim().notEmpty().withMessage('Fact-checking and sensitive content selection is required'),
   body('willingnessToModify').trim().notEmpty().withMessage('Willingness to modify talk selection is required'),
