@@ -14,6 +14,7 @@ const SpeakerApply = () => {
   const { loading, error, request, clearError } = useApi();
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   
   // Section states
   const [validationError, setValidationError] = useState('');
@@ -23,28 +24,31 @@ const SpeakerApply = () => {
     window.scrollTo(0, 0);
   }, [step]);
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      let attempts = 3;
-      while (attempts > 0) {
-        try {
-          // Use a shorter 4-second timeout to handle cold start retries quickly
-          const response = await settingsAPI.getSettings({ timeout: 4000 });
-          setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
-          setIsCheckingStatus(false);
-          return;
-        } catch (err) {
-          attempts--;
-          console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
-          if (attempts > 0) {
-            // Wait 2.5 seconds before retrying to give the backend server time to spin up
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-          }
+  const checkStatus = async () => {
+    setConnectionError(false);
+    setIsCheckingStatus(true);
+    let attempts = 50;
+    while (attempts > 0) {
+      try {
+        // Use a shorter 4-second timeout to handle cold start retries quickly
+        const response = await settingsAPI.getSettings({ timeout: 4000 });
+        setSpeakerRegistrationOpen(response.data.data.speakerRegistrationOpen ?? true);
+        setIsCheckingStatus(false);
+        return;
+      } catch (err) {
+        attempts--;
+        console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+        if (attempts > 0) {
+          // Wait 3 seconds before retrying to give the backend server time to spin up
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         }
       }
-      setSpeakerRegistrationOpen(false);
-      setIsCheckingStatus(false);
-    };
+    }
+    setConnectionError(true);
+    setIsCheckingStatus(false);
+  };
+
+  useEffect(() => {
     checkStatus();
   }, []);
 
@@ -1065,8 +1069,41 @@ const SpeakerApply = () => {
 
   if (isCheckingStatus) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
+        <p className="text-gray-400 text-xs animate-pulse">Connecting to server, please wait...</p>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 pb-16 relative overflow-hidden flex flex-col justify-between">
+        <Navbar />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-ted-red/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="flex-1 flex items-center justify-center p-4 z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl shadow-red-900/20"
+          >
+            <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">📡</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4 text-white">Connection Error</h2>
+            <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+              We are having trouble connecting to the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> server. 
+              The server may be starting up. Please check your internet connection or click below to retry.
+            </p>
+            <button
+              onClick={checkStatus}
+              className="w-full btn-primary py-3 font-semibold rounded-xl bg-ted-red hover:bg-red-700 transition-colors text-white"
+            >
+              Retry Connection
+            </button>
+          </motion.div>
+        </div>
+        <Footer />
       </div>
     );
   }
