@@ -447,6 +447,7 @@ const AdminDashboard = () => {
     const ideaRelevance = selectedSpeaker[`${key}Relevance`] || 'N/A';
     const ideaChallenge = selectedSpeaker[`${key}Challenge`] || 'N/A';
     const ideaImpact = selectedSpeaker[`${key}Impact`] || 'N/A';
+    const ideaEvidence = selectedSpeaker[`${key}Evidence`] || 'N/A';
     const ideaScalability = selectedSpeaker[`${key}Scalability`] || 'N/A';
     const ideaLivedExperience = selectedSpeaker[`${key}LivedExperience`] || 'NO';
     const ideaLivedExperienceDesc = selectedSpeaker[`${key}LivedExperienceDesc`] || '';
@@ -523,6 +524,14 @@ const AdminDashboard = () => {
               <span className="text-xs text-gray-400 font-bold block mb-1">Measurable / Meaningful Impact:</span>
               <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
                 {ideaImpact}
+              </p>
+            </div>
+
+            {/* Evidence & Sources */}
+            <div>
+              <span className="text-xs text-gray-400 font-bold block mb-1">Evidence, Research & Sources:</span>
+              <p className="text-gray-300 leading-relaxed bg-black/60 p-3 rounded-xl border border-gray-800">
+                {ideaEvidence}
               </p>
             </div>
 

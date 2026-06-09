@@ -77,8 +77,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="mailto:tedxkare@gmail.com" className="hover:text-ted-red transition-colors duration-200 flex items-center gap-2">
-                  <span>✉️</span> tedxkare@gmail.com
+                <a href="mailto:tedx@klu.ac.in" className="hover:text-ted-red transition-colors duration-200 flex items-center gap-2">
+                  <span>✉️</span> tedx@klu.ac.in
                 </a>
               </li>
             </ul>
