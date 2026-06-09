@@ -25,7 +25,7 @@ const speakerSchema = new mongoose.Schema(
     nominatorRelationship: { type: String, trim: true },
     
     // --- IDEA 1 (Required) ---
-    whySpeak1: { type: String, required: true, trim: true },
+    whySpeak1: { type: String, trim: true },
     idea1Title: { type: String, required: true, trim: true },
     idea1Description: { type: String, required: true, trim: true },
     idea1Domain: { type: String, required: true, trim: true },
@@ -51,7 +51,7 @@ const speakerSchema = new mongoose.Schema(
     idea1File: { type: String }, // Base64 document
     idea1FileName: { type: String },
     idea1NewSurprising: { type: String, required: true, trim: true },
-    idea1Audience: { type: String, required: true, trim: true },
+    idea1Audience: { type: String, trim: true },
     idea1Comments: { type: String, trim: true },
 
     // --- SECTION 2: IDEA 2 (Mandatory) ---
@@ -81,7 +81,7 @@ const speakerSchema = new mongoose.Schema(
     idea2File: { type: String }, // Base64 document
     idea2FileName: { type: String },
     idea2NewSurprising: { type: String, required: true, trim: true },
-    idea2Audience: { type: String, required: true, trim: true },
+    idea2Audience: { type: String, trim: true },
     idea2Comments: { type: String, trim: true },
 
     // --- SECTION 3: IDEA 3 (Mandatory) ---
@@ -111,13 +111,13 @@ const speakerSchema = new mongoose.Schema(
     idea3File: { type: String }, // Base64 document
     idea3FileName: { type: String },
     idea3NewSurprising: { type: String, required: true, trim: true },
-    idea3Audience: { type: String, required: true, trim: true },
+    idea3Audience: { type: String, trim: true },
     idea3Comments: { type: String, trim: true },
 
     // --- SECTION 4: Proposed Talk & Confirmations ---
     proposedTitle: { type: String, required: true, trim: true },
     proposedDescription: { type: String, required: true, trim: true },
-    proposedQualifications: { type: String, required: true, trim: true },
+    proposedQualifications: { type: String, trim: true },
     policyComfort: { type: String, required: true, trim: true },
     factCheckingNeed: { type: String, required: true, trim: true },
     willingnessToModify: { type: String, required: true, trim: true },
