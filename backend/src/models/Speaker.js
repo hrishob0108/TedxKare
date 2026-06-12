@@ -15,7 +15,7 @@ const speakerSchema = new mongoose.Schema(
     firstTedxTalk: { type: String, required: true, trim: true }, // YES or NO
     hasDisability: { type: String, required: true, trim: true }, // YES, NO, or PREFER_NOT_TO_SAY
     disabilityDetails: { type: String, trim: true },
-    
+
     // --- SECTION 2: Nominator Information (Only if not self-nominated) ---
     nominatorName: { type: String, trim: true },
     nominatorEmail: { type: String, trim: true, lowercase: true },
@@ -23,7 +23,7 @@ const speakerSchema = new mongoose.Schema(
     nominatorLocation: { type: String, trim: true }, // City, State/Province, Country
     nominatorOrganization: { type: String, trim: true },
     nominatorRelationship: { type: String, trim: true },
-    
+
     // --- IDEA 1 (Required) ---
     whySpeak1: { type: String, trim: true },
     idea1Title: { type: String, required: true, trim: true },
@@ -128,6 +128,9 @@ const speakerSchema = new mongoose.Schema(
     hasAdditionalIdeas: { type: String, required: true, trim: true }, // YES or NO
     howLearned: { type: String, required: true, trim: true },
     additionalComments: { type: String, trim: true },
+    infoAccuracyConfirmed: { type: Boolean, default: false },
+    originalityConfirmed: { type: Boolean, default: false },
+    noGuaranteeConfirmed: { type: Boolean, default: false },
 
     // --- Backward compatibility fields (Optional in schema) ---
     age: { type: Number },
@@ -148,7 +151,7 @@ const speakerSchema = new mongoose.Schema(
     durationMinutes: { type: Number, default: 10 },
     bio: { type: String, trim: true },
     sampleLink: { type: String, trim: true },
-    
+
     // --- System Status Fields ---
     status: { type: String, enum: ['Pending', 'Reviewed', 'Selected', 'Rejected'], default: 'Pending' },
     ipAddress: { type: String, default: '' },
