@@ -31,6 +31,8 @@ const AdminDashboard = () => {
     byDomain: [],
   });
 
+  const [initialLoading, setInitialLoading] = useState(true);
+
   // Filter states
   const [filters, setFilters] = useState({
     domain: 'All',
@@ -56,10 +58,22 @@ const AdminDashboard = () => {
 
   // Fetch applicants, speakers and settings on component mount
   useEffect(() => {
-    fetchApplicants();
-    fetchSpeakers();
-    fetchStatistics();
-    fetchSettings();
+    const loadData = async () => {
+      setInitialLoading(true);
+      try {
+        await Promise.allSettled([
+          fetchApplicants(),
+          fetchSpeakers(),
+          fetchStatistics(),
+          fetchSettings(),
+        ]);
+      } catch (err) {
+        console.error('Error fetching initial dashboard data:', err);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const handleTabChange = (tab) => {
@@ -755,11 +769,19 @@ const AdminDashboard = () => {
             <p className="text-gray-400">
               View and manage all recruitment and speaker applications. Currently showing{' '}
               <span className="text-ted-red font-semibold">
-                {activeTab === 'applicants' ? filteredApplicants.length : filteredSpeakers.length}
+                {initialLoading ? (
+                  <span className="animate-pulse">...</span>
+                ) : (
+                  activeTab === 'applicants' ? filteredApplicants.length : filteredSpeakers.length
+                )}
               </span>{' '}
               of{' '}
               <span className="text-ted-red font-semibold">
-                {activeTab === 'applicants' ? applicants.length : speakers.length}
+                {initialLoading ? (
+                  <span className="animate-pulse">...</span>
+                ) : (
+                  activeTab === 'applicants' ? applicants.length : speakers.length
+                )}
               </span>{' '}
               records.
             </p>
@@ -770,13 +792,13 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between gap-6 border-b sm:border-b-0 sm:border-r border-gray-800 pb-3 sm:pb-0 sm:pr-6">
               <div>
                 <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Team Recruitment</p>
-                <p className={`text-xs font-bold ${teamRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
-                  {teamRegistrationOpen ? '🟢 Open' : '🔴 Closed'}
+                <p className={`text-xs font-bold ${initialLoading ? 'text-gray-500 animate-pulse' : (teamRegistrationOpen ? 'text-green-400' : 'text-red-400')}`}>
+                  {initialLoading ? '⏳ Loading...' : (teamRegistrationOpen ? '🟢 Open' : '🔴 Closed')}
                 </p>
               </div>
               <button
                 onClick={handleToggleTeamRegistration}
-                disabled={loading}
+                disabled={loading || initialLoading}
                 className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none ${teamRegistrationOpen ? 'bg-ted-red' : 'bg-gray-800 border border-gray-700'
                   }`}
               >
@@ -791,13 +813,13 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between gap-6 sm:pl-2">
               <div>
                 <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Speaker Applications</p>
-                <p className={`text-xs font-bold ${speakerRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
-                  {speakerRegistrationOpen ? '🟢 Open' : '🔴 Closed'}
+                <p className={`text-xs font-bold ${initialLoading ? 'text-gray-500 animate-pulse' : (speakerRegistrationOpen ? 'text-green-400' : 'text-red-400')}`}>
+                  {initialLoading ? '⏳ Loading...' : (speakerRegistrationOpen ? '🟢 Open' : '🔴 Closed')}
                 </p>
               </div>
               <button
                 onClick={handleToggleSpeakerRegistration}
-                disabled={loading}
+                disabled={loading || initialLoading}
                 className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none ${speakerRegistrationOpen ? 'bg-ted-red' : 'bg-gray-800 border border-gray-700'
                   }`}
               >
@@ -841,7 +863,11 @@ const AdminDashboard = () => {
               Total Applications
             </p>
             <p className="text-4xl font-bold text-ted-red">
-              {activeTab === 'applicants' ? stats.totalApplications : speakers.length}
+              {initialLoading ? (
+                <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : (
+                activeTab === 'applicants' ? stats.totalApplications : speakers.length
+              )}
             </p>
           </motion.div>
 
@@ -854,9 +880,13 @@ const AdminDashboard = () => {
           >
             <p className="text-yellow-400 text-sm mb-2">Pending Review</p>
             <p className="text-4xl font-bold text-yellow-400">
-              {activeTab === 'applicants'
-                ? stats.byStatus.pending
-                : speakers.filter(s => s.status === 'Pending').length}
+              {initialLoading ? (
+                <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : (
+                activeTab === 'applicants'
+                  ? stats.byStatus.pending
+                  : speakers.filter(s => s.status === 'Pending').length
+              )}
             </p>
           </motion.div>
 
@@ -871,9 +901,13 @@ const AdminDashboard = () => {
               {activeTab === 'applicants' ? 'Shortlisted' : 'Selected Speakers'}
             </p>
             <p className="text-4xl font-bold text-green-400">
-              {activeTab === 'applicants'
-                ? stats.byStatus.shortlisted
-                : speakers.filter(s => s.status === 'Selected').length}
+              {initialLoading ? (
+                <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : (
+                activeTab === 'applicants'
+                  ? stats.byStatus.shortlisted
+                  : speakers.filter(s => s.status === 'Selected').length
+              )}
             </p>
           </motion.div>
 
@@ -886,9 +920,13 @@ const AdminDashboard = () => {
           >
             <p className="text-red-400 text-sm mb-2">Rejected</p>
             <p className="text-4xl font-bold text-red-400">
-              {activeTab === 'applicants'
-                ? stats.byStatus.rejected
-                : speakers.filter(s => s.status === 'Rejected').length}
+              {initialLoading ? (
+                <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : (
+                activeTab === 'applicants'
+                  ? stats.byStatus.rejected
+                  : speakers.filter(s => s.status === 'Rejected').length
+              )}
             </p>
           </motion.div>
         </motion.div>
@@ -974,9 +1012,10 @@ const AdminDashboard = () => {
           {/* Export Button */}
           <button
             onClick={handleExportCSV}
-            className="btn-secondary text-sm mt-4 w-full"
+            disabled={loading || initialLoading}
+            className="btn-secondary text-sm mt-4 w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            📥 Export {activeTab === 'applicants' ? 'Applicants' : 'Speakers'} to CSV
+            {initialLoading ? '⏳ Loading Data for Export...' : `📥 Export ${activeTab === 'applicants' ? 'Applicants' : 'Speakers'} to CSV`}
           </button>
         </motion.div>
 
@@ -987,7 +1026,17 @@ const AdminDashboard = () => {
           transition={{ delay: 0.3 }}
           className="card overflow-x-auto"
         >
-          {loading ? (
+          {initialLoading ? (
+            <div className="flex flex-col items-center justify-center h-48 space-y-4">
+              <div className="w-10 h-10 border-4 border-ted-red border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-center">
+                <p className="text-gray-200 font-medium animate-pulse">Connecting to Server...</p>
+                <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto px-4">
+                  The backend server might take up to a minute to start if it has gone idle (cold start). Thank you for your patience!
+                </p>
+              </div>
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center h-40">
               <p className="text-gray-400">Loading data...</p>
             </div>

@@ -50,26 +50,7 @@ const Events = () => {
     ]
   };
 
-  const pastEvents = [
-    {
-      id: '2025',
-      title: <><span className="text-ted-red">TEDx</span><span className="font-light">KARE</span> 2025: Breaking Barriers</>,
-      date: 'November 15, 2025',
-      venue: 'Sleek Mini Hall, KARE Campus',
-      stats: { talks: 6, attendees: '420+', views: '55k+' },
-      description: 'An inspiring day dedicated to dismantling cognitive bias, societal barriers, and structural technical bottlenecks that restrict community growth. Speakers explored paths to open-access scientific publication, assistive technologies, and inclusive leadership models.',
-      highlights: ['6 Inspiring local speakers', 'Full-house physical attendance', 'Immersive VR art installation in the lobby']
-    },
-    {
-      id: '2024',
-      title: <><span className="text-ted-red">TEDx</span><span className="font-light">KARE</span> 2024: The Next Frontier</>,
-      date: 'April 10, 2024',
-      venue: 'Main Auditorium, KARE Campus',
-      stats: { talks: 8, attendees: '380+', views: '82k+' },
-      description: 'Our inaugural event focusing on upcoming breakthroughs in deep-tech, commercial aerospace progress, quantum computational models, and bio-inspired materials that will redefine how we live, build, and connect.',
-      highlights: ['8 High-profile guest talks', 'Industry partner roundtables', 'Live streaming to 10+ campuses']
-    }
-  ];
+  const pastEvents = [];
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-ted-red selection:text-white flex flex-col justify-between font-sans relative overflow-hidden">
@@ -289,84 +270,100 @@ const Events = () => {
                 transition={{ duration: 0.4 }}
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {pastEvents.map((evt) => {
-                    const isOpen = openPastEvent === evt.id;
-                    return (
-                      <div
-                        key={evt.id}
-                        className={`p-6 bg-gradient-to-br from-gray-900/40 to-black/20 border rounded-2xl shadow-xl transition-all duration-300 relative flex flex-col justify-between overflow-hidden group ${isOpen ? 'border-ted-red/40 bg-gray-900/10' : 'border-gray-800/80 hover:border-gray-700'
-                          }`}
-                      >
-                        <div>
-                          <div className="flex justify-between items-start gap-4 mb-4">
-                            <div>
-                              <span className="text-ted-red text-xs font-bold uppercase tracking-wider block mb-1">
-                                {evt.date}
-                              </span>
-                              <h3 className="font-extrabold text-xl text-white group-hover:text-ted-red transition-colors duration-300">
-                                {evt.title}
-                              </h3>
-                            </div>
-                            <span className="bg-gray-950/80 border border-gray-800 text-[10px] text-gray-400 font-bold px-2 py-1 rounded-lg uppercase whitespace-nowrap">
-                              {evt.id} Cycle
-                            </span>
-                          </div>
-
-                          <p className="text-gray-400 text-xs sm:text-sm leading-relaxed font-light mb-6">
-                            {evt.description}
-                          </p>
-
-                          {/* Stats Grid */}
-                          <div className="grid grid-cols-3 gap-2 text-center bg-black/45 border border-gray-900 rounded-xl p-3 mb-6">
-                            <div>
-                              <div className="text-base font-extrabold text-white">{evt.stats.talks}</div>
-                              <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Talks</div>
-                            </div>
-                            <div>
-                              <div className="text-base font-extrabold text-white">{evt.stats.attendees}</div>
-                              <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Attendees</div>
-                            </div>
-                            <div>
-                              <div className="text-base font-extrabold text-white">{evt.stats.views}</div>
-                              <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Views</div>
-                            </div>
-                          </div>
-
-                          {/* Collapsible details */}
-                          <AnimatePresence>
-                            {isOpen && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="overflow-hidden border-t border-gray-800 mt-4 pt-4 space-y-3"
-                              >
-                                <h4 className="font-bold text-xs uppercase tracking-wider text-gray-400">Key Highlights</h4>
-                                <ul className="space-y-1.5 text-xs text-gray-300 list-disc list-inside font-light">
-                                  {evt.highlights.map((h, i) => (
-                                    <li key={i}>{h}</li>
-                                  ))}
-                                </ul>
-                                <p className="text-[10px] text-gray-500 mt-2 italic">
-                                  Talk video recordings are uploaded to the global TEDx YouTube Channel.
-                                </p>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-
-                        <button
-                          onClick={() => setOpenPastEvent(isOpen ? null : evt.id)}
-                          className="w-full text-center text-xs font-bold uppercase tracking-wider py-2 bg-gray-900/60 hover:bg-gray-800 border border-gray-800 rounded-lg transition-colors mt-4 text-ted-red flex items-center justify-center gap-1.5"
+                {pastEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {pastEvents.map((evt) => {
+                      const isOpen = openPastEvent === evt.id;
+                      return (
+                        <div
+                          key={evt.id}
+                          className={`p-6 bg-gradient-to-br from-gray-900/40 to-black/20 border rounded-2xl shadow-xl transition-all duration-300 relative flex flex-col justify-between overflow-hidden group ${isOpen ? 'border-ted-red/40 bg-gray-900/10' : 'border-gray-800/80 hover:border-gray-700'
+                            }`}
                         >
-                          {isOpen ? 'Hide Highlights ▲' : 'Show Details & Highlights ▼'}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                          <div>
+                            <div className="flex justify-between items-start gap-4 mb-4">
+                              <div>
+                                <span className="text-ted-red text-xs font-bold uppercase tracking-wider block mb-1">
+                                  {evt.date}
+                                </span>
+                                <h3 className="font-extrabold text-xl text-white group-hover:text-ted-red transition-colors duration-300">
+                                  {evt.title}
+                                </h3>
+                              </div>
+                              <span className="bg-gray-950/80 border border-gray-800 text-[10px] text-gray-400 font-bold px-2 py-1 rounded-lg uppercase whitespace-nowrap">
+                                {evt.id} Cycle
+                              </span>
+                            </div>
+
+                            <p className="text-gray-400 text-xs sm:text-sm leading-relaxed font-light mb-6">
+                              {evt.description}
+                            </p>
+
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-3 gap-2 text-center bg-black/45 border border-gray-900 rounded-xl p-3 mb-6">
+                              <div>
+                                <div className="text-base font-extrabold text-white">{evt.stats.talks}</div>
+                                <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Talks</div>
+                              </div>
+                              <div>
+                                <div className="text-base font-extrabold text-white">{evt.stats.attendees}</div>
+                                <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Attendees</div>
+                              </div>
+                              <div>
+                                <div className="text-base font-extrabold text-white">{evt.stats.views}</div>
+                                <div className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Views</div>
+                              </div>
+                            </div>
+
+                            {/* Collapsible details */}
+                            <AnimatePresence>
+                              {isOpen && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="overflow-hidden border-t border-gray-800 mt-4 pt-4 space-y-3"
+                                >
+                                  <h4 className="font-bold text-xs uppercase tracking-wider text-gray-400">Key Highlights</h4>
+                                  <ul className="space-y-1.5 text-xs text-gray-300 list-disc list-inside font-light">
+                                    {evt.highlights.map((h, i) => (
+                                      <li key={i}>{h}</li>
+                                    ))}
+                                  </ul>
+                                  <p className="text-[10px] text-gray-500 mt-2 italic">
+                                    Talk video recordings are uploaded to the global TEDx YouTube Channel.
+                                  </p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          <button
+                            onClick={() => setOpenPastEvent(isOpen ? null : evt.id)}
+                            className="w-full text-center text-xs font-bold uppercase tracking-wider py-2 bg-gray-900/60 hover:bg-gray-800 border border-gray-800 rounded-lg transition-colors mt-4 text-ted-red flex items-center justify-center gap-1.5"
+                          >
+                            {isOpen ? 'Hide Highlights ▲' : 'Show Details & Highlights ▼'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-br from-gray-900/40 to-black/20 border border-gray-800/80 rounded-3xl p-10 md:p-16 text-center max-w-2xl mx-auto shadow-2xl relative overflow-hidden group hover:border-ted-red/20 transition-all duration-500">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-ted-red/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="text-5xl md:text-6xl mb-6">🚀</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">
+                      The Inaugural Cycle
+                    </h3>
+                    <p className="text-gray-400 text-sm md:text-base leading-relaxed font-light mb-8 max-w-lg mx-auto">
+                      Welcome to the very beginning of <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>! <strong>THE BIGBANG 2026</strong> is our very first flagship event. As we are embarking on this brand new journey, we don't have past event archives yet.
+                    </p>
+                    <div className="inline-block px-5 py-2.5 bg-ted-red/10 border border-ted-red/25 rounded-full text-ted-red text-xs font-bold uppercase tracking-wider">
+                      Creating our legacy in 2026
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
