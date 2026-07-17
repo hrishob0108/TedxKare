@@ -44,7 +44,7 @@ const AdminDashboard = () => {
   // Domains list
   const domains = [
     'Selection Committee (Curation Team)',
-    'Executive Producer',
+    'Content Creator',
     'Event Manager',
     'Sponsorship & Budget Manager',
     'Designer',

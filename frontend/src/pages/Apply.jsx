@@ -9,7 +9,7 @@ import Footer from '../components/Footer';
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
   'Selection Committee (Curation Team)',
-  'Executive Producer',
+  'Content Creator',
   'Event Manager',
   'Sponsorship & Budget Manager',
   'Designer',
@@ -29,7 +29,7 @@ const departments = [
   'Other',
 ];
 
-const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const years = ['2nd Year', '3rd Year'];
 
 
 
@@ -121,6 +121,23 @@ const Apply = () => {
   };
 
   const form = useForm(initialValues, onSubmit);
+
+  const getAvailableYears = () => {
+    if (!form.values.firstPreference) {
+      return ['2nd Year', '3rd Year'];
+    }
+    if (form.values.firstPreference === 'Content Creator') {
+      return ['2nd Year', '3rd Year'];
+    }
+    return ['2nd Year'];
+  };
+
+  useEffect(() => {
+    const validYears = getAvailableYears();
+    if (form.values.year && !validYears.includes(form.values.year)) {
+      form.setFieldValue('year', '');
+    }
+  }, [form.values.firstPreference]);
 
   if (isCheckingStatus) {
     return (
@@ -398,6 +415,12 @@ const Apply = () => {
           <motion.div variants={itemVariants} className="card">
             <h3 className="text-2xl font-bold mb-6 text-ted-red">Academic Information</h3>
 
+            <div className="bg-red-900/20 border border-ted-red/30 rounded-lg p-4 mb-6 text-sm text-gray-300">
+              <p>
+                <span className="font-semibold text-ted-red">Eligibility Note:</span> Most roles are exclusively open to <strong>2nd Year</strong> students. The <strong>Content Creator</strong> role is open to both <strong>2nd and 3rd Year</strong> students.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Department */}
               <div className="form-group">
@@ -445,12 +468,15 @@ const Apply = () => {
                   required
                 >
                   <option value="">Select Year</option>
-                  {years.map((yr) => (
+                  {getAvailableYears().map((yr) => (
                     <option key={yr} value={yr}>
                       {yr}
                     </option>
                   ))}
                 </select>
+                {form.values.firstPreference && (
+                  <p className="form-hint">Available years based on your domain choice.</p>
+                )}
               </div>
             </div>
           </motion.div>

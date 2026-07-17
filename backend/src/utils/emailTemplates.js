@@ -70,13 +70,13 @@ Best regards,
 N. Thrivikram
 Organizer – TEDxKARE`,
 
-    'Executive Producer': `Dear ${name},
+    'Content Creator': `Dear ${name},
 
-Congratulations! You have been selected as a member of the Executive Producer Team for TEDxKARE for the Academic Year 2026–2027.
+Congratulations! You have been selected as a Content Creator for TEDxKARE for the Academic Year 2026–2027.
 
-As part of the Executive Producer team, your role will involve overseeing the overall production and planning of the event. You will work closely with different teams to coordinate stage production, technical setup, scheduling, and the overall execution of the event. This role focuses on ensuring that all elements of the event—from stage management to technical operations—are well organized and run smoothly on the day of the program.
+As a Content Creator, your role will involve capturing the essence of the event through photography, videography, and digital storytelling. You will work on creating engaging content for social media, editing short-form videos, and documenting the journey of speakers and the team to build excitement and engagement.
 
-As a member of the organizing team, it is important that you understand the mission and guidelines of TED and TEDx. All production and event activities must follow the official TEDx standards and rules to maintain the quality and integrity of the platform.
+As a member of the organizing team, it is important that you understand the mission and guidelines of TED and TEDx. All content created must follow the official TEDx standards and rules to maintain the quality and integrity of the platform.
 
 Further details about responsibilities and coordination meetings will be shared soon.
 
