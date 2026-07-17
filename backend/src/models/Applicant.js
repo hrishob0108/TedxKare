@@ -46,7 +46,18 @@ const applicantSchema = new mongoose.Schema(
     year: {
       type: String,
       required: [true, 'Year of study is required'],
-      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+      validate: {
+        validator: function (v) {
+          if (this.firstPreference === 'Content Creator') {
+            return ['2nd Year', '3rd Year'].includes(v);
+          }
+          if (this.firstPreference) {
+            return v === '2nd Year';
+          }
+          return ['2nd Year', '3rd Year'].includes(v);
+        },
+        message: 'Invalid year of study for the selected domain',
+      },
     },
 
     // Links
@@ -66,7 +77,7 @@ const applicantSchema = new mongoose.Schema(
       required: [true, 'First domain preference is required'],
       enum: [
         'Selection Committee (Curation Team)',
-        'Executive Producer',
+        'Content Creator',
         'Event Manager',
         'Sponsorship & Budget Manager',
         'Designer',
@@ -80,7 +91,7 @@ const applicantSchema = new mongoose.Schema(
       required: [true, 'Second domain preference is required'],
       enum: [
         'Selection Committee (Curation Team)',
-        'Executive Producer',
+        'Content Creator',
         'Event Manager',
         'Sponsorship & Budget Manager',
         'Designer',

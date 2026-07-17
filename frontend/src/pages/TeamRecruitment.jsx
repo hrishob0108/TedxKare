@@ -12,9 +12,9 @@ const domains = [
     description: 'The Selection Committee is responsible for finding and selecting speakers with meaningful and powerful ideas. This team reviews speaker applications, conducts interviews if needed, and ensures that the talks cover different fields such as science, education, innovation, business, culture, and social impact. They also help guide speakers in developing clear and impactful talks that follow TEDx guidelines.',
   },
   {
-    name: 'Executive Producer',
-    icon: '🎬',
-    description: 'The Executive Producer oversees the entire planning and production of the event. This role coordinates different teams and ensures that every part of the event is organized properly. They manage the stage flow, coordinate rehearsals, and make sure the program runs smoothly on the event day. They also work closely with technical teams for lighting, audio, and stage management.',
+    name: 'Content Creator',
+    icon: '📸',
+    description: 'The Content Creator is responsible for capturing the essence of the event through photography, videography, and digital storytelling. This role involves creating engaging content for social media, editing short-form videos, and documenting the journey of speakers and the team to build excitement and engagement.',
   },
   {
     name: 'Event Manager',
