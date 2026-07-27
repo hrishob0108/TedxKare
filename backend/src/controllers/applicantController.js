@@ -161,8 +161,11 @@ export const updateApplicantStatus = async (req, res, next) => {
 
     const { status, email, shortlistedDomain } = req.body;
     console.log(req.body);
+    /*
     // Helper function to send email
     const sendEmail = async (toEmail, subject, bodyText) => {
+      console.log("Email sending is currently disabled. Would have sent to:", toEmail);
+      return;
       try {
         const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
           config: {
@@ -180,6 +183,7 @@ export const updateApplicantStatus = async (req, res, next) => {
         console.error("Failed to send email to", toEmail, ":", error.message);
       }
     };
+    */
 
 
 
@@ -208,6 +212,7 @@ export const updateApplicantStatus = async (req, res, next) => {
       return res.status(404).json({ error: 'Applicant not found' });
     }
 
+    /*
     // Trigger emails based ONLY on specific statuses
     if (status === "Rejected") {
       // Fire and forget email
@@ -217,6 +222,7 @@ export const updateApplicantStatus = async (req, res, next) => {
       const emailBody = getAcceptanceEmailTemplate(applicant.name, shortlistedDomain);
       sendEmail(applicant.email, "Congratulations! You've been selected for TEDxKARE", emailBody);
     }
+    */
 
     res.json({
       success: true,
