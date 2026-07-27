@@ -74,7 +74,7 @@ const AdminLogin = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-2">
-            <span className="text-ted-red">TED</span>xKARE
+            <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>
           </h1>
           <p className="text-gray-400">Admin Dashboard</p>
         </motion.div>
@@ -178,20 +178,10 @@ const AdminLogin = () => {
           </motion.button>
         </motion.form>
 
-        {/* Demo Credentials */}
-        <motion.div variants={itemVariants} className="mt-8 p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
-          <p className="text-xs text-gray-400 mb-2 font-semibold">Demo Credentials:</p>
-          <p className="text-xs text-gray-500">
-            Email: <span className="text-gray-300">admin@tedxkare.com</span>
-          </p>
-          <p className="text-xs text-gray-500">
-            Password: <span className="text-gray-300">use the one you set up</span>
-          </p>
-        </motion.div>
 
         {/* Footer */}
         <motion.p variants={itemVariants} className="text-center text-gray-400 text-xs mt-8">
-          This dashboard is for authorized TEDxKARE team members only.
+          This dashboard is for authorized <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> team members only.
         </motion.p>
       </motion.div>
     </div>

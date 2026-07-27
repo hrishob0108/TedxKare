@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm, useApi } from '../hooks/useApi';
-import { applicantAPI } from '../utils/api';
+import { applicantAPI, settingsAPI } from '../utils/api';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // ==================== DOMAIN OPTIONS ====================
 const domains = [
   'Selection Committee (Curation Team)',
-  'Executive Producer',
+  'Content Creator',
   'Event Manager',
   'Sponsorship & Budget Manager',
   'Designer',
@@ -27,7 +29,7 @@ const departments = [
   'Other',
 ];
 
-const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const years = ['2nd Year', '3rd Year'];
 
 
 
@@ -37,9 +39,38 @@ const Apply = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const { loading, error, request, clearError } = useApi();
 
-  // Scroll to top on page load
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
+
+  const checkStatus = async () => {
+    setConnectionError(false);
+    setIsCheckingStatus(true);
+    let attempts = 50;
+    while (attempts > 0) {
+      try {
+        // Use a shorter 4-second timeout to handle cold start retries quickly
+        const response = await settingsAPI.getSettings({ timeout: 4000 });
+        setRegistrationOpen(response.data.data.teamRegistrationOpen ?? response.data.data.registrationOpen);
+        setIsCheckingStatus(false);
+        return;
+      } catch (err) {
+        attempts--;
+        console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+        if (attempts > 0) {
+          // Wait 3 seconds before retrying to give the backend server time to spin up
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+      }
+    }
+    setConnectionError(true);
+    setIsCheckingStatus(false);
+  };
+
+  // Scroll to top and check status on page load
   useEffect(() => {
     window.scrollTo(0, 0);
+    checkStatus();
   }, []);
 
   const initialValues = {
@@ -56,6 +87,8 @@ const Apply = () => {
     whyTedx: '',
     whyDomain: '',
     experience: '',
+    website: '', // Honeypot field
+    screenResolution: `${window.screen.width}x${window.screen.height}`,
   };
 
   const onSubmit = async (values) => {
@@ -89,6 +122,91 @@ const Apply = () => {
 
   const form = useForm(initialValues, onSubmit);
 
+  const getAvailableYears = () => {
+    if (!form.values.firstPreference) {
+      return ['2nd Year', '3rd Year'];
+    }
+    if (form.values.firstPreference === 'Content Creator') {
+      return ['2nd Year', '3rd Year'];
+    }
+    return ['2nd Year'];
+  };
+
+  useEffect(() => {
+    const validYears = getAvailableYears();
+    if (form.values.year && !validYears.includes(form.values.year)) {
+      form.setFieldValue('year', '');
+    }
+  }, [form.values.firstPreference]);
+
+  if (isCheckingStatus) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
+        <p className="text-gray-400 text-xs animate-pulse">Connecting to server, please wait...</p>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 pb-16 relative overflow-hidden flex flex-col justify-between">
+        <Navbar />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-ted-red/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="flex-1 flex items-center justify-center p-4 z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl shadow-red-900/20"
+          >
+            <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">📡</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4 text-white">Connection Error</h2>
+            <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+              We are having trouble connecting to the <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> server. 
+              The server may be starting up. Please check your internet connection or click below to retry.
+            </p>
+            <button
+              onClick={checkStatus}
+              className="w-full btn-primary py-3 font-semibold rounded-xl bg-ted-red hover:bg-red-700 transition-colors text-white"
+            >
+              Retry Connection
+            </button>
+          </motion.div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!registrationOpen) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl shadow-red-900/20"
+        >
+          <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">⏳</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4">Registration Closed</h2>
+          <p className="text-gray-400 mb-8">
+            Thank you for your interest in joining <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>. 
+            The application period has currently ended. Stay tuned to our social media for future opportunities!
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full btn-primary py-3 font-semibold"
+          >
+            Return to Home
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
   // Prevent selecting same domain twice
   const isSecondPreferenceDisabled = form.values.firstPreference === form.values.secondPreference;
 
@@ -114,7 +232,11 @@ const Apply = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-16">
+    <div className="min-h-screen bg-black text-white pt-24 pb-16 relative overflow-hidden">
+      <Navbar />
+      {/* Decorative Glow Blobs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-ted-red/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
       {/* ==================== HEADER ==================== */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -128,7 +250,7 @@ const Apply = () => {
         >
           ← Back to Home
         </button>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Join TEDxKARE</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Join <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span></h1>
         <p className="text-gray-300 max-w-2xl mx-auto">
           Tell us about yourself and why you want to be part of our team. We&apos;re excited to learn about
           your passion and skills!
@@ -293,6 +415,12 @@ const Apply = () => {
           <motion.div variants={itemVariants} className="card">
             <h3 className="text-2xl font-bold mb-6 text-ted-red">Academic Information</h3>
 
+            <div className="bg-red-900/20 border border-ted-red/30 rounded-lg p-4 mb-6 text-sm text-gray-300">
+              <p>
+                <span className="font-semibold text-ted-red">Eligibility Note:</span> Most roles are exclusively open to <strong>2nd Year</strong> students. The <strong>Content Creator</strong> role is open to both <strong>2nd and 3rd Year</strong> students.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Department */}
               <div className="form-group">
@@ -340,12 +468,15 @@ const Apply = () => {
                   required
                 >
                   <option value="">Select Year</option>
-                  {years.map((yr) => (
+                  {getAvailableYears().map((yr) => (
                     <option key={yr} value={yr}>
                       {yr}
                     </option>
                   ))}
                 </select>
+                {form.values.firstPreference && (
+                  <p className="form-hint">Available years based on your domain choice.</p>
+                )}
               </div>
             </div>
           </motion.div>
@@ -475,7 +606,7 @@ const Apply = () => {
             {/* Why TEDx */}
             <div className="form-group mb-6">
               <label htmlFor="whyTedx" className="form-label">
-                Why do you want to join TEDxKARE? *
+                Why do you want to join <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>? *
               </label>
               <textarea
                 id="whyTedx"
@@ -568,6 +699,17 @@ const Apply = () => {
               )}
             </div>
           </motion.div>
+          {/* Honeypot field (hidden from users) */}
+          <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+            <input
+              type="text"
+              name="website"
+              value={form.values.website}
+              onChange={form.handleChange}
+              tabIndex="-1"
+              autoComplete="off"
+            />
+          </div>
 
 
 
@@ -595,6 +737,8 @@ const Apply = () => {
           </p>
         </form>
       </motion.div>
+
+      <Footer />
     </div>
   );
 };

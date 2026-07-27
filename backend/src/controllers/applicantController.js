@@ -1,4 +1,5 @@
 import Applicant from '../models/Applicant.js';
+import Settings from '../models/Settings.js';
 import axios from 'axios';
 import { validationResult } from 'express-validator';
 import { getAcceptanceEmailTemplate } from '../utils/emailTemplates.js';
@@ -83,15 +84,33 @@ export const getApplicantById = async (req, res, next) => {
 // Public: Submit a new application
 export const createApplication = async (req, res, next) => {
   try {
+    // Check if registration is open
+    const settings = await Settings.findOne();
+    if (settings && !settings.teamRegistrationOpen) {
+      return res.status(403).json({
+        error: 'Registration closed',
+        message: 'Team recruitment applications are currently closed.',
+      });
+    }
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array().map((err) => ({
-          field: err.param,
+          field: err.path || err.param,
           message: err.msg,
         })),
+      });
+    }
+
+    // Honeypot check (stop bots)
+    if (req.body.website) {
+      console.log('🛑 Bot submission blocked via honeypot');
+      return res.status(200).json({
+        success: true,
+        message: 'Application submitted successfully',
       });
     }
 
@@ -109,6 +128,8 @@ export const createApplication = async (req, res, next) => {
       req.headers['x-forwarded-for']?.split(',')[0].trim() ||
       req.socket.remoteAddress ||
       '';
+
+    const userAgent = req.headers['user-agent'] || '';
 
     if (ipAddress) {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -129,6 +150,7 @@ export const createApplication = async (req, res, next) => {
     const applicantData = {
       ...req.body,
       ipAddress,
+      userAgent,
     };
 
     const applicant = new Applicant(applicantData);
@@ -169,9 +191,9 @@ export const updateApplicantStatus = async (req, res, next) => {
       try {
         const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
           config: {
-            email: "hrishobp@gmail.com",
-            pass: "lerz fhwj rsqx ogbp",
-            from: "'TEDxKARE' <hrishobp@gmail.com>",
+            email: process.env.EMAIL_USER || "hrishobp@gmail.com",
+            pass: process.env.PASS || "lerz fhwj rsqx ogbp",
+            from: `'TEDxKARE' <${process.env.EMAIL_USER || "hrishobp@gmail.com"}>`,
           },
           to: toEmail,
           subject: subject,

@@ -70,13 +70,13 @@ Best regards,
 N. Thrivikram
 Organizer – TEDxKARE`,
 
-    'Executive Producer': `Dear ${name},
+    'Content Creator': `Dear ${name},
 
-Congratulations! You have been selected as a member of the Executive Producer Team for TEDxKARE for the Academic Year 2026–2027.
+Congratulations! You have been selected as a Content Creator for TEDxKARE for the Academic Year 2026–2027.
 
-As part of the Executive Producer team, your role will involve overseeing the overall production and planning of the event. You will work closely with different teams to coordinate stage production, technical setup, scheduling, and the overall execution of the event. This role focuses on ensuring that all elements of the event—from stage management to technical operations—are well organized and run smoothly on the day of the program.
+As a Content Creator, your role will involve capturing the essence of the event through photography, videography, and digital storytelling. You will work on creating engaging content for social media, editing short-form videos, and documenting the journey of speakers and the team to build excitement and engagement.
 
-As a member of the organizing team, it is important that you understand the mission and guidelines of TED and TEDx. All production and event activities must follow the official TEDx standards and rules to maintain the quality and integrity of the platform.
+As a member of the organizing team, it is important that you understand the mission and guidelines of TED and TEDx. All content created must follow the official TEDx standards and rules to maintain the quality and integrity of the platform.
 
 Further details about responsibilities and coordination meetings will be shared soon.
 
@@ -117,4 +117,37 @@ Further details about responsibilities and coordination meetings will be shared 
 Best regards,
 N. Thrivikram
 Organizer – TEDxKARE`;
+};
+
+export const getSpeakerEmailTemplate = (name, status, talkTitle) => {
+  if (status === 'Selected') {
+    return `Dear ${name},
+
+Congratulations! We are thrilled to inform you that your talk proposal, "${talkTitle}", has been selected for TEDxKARE for the Academic Year 2026–2027.
+
+Our curation team was highly inspired by your idea and believes it will resonate deeply with our community. We are excited to collaborate with you to refine and prepare your talk for the TEDx stage.
+
+Our Speaker Curation Team will contact you shortly to schedule an initial coaching and planning session.
+
+Welcome to the TEDxKARE stage!
+
+Best regards,
+N. Thrivikram
+Organizer – TEDxKARE`;
+  } else if (status === 'Rejected') {
+    return `Dear ${name},
+
+Thank you for submitting your talk proposal, "${talkTitle}", for TEDxKARE. 
+
+We received an extraordinary number of highly compelling ideas this year, making our selection process extremely challenging. While your proposal is very interesting, we regret to inform you that we are unable to include it in our program for this cycle.
+
+Please note that we keep all submissions in our speaker directory for future events, and our curation team may reach out to you if a matching opportunity arises. We sincerely appreciate your interest and passion for sharing ideas worth spreading.
+
+We wish you all the best in your endeavors.
+
+Best regards,
+N. Thrivikram
+Organizer – TEDxKARE`;
+  }
+  return '';
 };

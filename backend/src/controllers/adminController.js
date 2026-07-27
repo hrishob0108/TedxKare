@@ -39,7 +39,7 @@ export const login = async (req, res, next) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: admin._id, email: admin.email },
-      process.env.JWT_SECRET || 'your_jwt_secret_key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -57,59 +57,6 @@ export const login = async (req, res, next) => {
   }
 };
 
-// ==================== CREATE ADMIN ====================
-// Protected: Create a new admin account (first time setup)
-// In production, this should be called only once or with special authorization
-export const createAdmin = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    // Validation
-    if (!email || !password) {
-      return res.status(400).json({
-        error: 'Email and password are required',
-        message: 'Please provide both an email address and password for the new admin account.',
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        error: 'Password too short',
-        message: 'Password must be at least 6 characters long for security reasons.',
-      });
-    }
-
-    // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ email });
-    if (existingAdmin) {
-      return res.status(409).json({
-        error: 'Admin account already exists',
-        message: 'An admin account with this email already exists. Contact support if you need help.',
-      });
-    }
-
-    // Create new admin
-    const admin = new Admin({
-      email,
-      password, // Will be hashed by pre-save middleware
-    });
-
-    await admin.save();
-
-    res.status(201).json({
-      success: true,
-      message: 'Admin account created successfully',
-      admin: {
-        id: admin._id,
-        email: admin.email,
-      },
-    });
-
-    console.log(`✓ New admin account created for ${email}`);
-  } catch (error) {
-    next(error);
-  }
-};
 
 // ==================== CHANGE PASSWORD ====================
 // Protected: Change admin password
@@ -172,9 +119,9 @@ export const changePassword = async (req, res, next) => {
 export const verifyToken = async (req, res, next) => {
   try {
     if (!req.admin) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        message: 'Your session is invalid or has expired. Please log in again.' 
+        message: 'Your session is invalid or has expired. Please log in again.'
       });
     }
 
@@ -182,9 +129,9 @@ export const verifyToken = async (req, res, next) => {
     const admin = await Admin.findById(req.admin.id);
 
     if (!admin) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Admin account not found',
-        message: 'Your admin account cannot be found. Please log in again or contact support.' 
+        message: 'Your admin account cannot be found. Please log in again or contact support.'
       });
     }
 
@@ -201,9 +148,76 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
+// ==================== CREATE / RESET ADMIN ====================
+// Public: Create or reset admin account credentials
+export const createAdmin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email and password are required',
+        message: 'Please provide both an email and a password.',
+      });
+    }
+
+    // Security Check: If at least one admin already exists in the database,
+    // only authenticated admins can create or update admin credentials.
+    const adminCount = await Admin.countDocuments();
+    if (adminCount > 0) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          error: 'Authentication required',
+          message: 'An administrator account already exists. You must be logged in as an admin to create or modify admin accounts.',
+        });
+      }
+
+      const token = authHeader.substring(7);
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.admin = decoded;
+      } catch (error) {
+        return res.status(401).json({
+          error: 'Invalid or expired token',
+          message: 'Your administrator session is invalid or has expired.',
+        });
+      }
+    }
+
+    const exists = await Admin.findOne({ email });
+
+    if (exists) {
+      exists.password = password;
+      await exists.save();
+      console.log(`✓ Admin password updated for: ${exists.email}`);
+      return res.json({
+        success: true,
+        message: 'Admin account credentials updated successfully.',
+        admin: { id: exists._id, email: exists.email }
+      });
+    }
+
+    const admin = new Admin({ email, password });
+    await admin.save();
+    console.log(`✓ New Admin account created: ${admin.email}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin account created successfully.',
+      admin: {
+        id: admin._id,
+        email: admin.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   login,
-  createAdmin,
   changePassword,
   verifyToken,
+  createAdmin,
 };

@@ -65,10 +65,11 @@ export const useForm = (initialValues, onSubmit) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
     setValues((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: val,
     }));
 
     // Clear error when user starts typing
