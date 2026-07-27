@@ -109,8 +109,11 @@ export const updateSpeakerStatus = async (req, res, next) => {
     const valid = ['Pending', 'Reviewed', 'Selected', 'Rejected'];
     if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
+    /*
     // Helper function to send email
     const sendEmail = async (toEmail, subject, bodyText) => {
+      console.log("Email sending is currently disabled. Would have sent to:", toEmail);
+      return;
       try {
         const response = await axios.post("https://7feej0sxm3.execute-api.eu-north-1.amazonaws.com/default/mail_sender", {
           config: {
@@ -128,10 +131,12 @@ export const updateSpeakerStatus = async (req, res, next) => {
         console.error("Failed to send speaker email to", toEmail, ":", error.message);
       }
     };
+    */
 
     const speaker = await Speaker.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
     if (!speaker) return res.status(404).json({ error: 'Not found' });
 
+    /*
     // Trigger emails based on specific status updates
     if (status === 'Selected' || status === 'Rejected') {
       const emailBody = getSpeakerEmailTemplate(speaker.name, status, speaker.title);
@@ -142,6 +147,7 @@ export const updateSpeakerStatus = async (req, res, next) => {
       // Fire and forget email
       sendEmail(speaker.email, subject, emailBody);
     }
+    */
 
     res.json({ success: true, data: speaker });
   } catch (error) {
