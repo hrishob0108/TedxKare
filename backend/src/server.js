@@ -15,19 +15,17 @@ import crypto from 'crypto';
 // Load environment variables
 dotenv.config();
 
-// Ensure JWT_SECRET is set and cryptographically secure
+// Ensure JWT_SECRET is set
 if (!process.env.JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined! Generating a cryptographically secure random fallback key.');
-  } else {
-    console.log('ℹ️ JWT_SECRET not found in environment. Generating a temporary random key for development.');
-  }
-  process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
+  process.env.JWT_SECRET = 'tedxkare_auth_secret_session_key_2025';
+  console.log('ℹ️ Using default JWT_SECRET for session continuity.');
 }
-
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Trust reverse proxy (Render, Vercel, Heroku, Cloudflare)
+app.set('trust proxy', 1);
 
 
 // ==================== MIDDLEWARE ====================
@@ -63,7 +61,8 @@ const connectDB = async () => {
       maxPoolSize: 10, // Max 10 connections
       minPoolSize: 5, // Min 5 connections
       maxIdleTimeMS: 45000,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
       retryWrites: true,
     });
     console.log('✓ MongoDB connected successfully');

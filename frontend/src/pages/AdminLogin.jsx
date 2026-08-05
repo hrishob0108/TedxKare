@@ -18,7 +18,10 @@ const AdminLogin = () => {
 
   const onSubmit = async (values) => {
     try {
-      const response = await request(() => adminAPI.login(values.email, values.password));
+      clearError();
+      const cleanEmail = (values.email || '').trim().toLowerCase();
+      const cleanPassword = (values.password || '').trim();
+      const response = await request(() => adminAPI.login(cleanEmail, cleanPassword));
 
       // Save token and admin info
       storage.setAdminToken(response.token);

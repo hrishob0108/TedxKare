@@ -4,7 +4,7 @@ import axios from 'axios';
 // Create axios instance with default config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  timeout: 10000,
+  timeout: 45000, // 45 seconds to accommodate free tier backend cold starts
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,15 +26,42 @@ api.interceptors.request.use(
 );
 
 // ==================== RESPONSE INTERCEPTOR ====================
-// Handle common error responses
+// Handle common error responses and auto-retry cold start timeouts on GET requests
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // If token expired, clear it and redirect to login
+  async (error) => {
+    const config = error.config;
+
+    // Auto-retry for GET requests on network errors, timeouts, or 502/503/504 server sleep errors
+    const isNetworkOrTimeout =
+      !error.response ||
+      error.code === 'ECONNABORTED' ||
+      error.message?.includes('timeout') ||
+      [502, 503, 504].includes(error.response?.status);
+
+    const isGetRequest = config && config.method?.toLowerCase() === 'get';
+
+    if (config && isGetRequest && isNetworkOrTimeout) {
+      config.__retryCount = config.__retryCount || 0;
+      const MAX_RETRIES = 2;
+
+      if (config.__retryCount < MAX_RETRIES) {
+        config.__retryCount += 1;
+        const delay = config.__retryCount * 2000;
+        console.warn(`Backend cold start / timeout detected. Retrying request (${config.__retryCount}/${MAX_RETRIES}) in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return api(config);
+      }
+    }
+
+    // If token expired on protected requests, clear it and redirect to login
     if (error.response?.status === 401) {
       localStorage.removeItem('adminToken');
-      window.location.href = '/ad';
+      if (window.location.pathname.startsWith('/dashboard')) {
+        window.location.href = '/ad';
+      }
     }
+
     return Promise.reject(error);
   }
 );

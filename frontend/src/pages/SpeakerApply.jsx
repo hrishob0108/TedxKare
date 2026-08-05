@@ -602,6 +602,7 @@ const SpeakerApply = () => {
     };
 
     try {
+      clearError();
       await request(() => speakerAPI.submitSpeaker(submitValues));
       removeStoredDraft();
       setSubmitSuccess(true);
@@ -616,8 +617,9 @@ const SpeakerApply = () => {
         });
         form.setErrors(fieldErrors);
         setValidationError('Some fields in your submission did not pass server validations.');
+        clearError();
       } else {
-        setValidationError(err.response?.data?.message || 'An error occurred during application submission.');
+        setValidationError('');
       }
       window.scrollTo(0, 0);
       console.error('Error submitting application:', err);
@@ -1222,7 +1224,7 @@ const SpeakerApply = () => {
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 pt-10 pb-20 relative z-10">
         
         {/* Local Validation Error Banner */}
-        {validationError && (
+        {validationError && !error && (
           <div className="mb-8 p-4 bg-red-950/45 border border-red-500/30 rounded-2xl text-red-200 flex justify-between items-center shadow-lg">
             <div className="flex items-center gap-2.5">
               <span className="text-xl">⚠️</span>
