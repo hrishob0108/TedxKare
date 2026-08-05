@@ -30,21 +30,17 @@ export const createSpeaker = async (req, res, next) => {
       return res.status(200).json({ success: true, message: 'Submission received' });
     }
 
-    // Prevent duplicate speaker submissions with same email and proposed talk title
-    const exists = await Speaker.findOne({ email: req.body.email, proposedTitle: req.body.proposedTitle });
-    if (exists) {
-      return res.status(409).json({ error: 'Duplicate submission', message: 'A similar speaker submission already exists.' });
-    }
-
     const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '';
     const userAgent = req.headers['user-agent'] || '';
 
-    const proposedTitle = req.body.proposedTitle || req.body.idea1Title || '';
+    const proposedTitle = (req.body.proposedTitle || req.body.idea1Title || '').trim();
     const proposedDescription = req.body.proposedDescription || req.body.idea1Description || '';
     const proposedQualifications = req.body.proposedQualifications || req.body.whySpeak1 || '';
+    const email = (req.body.email || '').trim().toLowerCase();
 
     const speakerData = {
       ...req.body,
+      email,
       proposedTitle,
       proposedDescription,
       proposedQualifications,
@@ -68,6 +64,21 @@ export const createSpeaker = async (req, res, next) => {
       userAgent
     };
 
+    // Avoid rapid accidental double-clicks (within 5 seconds)
+    const fiveSecondsAgo = new Date(Date.now() - 5000);
+    const recentDuplicate = await Speaker.findOne({
+      email,
+      proposedTitle,
+      createdAt: { $gte: fiveSecondsAgo }
+    });
+    if (recentDuplicate) {
+      return res.status(200).json({
+        success: true,
+        message: 'Speaker submission received',
+        data: { id: recentDuplicate._id }
+      });
+    }
+
     const speaker = new Speaker(speakerData);
     await speaker.save();
 
@@ -82,7 +93,14 @@ export const createSpeaker = async (req, res, next) => {
 export const getAllSpeakers = async (req, res, next) => {
   try {
     if (!req.admin) return res.status(401).json({ error: 'Unauthorized' });
-    const speakers = await Speaker.find().sort({ createdAt: -1 }).lean();
+    const speakers = await Speaker.find()
+      .select(
+        '-idea1ImpactFile -idea1EvidenceFile -idea1PresentedBeforeFile -idea1File ' +
+        '-idea2ImpactFile -idea2EvidenceFile -idea2PresentedBeforeFile -idea2File ' +
+        '-idea3ImpactFile -idea3EvidenceFile -idea3PresentedBeforeFile -idea3File'
+      )
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ success: true, count: speakers.length, data: speakers });
   } catch (error) {
     next(error);

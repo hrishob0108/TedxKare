@@ -7,9 +7,11 @@ import bcryptjs from 'bcryptjs';
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
     // Validation
-    if (!email || !password) {
+    if (!normalizedEmail || !cleanPassword) {
       return res.status(400).json({
         error: 'Email and password are required',
         message: 'Please enter both your email address and password to log in.',
@@ -17,7 +19,7 @@ export const login = async (req, res, next) => {
     }
 
     // Find admin and explicitly select password field
-    const admin = await Admin.findOne({ email }).select('+password');
+    const admin = await Admin.findOne({ email: normalizedEmail }).select('+password');
 
     if (!admin) {
       return res.status(401).json({
@@ -27,7 +29,7 @@ export const login = async (req, res, next) => {
     }
 
     // Check password
-    const isPasswordValid = await admin.matchPassword(password);
+    const isPasswordValid = await admin.matchPassword(cleanPassword);
 
     if (!isPasswordValid) {
       return res.status(401).json({

@@ -24,6 +24,7 @@ const AdminDashboard = () => {
   const [selectedSpeaker, setSelectedSpeaker] = useState(null);
   const [showSpeakerModal, setShowSpeakerModal] = useState(false);
   const [speakerModalTab, setSpeakerModalTab] = useState('profile');
+  const [loadingSpeakerDetails, setLoadingSpeakerDetails] = useState(false);
 
   const [stats, setStats] = useState({
     totalApplications: 0,
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
   });
 
   const [initialLoading, setInitialLoading] = useState(true);
+  const [serverStatusMessage, setServerStatusMessage] = useState('Connecting to backend...');
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -56,25 +58,64 @@ const AdminDashboard = () => {
   const [teamRegistrationOpen, setTeamRegistrationOpen] = useState(true);
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(true);
 
-  // Fetch applicants, speakers and settings on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      setInitialLoading(true);
+  // Load applicants, speakers, and settings with cold-start retry handling
+  const loadData = async (isManual = false) => {
+    setInitialLoading(true);
+    setServerStatusMessage(isManual ? 'Refreshing data from server...' : 'Connecting to backend server...');
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      if (attempts > 1) {
+        setServerStatusMessage(`Server waking up... (Attempt ${attempts}/${maxAttempts})`);
+      }
       try {
-        await Promise.allSettled([
+        const results = await Promise.allSettled([
           fetchApplicants(),
           fetchSpeakers(),
           fetchStatistics(),
           fetchSettings(),
         ]);
+
+        const hasSuccess = results.some((r) => r.status === 'fulfilled');
+        if (hasSuccess || attempts >= maxAttempts) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (err) {
-        console.error('Error fetching initial dashboard data:', err);
-      } finally {
-        setInitialLoading(false);
+        console.error('Error in dashboard loadData attempt:', err);
+        if (attempts >= maxAttempts) break;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
-    };
+    }
+    setInitialLoading(false);
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleOpenSpeakerModal = async (speaker) => {
+    setSelectedSpeaker(speaker);
+    setShowSpeakerModal(true);
+    setSpeakerModalTab('profile');
+
+    // On-demand fetch full speaker details including base64 files
+    if (speaker._id) {
+      try {
+        setLoadingSpeakerDetails(true);
+        const res = await speakerAPI.getSpeaker(speaker._id);
+        if (res.data?.data) {
+          setSelectedSpeaker((prev) => (prev?._id === speaker._id ? res.data.data : prev));
+        }
+      } catch (err) {
+        console.warn('Could not fetch complete speaker attachments:', err);
+      } finally {
+        setLoadingSpeakerDetails(false);
+      }
+    }
+  };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -666,13 +707,14 @@ const AdminDashboard = () => {
                     </p>
                     <p className="text-xs font-semibold text-white truncate mt-1">{generalFileName || 'None'}</p>
                   </div>
-                  {generalFile && (
+                  {generalFileName && (
                     <button
                       type="button"
+                      disabled={!generalFile}
                       onClick={() => downloadBase64File(generalFile, generalFileName)}
-                      className="px-3 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
+                      className="px-3 py-2 bg-ted-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
                     >
-                      Download Document
+                      {generalFile ? 'Download Document' : (loadingSpeakerDetails ? '⏳ Loading File...' : 'File Not Available')}
                     </button>
                   )}
                 </div>
@@ -685,13 +727,14 @@ const AdminDashboard = () => {
                     </p>
                     <p className="text-xs font-semibold text-white truncate mt-1">{impactFileName || 'None'}</p>
                   </div>
-                  {impactFile && (
+                  {impactFileName && (
                     <button
                       type="button"
+                      disabled={!impactFile}
                       onClick={() => downloadBase64File(impactFile, impactFileName)}
-                      className="px-3 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
+                      className="px-3 py-2 bg-ted-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
                     >
-                      Download Document
+                      {impactFile ? 'Download Document' : (loadingSpeakerDetails ? '⏳ Loading File...' : 'File Not Available')}
                     </button>
                   )}
                 </div>
@@ -704,13 +747,14 @@ const AdminDashboard = () => {
                     </p>
                     <p className="text-xs font-semibold text-white truncate mt-1">{evidenceFileName || 'None'}</p>
                   </div>
-                  {evidenceFile && (
+                  {evidenceFileName && (
                     <button
                       type="button"
+                      disabled={!evidenceFile}
                       onClick={() => downloadBase64File(evidenceFile, evidenceFileName)}
-                      className="px-3 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
+                      className="px-3 py-2 bg-ted-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
                     >
-                      Download Document
+                      {evidenceFile ? 'Download Document' : (loadingSpeakerDetails ? '⏳ Loading File...' : 'File Not Available')}
                     </button>
                   )}
                 </div>
@@ -723,13 +767,14 @@ const AdminDashboard = () => {
                     </p>
                     <p className="text-xs font-semibold text-white truncate mt-1">{presentedBeforeFileName || 'None'}</p>
                   </div>
-                  {presentedBeforeFile && (
+                  {presentedBeforeFileName && (
                     <button
                       type="button"
+                      disabled={!presentedBeforeFile}
                       onClick={() => downloadBase64File(presentedBeforeFile, presentedBeforeFileName)}
-                      className="px-3 py-2 bg-ted-red hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
+                      className="px-3 py-2 bg-ted-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shrink-0 mt-2 md:mt-0"
                     >
-                      Download Document
+                      {presentedBeforeFile ? 'Download Document' : (loadingSpeakerDetails ? '⏳ Loading File...' : 'File Not Available')}
                     </button>
                   )}
                 </div>
@@ -750,9 +795,20 @@ const AdminDashboard = () => {
             <span className="text-ted-red font-bold">TEDx</span>
             <span className="text-white font-light">KARE Admin</span>
           </h1>
-          <button onClick={handleLogout} className="btn-secondary text-sm">
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => loadData(true)}
+              disabled={initialLoading || loading}
+              className="btn-outline text-xs sm:text-sm py-2 px-3 flex items-center gap-1.5 hover:bg-gray-800 disabled:opacity-50"
+              title="Refresh Dashboard Data"
+            >
+              <span className={initialLoading ? 'animate-spin inline-block' : ''}>🔄</span>
+              <span>{initialLoading ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+            <button onClick={handleLogout} className="btn-secondary text-sm">
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -1030,9 +1086,9 @@ const AdminDashboard = () => {
             <div className="flex flex-col items-center justify-center h-48 space-y-4">
               <div className="w-10 h-10 border-4 border-ted-red border-t-transparent rounded-full animate-spin"></div>
               <div className="text-center">
-                <p className="text-gray-200 font-medium animate-pulse">Connecting to Server...</p>
+                <p className="text-gray-200 font-medium animate-pulse">{serverStatusMessage}</p>
                 <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto px-4">
-                  The backend server might take up to a minute to start if it has gone idle (cold start). Thank you for your patience!
+                  Free cloud instances may take a moment to wake up if idle. Data will automatically load once ready.
                 </p>
               </div>
             </div>
@@ -1147,11 +1203,7 @@ const AdminDashboard = () => {
                       </td>
                       <td className="py-4 px-4">
                         <button
-                          onClick={() => {
-                            setSelectedSpeaker(speaker);
-                            setShowSpeakerModal(true);
-                            setSpeakerModalTab('profile');
-                          }}
+                          onClick={() => handleOpenSpeakerModal(speaker)}
                           className="text-ted-red hover:text-red-600 font-semibold text-sm"
                         >
                           View
