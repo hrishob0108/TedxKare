@@ -143,7 +143,7 @@ const Home = () => {
 
   // Countdown clock effect
   useEffect(() => {
-    const target = new Date('August 23, 2026 16:00:00').getTime();
+    const target = new Date('September 12, 2026 16:00:00').getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
@@ -200,7 +200,7 @@ const Home = () => {
   ];
 
   const events = [
-    { title: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Big Bang</>, date: 'August 23, 2026', location: 'KARE Main Auditorium' },
+    { title: <><span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span> Big Bang</>, date: 'September 12, 2026', location: 'KARE Main Auditorium' },
   ];
 
   return (
@@ -621,7 +621,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs uppercase tracking-wider font-bold">Date & Time</p>
-                    <p className="font-semibold text-gray-200 mt-0.5">August 23, 2026</p>
+                    <p className="font-semibold text-gray-200 mt-0.5">September 12, 2026</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -980,7 +980,7 @@ const Home = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 border-t border-b border-gray-800 py-4 text-sm">
                 <div>
                   <p className="text-gray-400">📅 Date & Time</p>
-                  <p className="font-semibold text-gray-200 mt-1">August 23, 2026 · 04:00 PM IST</p>
+                  <p className="font-semibold text-gray-200 mt-1">September 12, 2026 · 04:00 PM IST</p>
                 </div>
                 <div>
                   <p className="text-gray-400">📍 Venue</p>

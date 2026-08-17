@@ -13,7 +13,7 @@ const Events = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date('August 23, 2026 16:00:00').getTime();
+    const target = new Date('September 12, 2026 16:00:00').getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
@@ -33,7 +33,7 @@ const Events = () => {
   const upcomingEvent = {
     title: <><span className="text-ted-red">TEDx</span><span className="font-light">KARE</span> 2026</>,
     theme: 'THE BIGBANG: Where Ideas Start',
-    date: 'August 23, 2026',
+    date: 'September 12, 2026',
     time: 'TBA',
     venue: 'Kalasalingam University',
     description: 'THE BIGBANG: Where ideas Start represents the beginning of powerful ideas that can change people, industries, and the future. Every innovation, discovery, movement, and success starts from a single thought. This theme brings together diverse voices and ideas that inspire change, creativity, and new possibilities. Credits: Thrivikram',
