@@ -89,6 +89,16 @@ export const applicantAPI = {
   getStatistics: () => api.get('/applicants/stats'),
 };
 
+// ==================== ATTENDEE API ====================
+export const attendeeAPI = {
+  submitRegistration: (data) => api.post('/attendees', data),
+  getAllAttendees: (queryParams) => api.get('/attendees', { params: queryParams }),
+  getAttendee: (id) => api.get(`/attendees/${id}`),
+  updateStatus: (id, status) => api.patch(`/attendees/${id}`, { status }),
+  deleteAttendee: (id) => api.delete(`/attendees/${id}`),
+  getStatistics: () => api.get('/attendees/stats'),
+};
+
 // ==================== SPEAKER API ====================
 export const speakerAPI = {
   submitSpeaker: (data) => api.post('/speakers', data),

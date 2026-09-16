@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import compression from 'compression';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import applicantRoutes from './routes/applicants.js';
+import attendeeRoutes from './routes/attendees.js';
 import adminRoutes from './routes/admin.js';
 import settingsRoutes from './routes/settings.js';
 import speakerRoutes from './routes/speakers.js';
@@ -75,6 +76,7 @@ const connectDB = async () => {
 // ==================== ROUTES ====================
 app.use('/api/', apiLimiter); // General API protection (MUST be before routes)
 app.use('/api/applicants', applicantRoutes);
+app.use('/api/attendees', attendeeRoutes);
 app.use('/api/ad', adminRoutes);
 
 app.use('/api/settings', settingsRoutes);

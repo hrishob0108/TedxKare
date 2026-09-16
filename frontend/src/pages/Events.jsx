@@ -210,24 +210,15 @@ const Events = () => {
                       </div>
                     </div>
 
-                    {/* Countdown Widget */}
-                    <div className="space-y-2">
-                      <p className="text-xs uppercase tracking-wider font-bold text-gray-500">Tickets Releasing In</p>
-                      <div className="grid grid-cols-4 gap-2 max-w-sm text-center">
-                        {[
-                          { value: timeLeft.days, label: 'Days' },
-                          { value: timeLeft.hours, label: 'Hrs' },
-                          { value: timeLeft.minutes, label: 'Min' },
-                          { value: timeLeft.seconds, label: 'Sec' }
-                        ].map((t, idx) => (
-                          <div key={idx} className="bg-black/60 border border-gray-800/80 rounded-2xl p-2.5 shadow-inner">
-                            <div className="text-xl md:text-2xl font-black text-ted-red tabular-nums">
-                              {String(t.value).padStart(2, '0')}
-                            </div>
-                            <div className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{t.label}</div>
-                          </div>
-                        ))}
-                      </div>
+                    {/* Registration Button */}
+                    <div className="space-y-3 pt-2">
+                      <p className="text-xs uppercase tracking-wider font-bold text-gray-500">Tickets Available Now</p>
+                      <button
+                        onClick={() => navigate('/register')}
+                        className="btn-primary w-full sm:w-auto px-8 py-3.5 bg-ted-red hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-ted-red/20 flex items-center justify-center gap-2"
+                      >
+                        Register for the Event 🎟️
+                      </button>
                     </div>
                   </div>
                 </div>
