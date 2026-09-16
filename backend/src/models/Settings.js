@@ -6,6 +6,10 @@ const settingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    attendeeRegistrationOpen: {
+      type: Boolean,
+      default: true,
+    },
     teamRegistrationOpen: {
       type: Boolean,
       default: true,

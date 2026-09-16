@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApi } from '../hooks/useApi';
-import { applicantAPI, settingsAPI, speakerAPI } from '../utils/api';
+import { applicantAPI, settingsAPI, speakerAPI, attendeeAPI } from '../utils/api';
 import { storage, format, exportToCSV } from '../utils/helpers';
 
 // ==================== ADMIN DASHBOARD ====================
@@ -17,6 +17,12 @@ const AdminDashboard = () => {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedShortlistDomain, setSelectedShortlistDomain] = useState('');
+
+  // Attendees state
+  const [attendees, setAttendees] = useState([]);
+  const [filteredAttendees, setFilteredAttendees] = useState([]);
+  const [selectedAttendee, setSelectedAttendee] = useState(null);
+  const [showAttendeeModal, setShowAttendeeModal] = useState(false);
 
   // Speakers state
   const [speakers, setSpeakers] = useState([]);
@@ -57,6 +63,7 @@ const AdminDashboard = () => {
 
   const [teamRegistrationOpen, setTeamRegistrationOpen] = useState(true);
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(true);
+  const [attendeeRegistrationOpen, setAttendeeRegistrationOpen] = useState(true);
 
   // Load applicants, speakers, and settings with cold-start retry handling
   const loadData = async (isManual = false) => {
@@ -74,6 +81,7 @@ const AdminDashboard = () => {
         const results = await Promise.allSettled([
           fetchApplicants(),
           fetchSpeakers(),
+          fetchAttendees(),
           fetchStatistics(),
           fetchSettings(),
         ]);
@@ -132,6 +140,7 @@ const AdminDashboard = () => {
       const response = await request(() => settingsAPI.getSettings());
       setTeamRegistrationOpen(response.data.teamRegistrationOpen ?? response.data.registrationOpen ?? true);
       setSpeakerRegistrationOpen(response.data.speakerRegistrationOpen ?? true);
+      setAttendeeRegistrationOpen(response.data.attendeeRegistrationOpen ?? response.data.registrationOpen ?? true);
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
@@ -160,7 +169,7 @@ const AdminDashboard = () => {
   // Apply filters whenever they change
   useEffect(() => {
     applyFilters();
-  }, [applicants, speakers, filters, activeTab]);
+  }, [applicants, speakers, attendees, filters, activeTab]);
 
   // Fetch all applicants
   const fetchApplicants = async () => {
@@ -184,6 +193,16 @@ const AdminDashboard = () => {
       setSpeakers(response.data);
     } catch (error) {
       console.error('Error fetching speakers:', error);
+    }
+  };
+
+  // Fetch all attendees
+  const fetchAttendees = async () => {
+    try {
+      const response = await request(() => attendeeAPI.getAllAttendees());
+      setAttendees(response.data);
+    } catch (error) {
+      console.error('Error fetching attendees:', error);
     }
   };
 
@@ -224,7 +243,7 @@ const AdminDashboard = () => {
       }
 
       setFilteredApplicants(filtered);
-    } else {
+    } else if (activeTab === 'speakers') {
       let filtered = speakers;
 
       // Status filter
@@ -253,6 +272,23 @@ const AdminDashboard = () => {
       }
 
       setFilteredSpeakers(filtered);
+    } else if (activeTab === 'attendees') {
+      let filtered = attendees;
+
+      if (filters.status !== 'All') {
+        filtered = filtered.filter((att) => att.status === filters.status);
+      }
+
+      if (filters.search) {
+        filtered = filtered.filter(
+          (att) =>
+            att.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+            att.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+            att.phone.toLowerCase().includes(filters.search.toLowerCase())
+        );
+      }
+
+      setFilteredAttendees(filtered);
     }
   };
 
@@ -338,6 +374,49 @@ const AdminDashboard = () => {
     }
   };
 
+  // Update attendee status
+  const handleAttendeeStatusChange = async (id, newStatus) => {
+    try {
+      await request(() => attendeeAPI.updateStatus(id, newStatus));
+
+      setAttendees((prev) =>
+        prev.map((att) => (att._id === id ? { ...att, status: newStatus } : att))
+      );
+
+      if (selectedAttendee?._id === id) {
+        setSelectedAttendee((prev) => ({
+          ...prev,
+          status: newStatus,
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating attendee status:', error);
+    }
+  };
+
+  // Delete attendee
+  const handleAttendeeDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this registration?')) return;
+
+    try {
+      await request(() => attendeeAPI.deleteAttendee(id));
+      setAttendees((prev) => prev.filter((att) => att._id !== id));
+      setShowAttendeeModal(false);
+    } catch (error) {
+      console.error('Error deleting attendee:', error);
+    }
+  };
+
+  const handleToggleAttendeeRegistration = async () => {
+    try {
+      const newState = !attendeeRegistrationOpen;
+      await request(() => settingsAPI.updateSettings({ attendeeRegistrationOpen: newState }));
+      setAttendeeRegistrationOpen(newState);
+    } catch (error) {
+      console.error('Error updating attendee registration status:', error);
+    }
+  };
+
   // Export to CSV
   const handleExportCSV = () => {
     if (activeTab === 'applicants') {
@@ -355,6 +434,25 @@ const AdminDashboard = () => {
       }));
 
       exportToCSV(exportData, `tedxkare-applicants-${Date.now()}.csv`);
+      exportToCSV(exportData, `tedxkare-applicants-${Date.now()}.csv`);
+    } else if (activeTab === 'attendees') {
+      const exportData = filteredAttendees.map((att) => ({
+        Name: att.name,
+        Age: att.age,
+        Email: att.email,
+        Phone: att.phone,
+        LinkedIn: att.linkedin,
+        Address: att.address,
+        College: att.college,
+        Course: att.course,
+        Year: att.year,
+        'Ticket Type': att.ticketType,
+        Source: att.source,
+        Status: att.status,
+        'Registered On': format.date(att.createdAt),
+      }));
+
+      exportToCSV(exportData, `tedxkare-attendees-${Date.now()}.csv`);
     } else {
       const exportData = filteredSpeakers.map((spk) => ({
         Name: spk.name,
@@ -885,6 +983,27 @@ const AdminDashboard = () => {
                 />
               </button>
             </div>
+
+            {/* Attendee Toggle */}
+            <div className="flex items-center justify-between gap-6 sm:pl-2 border-t sm:border-t-0 sm:border-l border-gray-800 pt-3 sm:pt-0 sm:pl-6">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 mb-0.5 uppercase tracking-wider">Event Attendees</p>
+                <p className={`text-xs font-bold ${initialLoading ? 'text-gray-500 animate-pulse' : (attendeeRegistrationOpen ? 'text-green-400' : 'text-red-400')}`}>
+                  {initialLoading ? '⏳ Loading...' : (attendeeRegistrationOpen ? '🟢 Open' : '🔴 Closed')}
+                </p>
+              </div>
+              <button
+                onClick={handleToggleAttendeeRegistration}
+                disabled={loading || initialLoading}
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none ${attendeeRegistrationOpen ? 'bg-ted-red' : 'bg-gray-800 border border-gray-700'
+                  }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${attendeeRegistrationOpen ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -904,6 +1023,13 @@ const AdminDashboard = () => {
           >
             🎙️ Speaker Applications
           </button>
+          <button
+            onClick={() => handleTabChange('attendees')}
+            className={`pb-4 px-2 font-bold text-lg border-b-2 transition-all duration-300 ${activeTab === 'attendees' ? 'text-ted-red border-ted-red' : 'text-gray-400 border-transparent hover:text-white'
+              }`}
+          >
+            🎟️ Event Attendees
+          </button>
         </div>
 
         {/* ==================== STATISTICS CARDS ==================== */}
@@ -922,7 +1048,7 @@ const AdminDashboard = () => {
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
               ) : (
-                activeTab === 'applicants' ? stats.totalApplications : speakers.length
+                activeTab === 'applicants' ? stats.totalApplications : activeTab === 'speakers' ? speakers.length : attendees.length
               )}
             </p>
           </motion.div>
@@ -941,7 +1067,9 @@ const AdminDashboard = () => {
               ) : (
                 activeTab === 'applicants'
                   ? stats.byStatus.pending
-                  : speakers.filter(s => s.status === 'Pending').length
+                  : activeTab === 'speakers' 
+                    ? speakers.filter(s => s.status === 'Pending').length
+                    : attendees.filter(a => a.status === 'Pending').length
               )}
             </p>
           </motion.div>
@@ -954,7 +1082,7 @@ const AdminDashboard = () => {
             className="card border-green-500/30"
           >
             <p className="text-green-400 text-sm mb-2">
-              {activeTab === 'applicants' ? 'Shortlisted' : 'Selected Speakers'}
+              {activeTab === 'applicants' ? 'Shortlisted' : activeTab === 'speakers' ? 'Selected Speakers' : 'Approved Attendees'}
             </p>
             <p className="text-4xl font-bold text-green-400">
               {initialLoading ? (
@@ -962,7 +1090,9 @@ const AdminDashboard = () => {
               ) : (
                 activeTab === 'applicants'
                   ? stats.byStatus.shortlisted
-                  : speakers.filter(s => s.status === 'Selected').length
+                  : activeTab === 'speakers'
+                    ? speakers.filter(s => s.status === 'Selected').length
+                    : attendees.filter(a => a.status === 'Approved').length
               )}
             </p>
           </motion.div>
@@ -981,7 +1111,9 @@ const AdminDashboard = () => {
               ) : (
                 activeTab === 'applicants'
                   ? stats.byStatus.rejected
-                  : speakers.filter(s => s.status === 'Rejected').length
+                  : activeTab === 'speakers'
+                    ? speakers.filter(s => s.status === 'Rejected').length
+                    : attendees.filter(a => a.status === 'Rejected').length
               )}
             </p>
           </motion.div>
@@ -1154,7 +1286,7 @@ const AdminDashboard = () => {
                 <p className="text-gray-400">No applicants found matching your filters</p>
               </div>
             )
-          ) : (
+          ) : activeTab === 'speakers' ? (
             // SPEAKERS TABLE
             filteredSpeakers.length > 0 ? (
               <table className="w-full text-sm">
@@ -1216,6 +1348,64 @@ const AdminDashboard = () => {
             ) : (
               <div className="flex items-center justify-center h-40">
                 <p className="text-gray-400">No speaker applications found matching your filters</p>
+              </div>
+            )
+          ) : (
+            // ATTENDEES TABLE
+            filteredAttendees.length > 0 ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-4 px-4 font-semibold">Name</th>
+                    <th className="text-left py-4 px-4 font-semibold">Email</th>
+                    <th className="text-left py-4 px-4 font-semibold">Ticket Type</th>
+                    <th className="text-left py-4 px-4 font-semibold">Status</th>
+                    <th className="text-left py-4 px-4 font-semibold">Registered On</th>
+                    <th className="text-left py-4 px-4 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAttendees.map((att, index) => (
+                    <motion.tr
+                      key={att._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
+                    >
+                      <td className="py-4 px-4 font-medium">{att.name}</td>
+                      <td className="py-4 px-4 text-gray-400">{att.email}</td>
+                      <td className="py-4 px-4">{att.ticketType}</td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                            att.status
+                          )}`}
+                        >
+                          {att.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-400 text-xs">
+                        {format.date(att.createdAt)}
+                      </td>
+                      <td className="py-4 px-4">
+                        <button
+                          onClick={() => {
+                            setSelectedAttendee(att);
+                            setShowAttendeeModal(true);
+                          }}
+                          className="text-ted-red hover:text-red-600 font-semibold text-sm"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex items-center justify-center h-40">
+                <p className="text-gray-400">No attendees found matching your filters</p>
               </div>
             )
           )}
@@ -1881,6 +2071,145 @@ const AdminDashboard = () => {
                 className="w-full px-4 py-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-900/40 transition-colors font-semibold"
               >
                 Delete Application
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* ==================== ATTENDEE DETAIL MODAL ==================== */}
+      {showAttendeeModal && selectedAttendee && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowAttendeeModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gray-900 border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 border-b border-gray-800 bg-gray-900 p-6 flex justify-between items-center z-10">
+              <h3 className="text-2xl font-bold">Attendee Details</h3>
+              <button
+                onClick={() => setShowAttendeeModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Personal Info */}
+              <div>
+                <h4 className="text-ted-red font-bold mb-4">Personal Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-400">Full Name</p>
+                    <p className="font-semibold">{selectedAttendee.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Email</p>
+                    <p className="font-semibold break-all">{selectedAttendee.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Phone</p>
+                    <p className="font-semibold">{selectedAttendee.phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Age</p>
+                    <p className="font-semibold">{selectedAttendee.age}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-gray-400">Address</p>
+                    <p className="font-semibold">{selectedAttendee.address}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-gray-400">LinkedIn</p>
+                    {selectedAttendee.linkedin ? (
+                      <a href={selectedAttendee.linkedin} target="_blank" rel="noreferrer" className="text-ted-red hover:underline break-all">
+                        {selectedAttendee.linkedin}
+                      </a>
+                    ) : (
+                      <p className="font-semibold text-gray-500">N/A</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic/Professional Info */}
+              <div>
+                <h4 className="text-ted-red font-bold mb-4">Academic / Professional Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="md:col-span-2">
+                    <p className="text-gray-400">College / Organization</p>
+                    <p className="font-semibold">{selectedAttendee.college}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Course / Designation</p>
+                    <p className="font-semibold">{selectedAttendee.course}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Year</p>
+                    <p className="font-semibold">{selectedAttendee.year}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ticket Details */}
+              <div>
+                <h4 className="text-ted-red font-bold mb-4">Ticket Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-400">Ticket Type</p>
+                    <p className="font-semibold">{selectedAttendee.ticketType}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Source</p>
+                    <p className="font-semibold">{selectedAttendee.source}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Metadata */}
+              <div className="border-t border-gray-800 pt-4">
+                <p className="text-xs text-gray-500">
+                  Registered on: {format.dateTime(selectedAttendee.createdAt)}
+                </p>
+              </div>
+
+              {/* Status Management */}
+              <div className="border-t border-gray-800 pt-6">
+                <h4 className="text-ted-red font-bold mb-4">Update Status</h4>
+                <div className="flex gap-2 flex-wrap items-center">
+                  {['Pending', 'Approved', 'Rejected'].map((statusOption) => (
+                    <button
+                      key={statusOption}
+                      onClick={() => handleAttendeeStatusChange(selectedAttendee._id, statusOption)}
+                      disabled={selectedAttendee.status === statusOption}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedAttendee.status === statusOption
+                          ? statusOption === 'Approved' ? 'bg-green-600 text-white border-green-600' : 'bg-ted-red text-white border-ted-red'
+                          : 'btn-outline'
+                        }`}
+                    >
+                      {statusOption}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delete Button */}
+              <button
+                onClick={() => handleAttendeeDelete(selectedAttendee._id)}
+                className="w-full px-4 py-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-900/40 transition-colors font-semibold"
+              >
+                Delete Registration
               </button>
             </div>
           </motion.div>

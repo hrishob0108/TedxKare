@@ -4,6 +4,7 @@ import './index.css';
 // Pages
 import Home from './pages/Home';
 import Apply from './pages/Apply';
+import AttendeeApply from './pages/AttendeeApply';
 import SpeakerApply from './pages/SpeakerApply';
 import ThankYou from './pages/ThankYou';
 import SpeakerThankYou from './pages/SpeakerThankYou';
@@ -23,6 +24,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/register" element={<AttendeeApply />} />
         <Route path="/apply" element={<Apply />} />
         <Route path="/apply/speaker" element={<SpeakerApply />} />
         <Route path="/team-recruitment" element={<TeamRecruitment />} />

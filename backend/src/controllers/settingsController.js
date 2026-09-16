@@ -10,6 +10,7 @@ export const getSettings = async (req, res, next) => {
     if (!settings) {
       settings = await Settings.create({ 
         registrationOpen: true,
+        attendeeRegistrationOpen: true,
         teamRegistrationOpen: true,
         speakerRegistrationOpen: true
       });
@@ -32,13 +33,14 @@ export const updateSettings = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { registrationOpen, teamRegistrationOpen, speakerRegistrationOpen } = req.body;
+    const { registrationOpen, attendeeRegistrationOpen, teamRegistrationOpen, speakerRegistrationOpen } = req.body;
 
     let settings = await Settings.findOne();
     
     if (!settings) {
       settings = new Settings({
-        registrationOpen: registrationOpen ?? teamRegistrationOpen ?? true,
+        registrationOpen: registrationOpen ?? attendeeRegistrationOpen ?? teamRegistrationOpen ?? true,
+        attendeeRegistrationOpen: attendeeRegistrationOpen ?? true,
         teamRegistrationOpen: teamRegistrationOpen ?? true,
         speakerRegistrationOpen: speakerRegistrationOpen ?? true
       });
@@ -47,12 +49,16 @@ export const updateSettings = async (req, res, next) => {
         settings.teamRegistrationOpen = teamRegistrationOpen;
         settings.registrationOpen = teamRegistrationOpen; // keep synced
       }
+      if (attendeeRegistrationOpen !== undefined) {
+        settings.attendeeRegistrationOpen = attendeeRegistrationOpen;
+      }
       if (speakerRegistrationOpen !== undefined) {
         settings.speakerRegistrationOpen = speakerRegistrationOpen;
       }
-      if (registrationOpen !== undefined && teamRegistrationOpen === undefined) {
+      if (registrationOpen !== undefined && teamRegistrationOpen === undefined && attendeeRegistrationOpen === undefined) {
         settings.registrationOpen = registrationOpen;
         settings.teamRegistrationOpen = registrationOpen; // fallback sync
+        settings.attendeeRegistrationOpen = registrationOpen; // fallback sync
       }
     }
 
