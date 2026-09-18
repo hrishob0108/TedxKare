@@ -20,7 +20,7 @@ const attendeeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Email is required'],
       lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.[a-zA-Z]{2,})+$/, 'Please provide a valid email'],
     },
     phone: {
       type: String,
@@ -39,32 +39,45 @@ const attendeeSchema = new mongoose.Schema(
     },
 
     // Academic / Professional Details
-    college: {
+    occupation: {
       type: String,
-      required: [true, 'College / Organization is required'],
+      required: [true, 'Occupation is required'],
       trim: true,
     },
-    course: {
+    organization: {
       type: String,
-      required: [true, 'Course / Designation is required'],
       trim: true,
+      required: [true, 'Organization is required'],
+    },
+    designation: {
+      type: String,
+      trim: true,
+      required: [true, 'Designation is required'],
     },
     year: {
       type: String,
-      required: [true, 'Year of Study is required'],
+      trim: true,
+    },
+    registrationNumber: {
+      type: String,
       trim: true,
     },
 
-    // Ticket Details
-    ticketType: {
-      type: String,
-      required: [true, 'Ticket type is required'],
-      enum: ['Standard', 'VIP', 'Student Early Bird'],
-    },
+    // Source Details
     source: {
       type: String,
       required: [true, 'Please tell us how you heard about us'],
       trim: true,
+    },
+    // Payment Details
+    transactionId: {
+      type: String,
+      required: [true, 'Transaction ID is required'],
+      trim: true,
+    },
+    paymentScreenshot: {
+      type: String,
+      required: [true, 'Payment screenshot is required'],
     },
 
     // Application Status
@@ -95,7 +108,6 @@ const attendeeSchema = new mongoose.Schema(
 
 // Index for faster queries
 attendeeSchema.index({ email: 1 });
-attendeeSchema.index({ ticketType: 1 });
 attendeeSchema.index({ status: 1 });
 
 const Attendee = mongoose.model('Attendee', attendeeSchema);

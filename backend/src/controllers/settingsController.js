@@ -33,7 +33,7 @@ export const updateSettings = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { registrationOpen, attendeeRegistrationOpen, teamRegistrationOpen, speakerRegistrationOpen } = req.body;
+    const { registrationOpen, attendeeRegistrationOpen, teamRegistrationOpen, speakerRegistrationOpen, attendeeLimit } = req.body;
 
     let settings = await Settings.findOne();
     
@@ -42,7 +42,8 @@ export const updateSettings = async (req, res, next) => {
         registrationOpen: registrationOpen ?? attendeeRegistrationOpen ?? teamRegistrationOpen ?? true,
         attendeeRegistrationOpen: attendeeRegistrationOpen ?? true,
         teamRegistrationOpen: teamRegistrationOpen ?? true,
-        speakerRegistrationOpen: speakerRegistrationOpen ?? true
+        speakerRegistrationOpen: speakerRegistrationOpen ?? true,
+        attendeeLimit: attendeeLimit ?? 90,
       });
     } else {
       if (teamRegistrationOpen !== undefined) {
@@ -54,6 +55,9 @@ export const updateSettings = async (req, res, next) => {
       }
       if (speakerRegistrationOpen !== undefined) {
         settings.speakerRegistrationOpen = speakerRegistrationOpen;
+      }
+      if (attendeeLimit !== undefined) {
+        settings.attendeeLimit = attendeeLimit;
       }
       if (registrationOpen !== undefined && teamRegistrationOpen === undefined && attendeeRegistrationOpen === undefined) {
         settings.registrationOpen = registrationOpen;
