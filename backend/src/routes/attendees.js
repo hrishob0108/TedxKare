@@ -29,11 +29,14 @@ const registrationValidation = [
   body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('linkedin').trim().notEmpty().withMessage('LinkedIn profile is required'),
   body('address').trim().notEmpty().withMessage('Address is required'),
-  body('college').trim().notEmpty().withMessage('College or organization is required'),
-  body('course').trim().notEmpty().withMessage('Course or designation is required'),
-  body('year').trim().notEmpty().withMessage('Year of study is required'),
-  body('ticketType').notEmpty().withMessage('Ticket type is required'),
+  body('occupation').trim().notEmpty().withMessage('Occupation is required'),
+  body('organization').trim().notEmpty().withMessage('Organization is required'),
+  body('designation').trim().notEmpty().withMessage('Designation is required'),
+  body('year').if((val, { req }) => req.body.occupation === 'Student').trim().notEmpty().withMessage('Year of study is required for students'),
+  body('registrationNumber').if((val, { req }) => req.body.occupation === 'Student').trim().notEmpty().withMessage('Registration number is required for students'),
   body('source').trim().notEmpty().withMessage('Source is required'),
+  body('transactionId').trim().notEmpty().withMessage('Transaction ID is required'),
+  body('paymentScreenshot').notEmpty().withMessage('Payment screenshot is required'),
 ];
 
 // Public

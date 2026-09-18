@@ -18,6 +18,10 @@ const settingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    attendeeLimit: {
+      type: Number,
+      default: 90,
+    }
   },
   {
     timestamps: true,

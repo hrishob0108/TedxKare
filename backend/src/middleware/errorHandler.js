@@ -12,7 +12,10 @@ export const errorHandler = (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     statusCode = 400;
     message = 'Validation failed - please check your input';
-    const errors = Object.values(err.errors).map((error) => error.message);
+    const errors = Object.values(err.errors).map((error) => ({
+      field: error.path,
+      message: error.message
+    }));
     return res.status(statusCode).json({
       error: message,
       userMessage: 'Some required fields are missing or invalid. Please check the details below and try again.',

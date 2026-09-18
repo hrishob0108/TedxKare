@@ -64,6 +64,9 @@ const AdminDashboard = () => {
   const [teamRegistrationOpen, setTeamRegistrationOpen] = useState(true);
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(true);
   const [attendeeRegistrationOpen, setAttendeeRegistrationOpen] = useState(true);
+  const [attendeeLimit, setAttendeeLimit] = useState(90);
+  const [isEditingLimit, setIsEditingLimit] = useState(false);
+  const [newLimitValue, setNewLimitValue] = useState(90);
 
   // Load applicants, speakers, and settings with cold-start retry handling
   const loadData = async (isManual = false) => {
@@ -141,6 +144,8 @@ const AdminDashboard = () => {
       setTeamRegistrationOpen(response.data.teamRegistrationOpen ?? response.data.registrationOpen ?? true);
       setSpeakerRegistrationOpen(response.data.speakerRegistrationOpen ?? true);
       setAttendeeRegistrationOpen(response.data.attendeeRegistrationOpen ?? response.data.registrationOpen ?? true);
+      setAttendeeLimit(response.data.attendeeLimit ?? 90);
+      setNewLimitValue(response.data.attendeeLimit ?? 90);
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
@@ -163,6 +168,19 @@ const AdminDashboard = () => {
       setSpeakerRegistrationOpen(newState);
     } catch (error) {
       console.error('Error updating speaker registration status:', error);
+    }
+  };
+
+  const handleUpdateAttendeeLimit = async (e) => {
+    e.preventDefault();
+    try {
+      const parsedLimit = parseInt(newLimitValue, 10);
+      if (isNaN(parsedLimit) || parsedLimit < 1) return;
+      await request(() => settingsAPI.updateSettings({ attendeeLimit: parsedLimit }));
+      setAttendeeLimit(parsedLimit);
+      setIsEditingLimit(false);
+    } catch (error) {
+      console.error('Error updating attendee limit:', error);
     }
   };
 
@@ -443,10 +461,11 @@ const AdminDashboard = () => {
         Phone: att.phone,
         LinkedIn: att.linkedin,
         Address: att.address,
-        College: att.college,
-        Course: att.course,
-        Year: att.year,
-        'Ticket Type': att.ticketType,
+        Occupation: att.occupation,
+        Organization: att.organization || 'N/A',
+        'Designation / Role': att.designation || 'N/A',
+        Year: att.year || 'N/A',
+        'Registration Number': att.registrationNumber || 'N/A',
         Source: att.source,
         Status: att.status,
         'Registered On': format.date(att.createdAt),
@@ -1042,13 +1061,36 @@ const AdminDashboard = () => {
           {/* Total */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card">
             <p className="text-gray-400 text-sm mb-2">
-              Total Applications
+              {activeTab === 'attendees' ? 'Total Registrations' : 'Total Applications'}
             </p>
-            <p className="text-4xl font-bold text-ted-red">
+            <p className="text-4xl font-bold text-ted-red flex items-baseline gap-2">
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
               ) : (
-                activeTab === 'applicants' ? stats.totalApplications : activeTab === 'speakers' ? speakers.length : attendees.length
+                activeTab === 'applicants' ? stats.totalApplications : activeTab === 'speakers' ? speakers.length : 
+                <>
+                  {attendees.length} 
+                  {isEditingLimit ? (
+                    <form onSubmit={handleUpdateAttendeeLimit} className="flex items-center gap-2 ml-2 text-base">
+                      <span className="text-xl text-gray-500 font-medium">/</span>
+                      <input 
+                        type="number" 
+                        value={newLimitValue} 
+                        onChange={(e) => setNewLimitValue(e.target.value)}
+                        className="bg-gray-900 border border-gray-700 text-white font-bold rounded px-2 py-1 w-20 outline-none focus:border-ted-red"
+                        min="1"
+                        autoFocus
+                      />
+                      <button type="submit" className="text-green-500 hover:text-green-400">✓</button>
+                      <button type="button" onClick={() => { setIsEditingLimit(false); setNewLimitValue(attendeeLimit); }} className="text-red-500 hover:text-red-400">✕</button>
+                    </form>
+                  ) : (
+                    <span className="text-xl text-gray-500 font-medium group relative flex items-center cursor-pointer hover:text-gray-300" onClick={() => setIsEditingLimit(true)} title="Click to edit limit">
+                      / {attendeeLimit}
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded absolute left-full top-1/2 -translate-y-1/2 whitespace-nowrap">✏️ Edit Limit</span>
+                    </span>
+                  )}
+                </>
               )}
             </p>
           </motion.div>
@@ -1353,56 +1395,56 @@ const AdminDashboard = () => {
           ) : (
             // ATTENDEES TABLE
             filteredAttendees.length > 0 ? (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="text-left py-4 px-4 font-semibold">Name</th>
-                    <th className="text-left py-4 px-4 font-semibold">Email</th>
-                    <th className="text-left py-4 px-4 font-semibold">Ticket Type</th>
-                    <th className="text-left py-4 px-4 font-semibold">Status</th>
-                    <th className="text-left py-4 px-4 font-semibold">Registered On</th>
-                    <th className="text-left py-4 px-4 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAttendees.map((att, index) => (
-                    <motion.tr
-                      key={att._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
-                    >
-                      <td className="py-4 px-4 font-medium">{att.name}</td>
-                      <td className="py-4 px-4 text-gray-400">{att.email}</td>
-                      <td className="py-4 px-4">{att.ticketType}</td>
-                      <td className="py-4 px-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredAttendees.map((att, index) => (
+                  <motion.div
+                    key={att._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => {
+                      setSelectedAttendee(att);
+                      setShowAttendeeModal(true);
+                    }}
+                    className="bg-gray-800/50 border border-gray-700 hover:border-ted-red/50 rounded-2xl p-4 cursor-pointer hover:bg-gray-800 transition-all flex flex-col h-full group"
+                  >
+                    <div className="w-full h-48 bg-gray-900 rounded-xl mb-4 overflow-hidden relative">
+                      {att.paymentScreenshot ? (
+                        <img 
+                          src={att.paymentScreenshot} 
+                          alt="Payment Screenshot" 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-600 text-sm">
+                          No Image
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold border backdrop-blur-md bg-black/50 ${getStatusColor(
                             att.status
                           )}`}
                         >
                           {att.status}
                         </span>
-                      </td>
-                      <td className="py-4 px-4 text-gray-400 text-xs">
-                        {format.date(att.createdAt)}
-                      </td>
-                      <td className="py-4 px-4">
-                        <button
-                          onClick={() => {
-                            setSelectedAttendee(att);
-                            setShowAttendeeModal(true);
-                          }}
-                          className="text-ted-red hover:text-red-600 font-semibold text-sm"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col">
+                      <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{att.name}</h3>
+                      <p className="text-gray-400 text-xs mb-3 truncate">{att.email}</p>
+                      
+                      <div className="mt-auto">
+                        <p className="text-xs text-gray-500 mb-1 uppercase font-semibold tracking-wider">Transaction ID</p>
+                        <p className="text-gray-300 text-sm font-mono bg-black/40 px-3 py-2 rounded-lg border border-gray-700/50 break-all">
+                          {att.transactionId || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             ) : (
               <div className="flex items-center justify-center h-40">
                 <p className="text-gray-400">No attendees found matching your filters</p>
@@ -2106,6 +2148,25 @@ const AdminDashboard = () => {
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
+              
+              {/* Payment Info */}
+              {selectedAttendee.paymentScreenshot && (
+                <div>
+                  <h4 className="text-ted-red font-bold mb-4">Payment Details</h4>
+                  <div className="bg-gray-800/50 p-2 rounded-xl border border-gray-700">
+                    <img 
+                      src={selectedAttendee.paymentScreenshot} 
+                      alt="Payment Screenshot" 
+                      className="w-full max-h-96 object-contain rounded-lg"
+                    />
+                    <div className="mt-4 mb-2 text-center">
+                      <p className="text-gray-400 text-sm mb-1 uppercase tracking-wider font-semibold">Transaction ID</p>
+                      <p className="font-mono text-xl font-bold text-white bg-gray-900 inline-block px-4 py-2 rounded-lg border border-gray-700">{selectedAttendee.transactionId || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Personal Info */}
               <div>
                 <h4 className="text-ted-red font-bold mb-4">Personal Information</h4>
@@ -2148,12 +2209,12 @@ const AdminDashboard = () => {
                 <h4 className="text-ted-red font-bold mb-4">Academic / Professional Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="md:col-span-2">
-                    <p className="text-gray-400">College / Organization</p>
-                    <p className="font-semibold">{selectedAttendee.college}</p>
+                    <p className="text-gray-400">Organization / Institution</p>
+                    <p className="font-semibold">{selectedAttendee.organization}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400">Course / Designation</p>
-                    <p className="font-semibold">{selectedAttendee.course}</p>
+                    <p className="text-gray-400">Designation / Role</p>
+                    <p className="font-semibold">{selectedAttendee.designation}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Year</p>
@@ -2162,14 +2223,20 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Ticket Details */}
+              {/* Event & Additional Details */}
               <div>
-                <h4 className="text-ted-red font-bold mb-4">Ticket Details</h4>
+                <h4 className="text-ted-red font-bold mb-4">Event Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-400">Ticket Type</p>
-                    <p className="font-semibold">{selectedAttendee.ticketType}</p>
+                    <p className="text-gray-400">Occupation</p>
+                    <p className="font-semibold">{selectedAttendee.occupation || 'N/A'}</p>
                   </div>
+                  {selectedAttendee.occupation === 'Student' && (
+                    <div>
+                      <p className="text-gray-400">Registration Number</p>
+                      <p className="font-semibold">{selectedAttendee.registrationNumber || 'N/A'}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-gray-400">Source</p>
                     <p className="font-semibold">{selectedAttendee.source}</p>

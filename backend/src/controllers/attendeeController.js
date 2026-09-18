@@ -13,12 +13,12 @@ export const getAllAttendees = async (req, res, next) => {
       });
     }
 
-    const { ticketType, status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { occupation, status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
-    let filter = {};
+    const filter = {};
 
-    if (ticketType && ticketType !== 'All') {
-      filter.ticketType = ticketType;
+    if (occupation && occupation !== 'All') {
+      filter.occupation = occupation;
     }
 
     if (status && status !== 'All') {
@@ -70,6 +70,19 @@ export const getAttendeeById = async (req, res, next) => {
   }
 };
 
+// ==================== IN-MEMORY MUTEX ====================
+// This prevents race conditions when multiple users submit exactly at the same time
+let isRegistering = false;
+const waitForLock = async () => {
+  while (isRegistering) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  isRegistering = true;
+};
+const releaseLock = () => {
+  isRegistering = false;
+};
+
 // ==================== CREATE NEW ATTENDEE REGISTRATION ====================
 export const createRegistration = async (req, res, next) => {
   try {
@@ -83,74 +96,98 @@ export const createRegistration = async (req, res, next) => {
       });
     }
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: errors.array().map((err) => ({
-          field: err.path || err.param,
-          message: err.msg,
-        })),
-      });
-    }
+    // Wait for our turn if someone else is currently registering
+    await waitForLock();
 
-    // Honeypot check
-    if (req.body.website) {
-      return res.status(200).json({
-        success: true,
-        message: 'Registration submitted successfully',
-      });
-    }
-
-    const existingAttendee = await Attendee.findOne({ email: req.body.email });
-    if (existingAttendee) {
-      return res.status(409).json({
-        error: 'Email already registered',
-        message: 'You have already registered for this event with this email address.',
-      });
-    }
-
-    const ipAddress =
-      req.headers['x-forwarded-for']?.split(',')[0].trim() ||
-      req.socket.remoteAddress ||
-      '';
-
-    const userAgent = req.headers['user-agent'] || '';
-
-    if (ipAddress) {
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const recentRegs = await Attendee.countDocuments({
-        ipAddress,
-        createdAt: { $gte: oneDayAgo },
-      });
-
-      if (recentRegs >= 10) {
-        return res.status(429).json({
-          error: 'Too many registrations from your network',
-          message: 'Please try again later.',
+    try {
+      // Check attendee limit (excluding rejected applications)
+      const attendeeCount = await Attendee.countDocuments({ status: { $ne: 'Rejected' } });
+      const attendeeLimit = settings?.attendeeLimit ?? 90;
+      
+      if (attendeeCount >= attendeeLimit) {
+        return res.status(403).json({
+          error: 'Registration full',
+          message: `We have reached our maximum capacity of ${attendeeLimit} attendees. Registration is now closed.`,
         });
       }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: errors.array().map((err) => ({
+            field: err.path || err.param,
+            message: err.msg,
+          })),
+        });
+      }
+
+      // Honeypot check
+      if (req.body.website) {
+        return res.status(200).json({
+          success: true,
+          message: 'Registration submitted successfully',
+        });
+      }
+
+      const existingAttendee = await Attendee.findOne({ email: req.body.email });
+      if (existingAttendee) {
+        releaseLock();
+        return res.status(409).json({
+          error: 'Email already registered',
+          message: 'You have already registered for this event with this email address.',
+        });
+      }
+
+      const ipAddress =
+        req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+        req.socket.remoteAddress ||
+        '';
+
+      const userAgent = req.headers['user-agent'] || '';
+
+      if (ipAddress) {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const recentRegs = await Attendee.countDocuments({
+          ipAddress,
+          createdAt: { $gte: oneDayAgo },
+        });
+
+        if (recentRegs >= 10) {
+          releaseLock();
+          return res.status(429).json({
+            error: 'Too many registrations from your network',
+            message: 'Please try again later.',
+          });
+        }
+      }
+
+      const attendeeData = {
+        ...req.body,
+        ipAddress,
+        userAgent,
+      };
+
+      const attendee = new Attendee(attendeeData);
+      await attendee.save();
+
+      // Release lock so the next person in line can register
+      releaseLock();
+
+      res.status(201).json({
+        success: true,
+        message: 'Registration submitted successfully',
+        data: {
+          id: attendee._id,
+          name: attendee.name,
+          email: attendee.email,
+        },
+      });
+    } catch (err) {
+      // In case of a database error or validation crash, release the lock
+      releaseLock();
+      throw err;
     }
-
-    const attendeeData = {
-      ...req.body,
-      ipAddress,
-      userAgent,
-    };
-
-    const attendee = new Attendee(attendeeData);
-    await attendee.save();
-
-    res.status(201).json({
-      success: true,
-      message: 'Registration submitted successfully',
-      data: {
-        id: attendee._id,
-        name: attendee.name,
-        email: attendee.email,
-      },
-    });
-
   } catch (error) {
     next(error);
   }
@@ -228,10 +265,10 @@ export const getStatistics = async (req, res, next) => {
     const approvedAttendees = await Attendee.countDocuments({ status: 'Approved' });
     const rejectedAttendees = await Attendee.countDocuments({ status: 'Rejected' });
 
-    const byTicketType = await Attendee.aggregate([
+    const attendeesByOccupation = await Attendee.aggregate([
       {
         $group: {
-          _id: '$ticketType',
+          _id: '$occupation',
           count: { $sum: 1 },
         },
       },
@@ -247,9 +284,9 @@ export const getStatistics = async (req, res, next) => {
           approved: approvedAttendees,
           rejected: rejectedAttendees,
         },
-        byTicketType: byTicketType.map((d) => ({
-          type: d._id,
-          count: d.count,
+        occupations: attendeesByOccupation.map(item => ({
+          type: item._id || 'Unknown',
+          count: item.count
         })),
       },
     });
