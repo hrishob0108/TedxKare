@@ -90,17 +90,11 @@
   }
 
   .form-error {
-    @apply text-red-400 text-xs mt-1.5 font-medium flex items-center gap-1.5;
-  }
-
-  .form-error::before {
-    content: "⚠️";
-    font-size: 11px;
-    line-height: 1;
+    @apply text-red-500 text-xs mt-1.5 font-medium tracking-wide;
   }
 
   .input-error {
-    @apply border-red-500 ring-2 ring-red-500/50 bg-red-950/20 !important;
+    @apply border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/50 !important;
   }
 
   .form-hint {

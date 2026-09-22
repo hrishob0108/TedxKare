@@ -34,23 +34,7 @@ const externalCategories = [
   'Other',
 ];
 
-const FIELD_LABELS = {
-  name: 'Full Name',
-  email: 'Email ID',
-  phone: 'Mobile Number',
-  linkedin: 'LinkedIn Profile',
-  registrationNumber: 'Registration Number',
-  department: 'Department',
-  hostelDayScholar: 'Hostel / Day Scholar',
-  hostelName: 'Hostel Name',
-  wardenContact: 'Warden Contact Number',
-  roomNumber: 'Room Number',
-  address: 'Address',
-  category: 'Category',
-  organization: 'Organization / Startup / Company Name',
-  transactionId: 'Transaction ID / UTR',
-  paymentScreenshot: 'Payment Screenshot',
-};
+
 
 const AttendeeApply = () => {
   const navigate = useNavigate();
@@ -182,6 +166,7 @@ const AttendeeApply = () => {
       }, 1500);
     } catch (error) {
       if (error.response?.status === 400 && error.response?.data?.details) {
+        clearError();
         const fieldErrors = {};
         let hasStep1Error = false;
         let hasStep2Error = false;
@@ -236,6 +221,7 @@ const AttendeeApply = () => {
           }, 150);
         }
       } else if (error.response?.status === 409) {
+        clearError();
         const errorMsg = error.response?.data?.message || 'Already registered';
         const errType = error.response?.data?.error || '';
         if (errType.toLowerCase().includes('registration') || errorMsg.toLowerCase().includes('registration number')) {
@@ -513,90 +499,24 @@ const AttendeeApply = () => {
           </motion.div>
         )}
 
-        {/* ERROR NOTIFICATION BANNER */}
-        {(error || Object.keys(form.errors).length > 0) && (
+        {/* System notification for unexpected server/network errors */}
+        {error && Object.keys(form.errors).length === 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-5 bg-red-950/40 border border-red-500/50 rounded-2xl text-red-200 backdrop-blur-md shadow-2xl shadow-red-950/40"
+            className="mb-6 px-4 py-3 bg-red-950/40 border border-red-500/30 rounded-xl text-red-300 text-sm flex items-center justify-between backdrop-blur-md"
           >
-            <div className="flex justify-between items-start gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0 text-red-400 font-bold text-sm">
-                  ⚠️
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-base">
-                    {Object.keys(form.errors).length > 0
-                      ? 'Please Check the Highlighted Fields'
-                      : 'Registration Error'}
-                  </h4>
-                  <p className="text-xs text-red-300/90 mt-0.5">
-                    {error || 'Some required information is missing or invalid. Please correct the fields below.'}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (error) clearError();
-                  form.setErrors({});
-                }}
-                className="text-gray-400 hover:text-white transition-colors p-1 text-sm font-semibold rounded-md hover:bg-white/10"
-                title="Dismiss"
-              >
-                ✕
-              </button>
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-ted-red shrink-0"></span>
+              <p className="text-xs sm:text-sm font-medium">{error}</p>
             </div>
-
-            {Object.keys(form.errors).length > 0 && (
-              <div className="mt-4 pt-3 border-t border-red-500/20">
-                <p className="text-[11px] uppercase tracking-wider font-semibold text-red-400 mb-2">
-                  Click a field below to jump directly to it:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {Object.entries(form.errors).map(([field, msg]) => {
-                    const label = FIELD_LABELS[field] || field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
-                    return (
-                      <button
-                        key={field}
-                        type="button"
-                        onClick={() => {
-                          const step1Fields = [
-                            'name', 'email', 'phone', 'linkedin', 'registrationNumber',
-                            'department', 'hostelDayScholar', 'hostelName', 'wardenContact',
-                            'roomNumber', 'address', 'category', 'organization'
-                          ];
-                          if (step1Fields.includes(field) && step !== 1) {
-                            setStep(1);
-                          } else if (!step1Fields.includes(field) && step !== 2) {
-                            setStep(2);
-                          }
-                          setTimeout(() => {
-                            const el = document.getElementById(field);
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              el.focus?.();
-                            }
-                          }, 100);
-                        }}
-                        className="flex items-start gap-2 p-2.5 rounded-xl bg-red-900/20 hover:bg-red-900/40 border border-red-500/30 text-left transition-all group cursor-pointer"
-                      >
-                        <span className="text-red-400 font-bold shrink-0 text-xs mt-0.5">✕</span>
-                        <div className="min-w-0">
-                          <span className="font-semibold text-white block text-xs group-hover:text-red-300">
-                            {label}
-                          </span>
-                          <span className="text-red-300 text-[11px] block break-words">
-                            {msg}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={clearError}
+              className="text-gray-400 hover:text-white transition-colors text-xs p-1 ml-3"
+            >
+              ✕
+            </button>
           </motion.div>
         )}
 
