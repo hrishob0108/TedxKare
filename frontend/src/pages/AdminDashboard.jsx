@@ -47,6 +47,7 @@ const AdminDashboard = () => {
     status: 'All',
     search: '',
     nominationType: 'All',
+    ticketType: 'All',
   });
 
   // Domains list
@@ -64,9 +65,12 @@ const AdminDashboard = () => {
   const [teamRegistrationOpen, setTeamRegistrationOpen] = useState(true);
   const [speakerRegistrationOpen, setSpeakerRegistrationOpen] = useState(true);
   const [attendeeRegistrationOpen, setAttendeeRegistrationOpen] = useState(true);
-  const [attendeeLimit, setAttendeeLimit] = useState(90);
-  const [isEditingLimit, setIsEditingLimit] = useState(false);
-  const [newLimitValue, setNewLimitValue] = useState(90);
+  const [attendeeLimit, setAttendeeLimit] = useState(100);
+  const [internalAttendeeLimit, setInternalAttendeeLimit] = useState(60);
+  const [externalAttendeeLimit, setExternalAttendeeLimit] = useState(40);
+  const [isEditingLimits, setIsEditingLimits] = useState(false);
+  const [newInternalLimit, setNewInternalLimit] = useState(60);
+  const [newExternalLimit, setNewExternalLimit] = useState(40);
 
   // Load applicants, speakers, and settings with cold-start retry handling
   const loadData = async (isManual = false) => {
@@ -135,17 +139,24 @@ const AdminDashboard = () => {
       status: 'All',
       search: '',
       nominationType: 'All',
+      ticketType: 'All',
     });
   };
 
   const fetchSettings = async () => {
     try {
       const response = await request(() => settingsAPI.getSettings());
-      setTeamRegistrationOpen(response.data.teamRegistrationOpen ?? response.data.registrationOpen ?? true);
-      setSpeakerRegistrationOpen(response.data.speakerRegistrationOpen ?? true);
-      setAttendeeRegistrationOpen(response.data.attendeeRegistrationOpen ?? response.data.registrationOpen ?? true);
-      setAttendeeLimit(response.data.attendeeLimit ?? 90);
-      setNewLimitValue(response.data.attendeeLimit ?? 90);
+      const data = response.data?.data || response.data;
+      setTeamRegistrationOpen(data.teamRegistrationOpen ?? data.registrationOpen ?? true);
+      setSpeakerRegistrationOpen(data.speakerRegistrationOpen ?? true);
+      setAttendeeRegistrationOpen(data.attendeeRegistrationOpen ?? data.registrationOpen ?? true);
+      const intLimit = data.internalAttendeeLimit ?? 60;
+      const extLimit = data.externalAttendeeLimit ?? 40;
+      setInternalAttendeeLimit(intLimit);
+      setExternalAttendeeLimit(extLimit);
+      setNewInternalLimit(intLimit);
+      setNewExternalLimit(extLimit);
+      setAttendeeLimit(data.attendeeLimit ?? (intLimit + extLimit));
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
@@ -171,16 +182,28 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleUpdateAttendeeLimit = async (e) => {
-    e.preventDefault();
+  const handleUpdateAttendeeLimits = async (e) => {
+    if (e) e.preventDefault();
     try {
-      const parsedLimit = parseInt(newLimitValue, 10);
-      if (isNaN(parsedLimit) || parsedLimit < 1) return;
-      await request(() => settingsAPI.updateSettings({ attendeeLimit: parsedLimit }));
-      setAttendeeLimit(parsedLimit);
-      setIsEditingLimit(false);
+      const parsedInternal = parseInt(newInternalLimit, 10);
+      const parsedExternal = parseInt(newExternalLimit, 10);
+      if (isNaN(parsedInternal) || parsedInternal < 1 || isNaN(parsedExternal) || parsedExternal < 1) {
+        alert('Please enter valid positive numbers for both slot limits.');
+        return;
+      }
+      await request(() =>
+        settingsAPI.updateSettings({
+          internalAttendeeLimit: parsedInternal,
+          externalAttendeeLimit: parsedExternal,
+          attendeeLimit: parsedInternal + parsedExternal,
+        })
+      );
+      setInternalAttendeeLimit(parsedInternal);
+      setExternalAttendeeLimit(parsedExternal);
+      setAttendeeLimit(parsedInternal + parsedExternal);
+      setIsEditingLimits(false);
     } catch (error) {
-      console.error('Error updating attendee limit:', error);
+      console.error('Error updating attendee limits:', error);
     }
   };
 
@@ -293,16 +316,26 @@ const AdminDashboard = () => {
     } else if (activeTab === 'attendees') {
       let filtered = attendees;
 
+      if (filters.ticketType && filters.ticketType !== 'All') {
+        filtered = filtered.filter((att) => (att.ticketType || 'Internal') === filters.ticketType);
+      }
+
       if (filters.status !== 'All') {
         filtered = filtered.filter((att) => att.status === filters.status);
       }
 
       if (filters.search) {
+        const q = filters.search.toLowerCase();
         filtered = filtered.filter(
           (att) =>
-            att.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-            att.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-            att.phone.toLowerCase().includes(filters.search.toLowerCase())
+            att.name?.toLowerCase().includes(q) ||
+            att.email?.toLowerCase().includes(q) ||
+            att.registrationNumber?.toLowerCase().includes(q) ||
+            att.department?.toLowerCase().includes(q) ||
+            att.organization?.toLowerCase().includes(q) ||
+            att.category?.toLowerCase().includes(q) ||
+            att.transactionId?.toLowerCase().includes(q) ||
+            att.phone?.toLowerCase().includes(q)
         );
       }
 
@@ -455,18 +488,21 @@ const AdminDashboard = () => {
       exportToCSV(exportData, `tedxkare-applicants-${Date.now()}.csv`);
     } else if (activeTab === 'attendees') {
       const exportData = filteredAttendees.map((att) => ({
+        'Ticket Type': att.ticketType || 'Internal',
         Name: att.name,
-        Age: att.age,
         Email: att.email,
-        Phone: att.phone,
-        LinkedIn: att.linkedin,
-        Address: att.address,
-        Occupation: att.occupation,
-        Organization: att.organization || 'N/A',
-        'Designation / Role': att.designation || 'N/A',
-        Year: att.year || 'N/A',
+        'Mobile Number': att.phone || 'N/A',
         'Registration Number': att.registrationNumber || 'N/A',
-        Source: att.source,
+        Department: att.department || 'N/A',
+        'Hostel / Day Scholar': att.hostelDayScholar || 'N/A',
+        'Hostel Name': att.hostelName || 'N/A',
+        'Room Number': att.roomNumber || 'N/A',
+        'Warden Contact': att.wardenContact || 'N/A',
+        Category: att.category || 'N/A',
+        'Organization / Company': att.organization || 'N/A',
+        Address: att.address || 'N/A',
+        LinkedIn: att.linkedin || 'N/A',
+        'Transaction ID': att.transactionId || 'N/A',
         Status: att.status,
         'Registered On': format.date(att.createdAt),
       }));
@@ -1058,7 +1094,7 @@ const AdminDashboard = () => {
           transition={{ staggerChildren: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
         >
-          {/* Total */}
+          {/* Card 1 */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card">
             <p className="text-gray-400 text-sm mb-2">
               {activeTab === 'attendees' ? 'Total Registrations' : 'Total Applications'}
@@ -1066,100 +1102,211 @@ const AdminDashboard = () => {
             <p className="text-4xl font-bold text-ted-red flex items-baseline gap-2">
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : activeTab === 'applicants' ? (
+                stats.totalApplications
+              ) : activeTab === 'speakers' ? (
+                speakers.length
               ) : (
-                activeTab === 'applicants' ? stats.totalApplications : activeTab === 'speakers' ? speakers.length : 
                 <>
-                  {attendees.length} 
-                  {isEditingLimit ? (
-                    <form onSubmit={handleUpdateAttendeeLimit} className="flex items-center gap-2 ml-2 text-base">
-                      <span className="text-xl text-gray-500 font-medium">/</span>
-                      <input 
-                        type="number" 
-                        value={newLimitValue} 
-                        onChange={(e) => setNewLimitValue(e.target.value)}
-                        className="bg-gray-900 border border-gray-700 text-white font-bold rounded px-2 py-1 w-20 outline-none focus:border-ted-red"
-                        min="1"
-                        autoFocus
-                      />
-                      <button type="submit" className="text-green-500 hover:text-green-400">✓</button>
-                      <button type="button" onClick={() => { setIsEditingLimit(false); setNewLimitValue(attendeeLimit); }} className="text-red-500 hover:text-red-400">✕</button>
-                    </form>
-                  ) : (
-                    <span className="text-xl text-gray-500 font-medium group relative flex items-center cursor-pointer hover:text-gray-300" onClick={() => setIsEditingLimit(true)} title="Click to edit limit">
-                      / {attendeeLimit}
-                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded absolute left-full top-1/2 -translate-y-1/2 whitespace-nowrap">✏️ Edit Limit</span>
-                    </span>
-                  )}
+                  {attendees.length}
+                  <span className="text-xl text-gray-500 font-medium">
+                    / {internalAttendeeLimit + externalAttendeeLimit}
+                  </span>
                 </>
               )}
             </p>
+            {activeTab === 'attendees' && !initialLoading && (
+              <button
+                type="button"
+                onClick={() => setIsEditingLimits(!isEditingLimits)}
+                className="text-xs font-semibold text-ted-red hover:text-red-400 mt-2 flex items-center gap-1 transition-colors"
+              >
+                <span>⚙️</span> {isEditingLimits ? 'Close Slot Settings' : 'Edit Slot Limits'}
+              </button>
+            )}
           </motion.div>
 
-          {/* Pending */}
+          {/* Card 2 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="card border-yellow-500/30"
+            className={`card ${activeTab === 'attendees' ? 'border-ted-red/30' : 'border-yellow-500/30'}`}
           >
-            <p className="text-yellow-400 text-sm mb-2">Pending Review</p>
-            <p className="text-4xl font-bold text-yellow-400">
+            <p className={`${activeTab === 'attendees' ? 'text-ted-red' : 'text-yellow-400'} text-sm mb-2 font-medium`}>
+              {activeTab === 'attendees' ? '🎓 Internal (KARE)' : 'Pending Review'}
+            </p>
+            <p className={`text-4xl font-bold ${activeTab === 'attendees' ? 'text-white' : 'text-yellow-400'} flex items-baseline gap-2`}>
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : activeTab === 'applicants' ? (
+                stats.byStatus.pending
+              ) : activeTab === 'speakers' ? (
+                speakers.filter((s) => s.status === 'Pending').length
               ) : (
-                activeTab === 'applicants'
-                  ? stats.byStatus.pending
-                  : activeTab === 'speakers' 
-                    ? speakers.filter(s => s.status === 'Pending').length
-                    : attendees.filter(a => a.status === 'Pending').length
+                <>
+                  {attendees.filter((a) => (a.ticketType || 'Internal') === 'Internal' && a.status !== 'Rejected').length}
+                  <span className="text-xl text-gray-500 font-medium">/ {internalAttendeeLimit}</span>
+                </>
               )}
             </p>
+            {activeTab === 'attendees' && !initialLoading && (
+              <p className="text-xs text-gray-400 mt-1">
+                {Math.max(
+                  0,
+                  internalAttendeeLimit -
+                    attendees.filter((a) => (a.ticketType || 'Internal') === 'Internal' && a.status !== 'Rejected').length
+                )}{' '}
+                slots remaining
+              </p>
+            )}
           </motion.div>
 
-          {/* Shortlisted / Selected */}
+          {/* Card 3 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="card border-green-500/30"
+            className={`card ${activeTab === 'attendees' ? 'border-blue-500/30' : 'border-green-500/30'}`}
           >
-            <p className="text-green-400 text-sm mb-2">
-              {activeTab === 'applicants' ? 'Shortlisted' : activeTab === 'speakers' ? 'Selected Speakers' : 'Approved Attendees'}
+            <p className={`${activeTab === 'attendees' ? 'text-blue-400' : 'text-green-400'} text-sm mb-2 font-medium`}>
+              {activeTab === 'attendees' ? '🌐 External Tickets' : activeTab === 'applicants' ? 'Shortlisted' : 'Selected Speakers'}
             </p>
-            <p className="text-4xl font-bold text-green-400">
+            <p className={`text-4xl font-bold ${activeTab === 'attendees' ? 'text-white' : 'text-green-400'} flex items-baseline gap-2`}>
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : activeTab === 'applicants' ? (
+                stats.byStatus.shortlisted
+              ) : activeTab === 'speakers' ? (
+                speakers.filter((s) => s.status === 'Selected').length
               ) : (
-                activeTab === 'applicants'
-                  ? stats.byStatus.shortlisted
-                  : activeTab === 'speakers'
-                    ? speakers.filter(s => s.status === 'Selected').length
-                    : attendees.filter(a => a.status === 'Approved').length
+                <>
+                  {attendees.filter((a) => a.ticketType === 'External' && a.status !== 'Rejected').length}
+                  <span className="text-xl text-gray-500 font-medium">/ {externalAttendeeLimit}</span>
+                </>
               )}
             </p>
+            {activeTab === 'attendees' && !initialLoading && (
+              <p className="text-xs text-gray-400 mt-1">
+                {Math.max(
+                  0,
+                  externalAttendeeLimit -
+                    attendees.filter((a) => a.ticketType === 'External' && a.status !== 'Rejected').length
+                )}{' '}
+                slots remaining
+              </p>
+            )}
           </motion.div>
 
-          {/* Rejected */}
+          {/* Card 4 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="card border-red-500/30"
+            className={`card ${activeTab === 'attendees' ? 'border-green-500/30' : 'border-red-500/30'}`}
           >
-            <p className="text-red-400 text-sm mb-2">Rejected</p>
-            <p className="text-4xl font-bold text-red-400">
+            <p className={`${activeTab === 'attendees' ? 'text-green-400' : 'text-red-400'} text-sm mb-2 font-medium`}>
+              {activeTab === 'attendees' ? 'Approved Attendees' : 'Rejected'}
+            </p>
+            <p className={`text-4xl font-bold ${activeTab === 'attendees' ? 'text-green-400' : 'text-red-400'}`}>
               {initialLoading ? (
                 <span className="text-sm font-normal text-gray-500 animate-pulse italic">Server loading...</span>
+              ) : activeTab === 'applicants' ? (
+                stats.byStatus.rejected
+              ) : activeTab === 'speakers' ? (
+                speakers.filter((s) => s.status === 'Rejected').length
               ) : (
-                activeTab === 'applicants'
-                  ? stats.byStatus.rejected
-                  : activeTab === 'speakers'
-                    ? speakers.filter(s => s.status === 'Rejected').length
-                    : attendees.filter(a => a.status === 'Rejected').length
+                attendees.filter((a) => a.status === 'Approved').length
               )}
             </p>
+            {activeTab === 'attendees' && !initialLoading && (
+              <p className="text-xs text-gray-400 mt-1">
+                {attendees.filter((a) => a.status === 'Pending').length} pending review
+              </p>
+            )}
           </motion.div>
         </motion.div>
+
+        {/* ==================== EDIT TICKET SLOTS PANEL ==================== */}
+        {activeTab === 'attendees' && isEditingLimits && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card mb-8 border-ted-red/40 bg-gradient-to-r from-red-950/30 via-gray-900 to-black p-6 rounded-2xl shadow-xl"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>🎟️</span> Configure Ticket Slot Capacities
+                </h4>
+                <p className="text-gray-400 text-xs mt-1">
+                  Adjust limits for KARE internal students and external attendees. Changes apply immediately to registration.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditingLimits(false)}
+                className="text-gray-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleUpdateAttendeeLimits} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+              <div>
+                <label className="text-xs font-semibold text-gray-300 block mb-1">
+                  🎓 Internal Slots (KARE Students)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newInternalLimit}
+                  onChange={(e) => setNewInternalLimit(e.target.value)}
+                  className="input-field py-2.5 font-bold text-white bg-black/60"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-300 block mb-1">
+                  🌐 External Slots (General Attendees)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newExternalLimit}
+                  onChange={(e) => setNewExternalLimit(e.target.value)}
+                  className="input-field py-2.5 font-bold text-white bg-black/60"
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary flex-1 py-2.5 font-bold bg-ted-red hover:bg-red-700 text-white rounded-xl shadow-lg shadow-ted-red/20 transition-all"
+                >
+                  {loading ? 'Saving...' : '✓ Save Limits'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingLimits(false);
+                    setNewInternalLimit(internalAttendeeLimit);
+                    setNewExternalLimit(externalAttendeeLimit);
+                  }}
+                  className="btn-outline px-4 py-2.5 rounded-xl border border-gray-700 hover:border-gray-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+            <div className="mt-3 text-xs text-gray-400">
+              Total Capacity:{' '}
+              <strong className="text-white">
+                {(Number(newInternalLimit) || 0) + (Number(newExternalLimit) || 0)}
+              </strong>{' '}
+              attendees
+            </div>
+          </motion.div>
+        )}
 
         {/* ==================== FILTERS & SEARCH ==================== */}
         <motion.div
@@ -1172,7 +1319,13 @@ const AdminDashboard = () => {
             {/* Search */}
             <input
               type="text"
-              placeholder={activeTab === 'applicants' ? "Search by name or email..." : "Search by name, email, or talk title..."}
+              placeholder={
+                activeTab === 'applicants'
+                  ? "Search by name or email..."
+                  : activeTab === 'attendees'
+                  ? "Search by name, email, reg no, department..."
+                  : "Search by name, email, or talk title..."
+              }
               className={`input-field ${activeTab === 'applicants' ? 'col-span-1 md:col-span-2' : 'col-span-1 md:col-span-2'}`}
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -1194,6 +1347,22 @@ const AdminDashboard = () => {
                     {domain}
                   </option>
                 ))}
+              </select>
+            )}
+
+            {/* Ticket Type Filter (Only for Attendees) */}
+            {activeTab === 'attendees' && (
+              <select
+                className="input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                }}
+                value={filters.ticketType || 'All'}
+                onChange={(e) => setFilters({ ...filters, ticketType: e.target.value })}
+              >
+                <option value="All">All Ticket Types</option>
+                <option value="Internal">Internal (KARE Students)</option>
+                <option value="External">External Attendees</option>
               </select>
             )}
 
@@ -1229,6 +1398,11 @@ const AdminDashboard = () => {
                   <option value="Shortlisted">Shortlisted</option>
                   <option value="Rejected">Rejected</option>
                 </>
+              ) : activeTab === 'attendees' ? (
+                <>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </>
               ) : (
                 <>
                   <option value="Reviewed">Reviewed</option>
@@ -1245,7 +1419,7 @@ const AdminDashboard = () => {
             disabled={loading || initialLoading}
             className="btn-secondary text-sm mt-4 w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {initialLoading ? '⏳ Loading Data for Export...' : `📥 Export ${activeTab === 'applicants' ? 'Applicants' : 'Speakers'} to CSV`}
+            {initialLoading ? '⏳ Loading Data for Export...' : `📥 Export ${activeTab === 'applicants' ? 'Applicants' : activeTab === 'attendees' ? 'Attendees' : 'Speakers'} to CSV`}
           </button>
         </motion.div>
 
@@ -1420,6 +1594,17 @@ const AdminDashboard = () => {
                           No Image
                         </div>
                       )}
+                      <div className="absolute top-2 left-2">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border backdrop-blur-md ${
+                            (att.ticketType || 'Internal') === 'Internal'
+                              ? 'bg-red-950/80 text-ted-red border-ted-red/40'
+                              : 'bg-blue-950/80 text-blue-400 border-blue-500/40'
+                          }`}
+                        >
+                          {(att.ticketType || 'Internal') === 'Internal' ? '🎓 Internal' : '🌐 External'}
+                        </span>
+                      </div>
                       <div className="absolute top-2 right-2">
                         <span
                           className={`px-3 py-1 rounded-full text-[10px] font-bold border backdrop-blur-md bg-black/50 ${getStatusColor(
@@ -1433,8 +1618,25 @@ const AdminDashboard = () => {
                     
                     <div className="flex-1 flex flex-col">
                       <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{att.name}</h3>
-                      <p className="text-gray-400 text-xs mb-3 truncate">{att.email}</p>
+                      <p className="text-gray-400 text-xs truncate">{att.email}</p>
+                      {att.phone && (
+                        <p className="text-gray-300 text-xs mb-2 truncate font-mono">
+                          📞 {att.phone}
+                        </p>
+                      )}
                       
+                      {(att.ticketType || 'Internal') === 'Internal' ? (
+                        <div className="mb-3 text-xs text-gray-400 space-y-0.5">
+                          <p className="font-mono text-gray-300 font-semibold">{att.registrationNumber || 'N/A'}</p>
+                          <p className="truncate text-gray-400">{att.department || 'N/A'}</p>
+                        </div>
+                      ) : (
+                        <div className="mb-3 text-xs text-gray-400 space-y-0.5">
+                          <p className="text-blue-400 font-semibold">{att.category || 'External Attendee'}</p>
+                          <p className="truncate text-gray-400">{att.organization || 'N/A'}</p>
+                        </div>
+                      )}
+
                       <div className="mt-auto">
                         <p className="text-xs text-gray-500 mb-1 uppercase font-semibold tracking-wider">Transaction ID</p>
                         <p className="text-gray-300 text-sm font-mono bg-black/40 px-3 py-2 rounded-lg border border-gray-700/50 break-all">
@@ -2137,7 +2339,18 @@ const AdminDashboard = () => {
           >
             {/* Modal Header */}
             <div className="sticky top-0 border-b border-gray-800 bg-gray-900 p-6 flex justify-between items-center z-10">
-              <h3 className="text-2xl font-bold">Attendee Details</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-2xl font-bold">Attendee Details</h3>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                    (selectedAttendee.ticketType || 'Internal') === 'Internal'
+                      ? 'bg-red-950/80 text-ted-red border-ted-red/40'
+                      : 'bg-blue-950/80 text-blue-400 border-blue-500/40'
+                  }`}
+                >
+                  {(selectedAttendee.ticketType || 'Internal') === 'Internal' ? '🎓 Internal (KARE)' : '🌐 External'}
+                </span>
+              </div>
               <button
                 onClick={() => setShowAttendeeModal(false)}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -2160,89 +2373,155 @@ const AdminDashboard = () => {
                       className="w-full max-h-96 object-contain rounded-lg"
                     />
                     <div className="mt-4 mb-2 text-center">
-                      <p className="text-gray-400 text-sm mb-1 uppercase tracking-wider font-semibold">Transaction ID</p>
-                      <p className="font-mono text-xl font-bold text-white bg-gray-900 inline-block px-4 py-2 rounded-lg border border-gray-700">{selectedAttendee.transactionId || 'N/A'}</p>
+                      <p className="text-gray-400 text-sm mb-1 uppercase tracking-wider font-semibold">Transaction ID / UTR</p>
+                      <p className="font-mono text-xl font-bold text-white bg-gray-900 inline-block px-4 py-2 rounded-lg border border-gray-700 break-all">{selectedAttendee.transactionId || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Personal Info */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Personal Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {/* TICKET DETAILS: INTERNAL VS EXTERNAL */}
+              {(selectedAttendee.ticketType || 'Internal') === 'Internal' ? (
+                <>
+                  {/* Internal Student Information */}
                   <div>
-                    <p className="text-gray-400">Full Name</p>
-                    <p className="font-semibold">{selectedAttendee.name}</p>
+                    <h4 className="text-ted-red font-bold mb-4">Student Information (KARE)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-400">Full Name</p>
+                        <p className="font-semibold text-white text-base">{selectedAttendee.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Registration Number</p>
+                        <p className="font-semibold text-white font-mono text-base">{selectedAttendee.registrationNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Email ID</p>
+                        <p className="font-semibold break-all text-white">{selectedAttendee.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Mobile Number</p>
+                        <p className="font-semibold text-white font-mono">{selectedAttendee.phone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Department</p>
+                        <p className="font-semibold text-white">{selectedAttendee.department || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">LinkedIn Profile</p>
+                        {selectedAttendee.linkedin ? (
+                          <a href={selectedAttendee.linkedin} target="_blank" rel="noreferrer" className="text-ted-red hover:underline break-all">
+                            {selectedAttendee.linkedin}
+                          </a>
+                        ) : (
+                          <p className="font-semibold text-gray-500">N/A</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-400">Email</p>
-                    <p className="font-semibold break-all">{selectedAttendee.email}</p>
+
+                  {/* Residence Details */}
+                  <div className="bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
+                    <h4 className="text-ted-red font-bold mb-3">Residence Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-400">Stay Type</p>
+                        <p className="font-semibold text-white">{selectedAttendee.hostelDayScholar || 'N/A'}</p>
+                      </div>
+                      {selectedAttendee.hostelDayScholar === 'Hostel' && (
+                        <>
+                          <div>
+                            <p className="text-gray-400">Hostel Name</p>
+                            <p className="font-semibold text-white">{selectedAttendee.hostelName || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Room Number</p>
+                            <p className="font-semibold text-white">{selectedAttendee.roomNumber || 'N/A'}</p>
+                          </div>
+                          <div className="md:col-span-3">
+                            <p className="text-gray-400">Warden Contact Number</p>
+                            <p className="font-semibold text-white font-mono">{selectedAttendee.wardenContact || 'N/A'}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-400">Phone</p>
-                    <p className="font-semibold">{selectedAttendee.phone}</p>
+                </>
+              ) : (
+                /* External Attendee Information */
+                <div>
+                  <h4 className="text-ted-red font-bold mb-4">External Attendee Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-400">Full Name</p>
+                      <p className="font-semibold text-white text-base">{selectedAttendee.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Category</p>
+                      <p className="font-semibold text-blue-400 text-base">{selectedAttendee.category || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Email ID</p>
+                      <p className="font-semibold break-all text-white">{selectedAttendee.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Mobile Number</p>
+                      <p className="font-semibold text-white font-mono">{selectedAttendee.phone || 'N/A'}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-gray-400">Organization / Startup / Company</p>
+                      <p className="font-semibold text-white">{selectedAttendee.organization || 'N/A'}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-gray-400">Address</p>
+                      <p className="font-semibold text-white">{selectedAttendee.address || 'N/A'}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-gray-400">LinkedIn Profile</p>
+                      {selectedAttendee.linkedin ? (
+                        <a href={selectedAttendee.linkedin} target="_blank" rel="noreferrer" className="text-ted-red hover:underline break-all">
+                          {selectedAttendee.linkedin}
+                        </a>
+                      ) : (
+                        <p className="font-semibold text-gray-500">N/A</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-400">Age</p>
-                    <p className="font-semibold">{selectedAttendee.age}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-gray-400">Address</p>
-                    <p className="font-semibold">{selectedAttendee.address}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-gray-400">LinkedIn</p>
-                    {selectedAttendee.linkedin ? (
-                      <a href={selectedAttendee.linkedin} target="_blank" rel="noreferrer" className="text-ted-red hover:underline break-all">
-                        {selectedAttendee.linkedin}
-                      </a>
-                    ) : (
-                      <p className="font-semibold text-gray-500">N/A</p>
+                </div>
+              )}
+
+              {/* Legacy / Additional Info if present */}
+              {(selectedAttendee.phone || selectedAttendee.age || selectedAttendee.occupation || selectedAttendee.source) && (
+                <div className="bg-gray-800/20 p-4 rounded-xl border border-gray-800">
+                  <h5 className="text-xs uppercase tracking-wider font-bold text-gray-500 mb-3">Additional Details</h5>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    {selectedAttendee.phone && (
+                      <div>
+                        <p className="text-gray-500">Phone</p>
+                        <p className="font-semibold text-gray-300">{selectedAttendee.phone}</p>
+                      </div>
+                    )}
+                    {selectedAttendee.age && (
+                      <div>
+                        <p className="text-gray-500">Age</p>
+                        <p className="font-semibold text-gray-300">{selectedAttendee.age}</p>
+                      </div>
+                    )}
+                    {selectedAttendee.occupation && (
+                      <div>
+                        <p className="text-gray-500">Occupation</p>
+                        <p className="font-semibold text-gray-300">{selectedAttendee.occupation}</p>
+                      </div>
+                    )}
+                    {selectedAttendee.source && (
+                      <div>
+                        <p className="text-gray-500">Source</p>
+                        <p className="font-semibold text-gray-300">{selectedAttendee.source}</p>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Academic/Professional Info */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Academic / Professional Details</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="md:col-span-2">
-                    <p className="text-gray-400">Organization / Institution</p>
-                    <p className="font-semibold">{selectedAttendee.organization}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Designation / Role</p>
-                    <p className="font-semibold">{selectedAttendee.designation}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Year</p>
-                    <p className="font-semibold">{selectedAttendee.year}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Event & Additional Details */}
-              <div>
-                <h4 className="text-ted-red font-bold mb-4">Event Details</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-400">Occupation</p>
-                    <p className="font-semibold">{selectedAttendee.occupation || 'N/A'}</p>
-                  </div>
-                  {selectedAttendee.occupation === 'Student' && (
-                    <div>
-                      <p className="text-gray-400">Registration Number</p>
-                      <p className="font-semibold">{selectedAttendee.registrationNumber || 'N/A'}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-gray-400">Source</p>
-                    <p className="font-semibold">{selectedAttendee.source}</p>
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Metadata */}
               <div className="border-t border-gray-800 pt-4">

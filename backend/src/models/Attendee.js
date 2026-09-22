@@ -4,17 +4,20 @@ import mongoose from 'mongoose';
 // Schema for storing TEDx event attendee registration information
 const attendeeSchema = new mongoose.Schema(
   {
-    // Personal Details
+    // Ticket Classification
+    ticketType: {
+      type: String,
+      enum: ['Internal', 'External'],
+      default: 'Internal',
+      required: [true, 'Ticket type is required'],
+    },
+
+    // Common Details
     name: {
       type: String,
       required: [true, 'Full name is required'],
       trim: true,
       minlength: [2, 'Name must be at least 2 characters'],
-    },
-    age: {
-      type: Number,
-      required: [true, 'Age is required'],
-      min: [16, 'Must be at least 16 years old'],
     },
     email: {
       type: String,
@@ -24,51 +27,131 @@ const attendeeSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
+      required: [true, 'Mobile number is required'],
       trim: true,
     },
     linkedin: {
       type: String,
       trim: true,
-      required: [true, 'LinkedIn profile is required'],
-    },
-    address: {
-      type: String,
-      required: [true, 'Address is required'],
-      trim: true,
     },
 
-    // Academic / Professional Details
-    occupation: {
+    // Internal Ticket Specific Fields (KARE Students)
+    registrationNumber: {
       type: String,
-      required: [true, 'Occupation is required'],
       trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal';
+        },
+        'Registration number is required for internal tickets',
+      ],
+    },
+    department: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal';
+        },
+        'Department is required for internal tickets',
+      ],
+    },
+    hostelDayScholar: {
+      type: String,
+      enum: ['Hostel', 'Day Scholar'],
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal';
+        },
+        'Hostel / Day Scholar selection is required',
+      ],
+    },
+    hostelName: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal' && this.hostelDayScholar === 'Hostel';
+        },
+        'Hostel name is required for hostellers',
+      ],
+    },
+    wardenContact: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal' && this.hostelDayScholar === 'Hostel';
+        },
+        'Warden contact number is required for hostellers',
+      ],
+    },
+    roomNumber: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'Internal' && this.hostelDayScholar === 'Hostel';
+        },
+        'Room number is required for hostellers',
+      ],
+    },
+
+    // External Ticket Specific Fields
+    address: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'External';
+        },
+        'Address is required for external tickets',
+      ],
+    },
+    category: {
+      type: String,
+      enum: ['Student', 'Founder', 'Faculty', 'Business Professional', 'Other'],
+      trim: true,
+      required: [
+        function () {
+          return this.ticketType === 'External';
+        },
+        'Category is required for external tickets',
+      ],
     },
     organization: {
       type: String,
       trim: true,
-      required: [true, 'Organization is required'],
+      required: [
+        function () {
+          return this.ticketType === 'External';
+        },
+        'Organization / Startup / Company Name is required for external tickets',
+      ],
+    },
+
+    // Optional / Legacy Fields (Maintained for backward compatibility)
+    age: {
+      type: Number,
+    },
+    occupation: {
+      type: String,
+      trim: true,
     },
     designation: {
       type: String,
       trim: true,
-      required: [true, 'Designation is required'],
     },
     year: {
       type: String,
       trim: true,
     },
-    registrationNumber: {
+    source: {
       type: String,
       trim: true,
     },
 
-    // Source Details
-    source: {
-      type: String,
-      required: [true, 'Please tell us how you heard about us'],
-      trim: true,
-    },
     // Payment Details
     transactionId: {
       type: String,
@@ -109,6 +192,7 @@ const attendeeSchema = new mongoose.Schema(
 // Index for faster queries
 attendeeSchema.index({ email: 1 });
 attendeeSchema.index({ status: 1 });
+attendeeSchema.index({ ticketType: 1 });
 
 const Attendee = mongoose.model('Attendee', attendeeSchema);
 
