@@ -34,6 +34,24 @@ const externalCategories = [
   'Other',
 ];
 
+const FIELD_LABELS = {
+  name: 'Full Name',
+  email: 'Email ID',
+  phone: 'Mobile Number',
+  linkedin: 'LinkedIn Profile',
+  registrationNumber: 'Registration Number',
+  department: 'Department',
+  hostelDayScholar: 'Hostel / Day Scholar',
+  hostelName: 'Hostel Name',
+  wardenContact: 'Warden Contact Number',
+  roomNumber: 'Room Number',
+  address: 'Address',
+  category: 'Category',
+  organization: 'Organization / Startup / Company Name',
+  transactionId: 'Transaction ID / UTR',
+  paymentScreenshot: 'Payment Screenshot',
+};
+
 const AttendeeApply = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -128,18 +146,31 @@ const AttendeeApply = () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(values.email)) {
         form.setFieldError('email', 'Valid email ID is required');
+        setStep(1);
+        setTimeout(() => {
+          const element = document.getElementById('email');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus?.();
+          }
+        }, 100);
         return;
       }
       if (!values.transactionId.trim()) {
-        form.setFieldError('transactionId', 'Transaction ID is required');
+        form.setFieldError('transactionId', 'Transaction ID / UTR is required');
         const element = document.getElementById('transactionId');
-        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.focus?.();
+        }
         return;
       }
       if (!values.paymentScreenshot) {
-        form.setFieldError('paymentScreenshot', 'Payment screenshot is required');
+        form.setFieldError('paymentScreenshot', 'Payment screenshot proof is required');
         const element = document.getElementById('paymentScreenshot');
-        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
       }
 
@@ -153,6 +184,7 @@ const AttendeeApply = () => {
       if (error.response?.status === 400 && error.response?.data?.details) {
         const fieldErrors = {};
         let hasStep1Error = false;
+        let hasStep2Error = false;
         const step1Fields = [
           'name',
           'email',
@@ -168,6 +200,7 @@ const AttendeeApply = () => {
           'category',
           'organization',
         ];
+        const step2Fields = ['transactionId', 'paymentScreenshot'];
 
         error.response.data.details.forEach((err) => {
           if (err.field) {
@@ -175,34 +208,56 @@ const AttendeeApply = () => {
             if (step1Fields.includes(err.field)) {
               hasStep1Error = true;
             }
+            if (step2Fields.includes(err.field)) {
+              hasStep2Error = true;
+            }
           }
         });
         form.setErrors(fieldErrors);
         if (hasStep1Error) {
           setStep(1);
           setTimeout(() => {
-            const firstErrorField = Object.keys(fieldErrors)[0];
+            const firstErrorField = Object.keys(fieldErrors).find((f) => step1Fields.includes(f));
             const element = document.getElementById(firstErrorField);
-            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              element.focus?.();
+            }
+          }, 150);
+        } else if (hasStep2Error) {
+          setStep(2);
+          setTimeout(() => {
+            const firstErrorField = Object.keys(fieldErrors).find((f) => step2Fields.includes(f));
+            const element = document.getElementById(firstErrorField);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              element.focus?.();
+            }
+          }, 150);
         }
       } else if (error.response?.status === 409) {
         const errorMsg = error.response?.data?.message || 'Already registered';
-        const errType = error.response?.data?.error;
-        if (errType?.includes('Registration number') || errorMsg?.toLowerCase().includes('registration number')) {
+        const errType = error.response?.data?.error || '';
+        if (errType.toLowerCase().includes('registration') || errorMsg.toLowerCase().includes('registration number')) {
           form.setFieldError('registrationNumber', errorMsg);
           setStep(1);
           setTimeout(() => {
             const element = document.getElementById('registrationNumber');
-            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              element.focus?.();
+            }
+          }, 150);
         } else {
           form.setFieldError('email', errorMsg);
           setStep(1);
           setTimeout(() => {
             const element = document.getElementById('email');
-            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              element.focus?.();
+            }
+          }, 150);
         }
       }
       console.error('Error submitting registration:', error);
@@ -218,14 +273,12 @@ const AttendeeApply = () => {
 
   const handleNext = async () => {
     if (error) clearError();
-    form.setErrors({});
-    let isValid = true;
+    const newErrors = {};
     let firstErrorField = null;
 
     const checkError = (condition, field, message) => {
       if (condition) {
-        form.setFieldError(field, message);
-        isValid = false;
+        newErrors[field] = message;
         if (!firstErrorField) firstErrorField = field;
       }
     };
@@ -255,21 +308,27 @@ const AttendeeApply = () => {
     }
 
     if (form.values.ticketType === 'Internal' && isInternalFull) {
-      form.setFieldError('name', 'Internal ticket slots for KARE students are completely full.');
+      newErrors.name = 'Internal ticket slots for KARE students are completely full.';
+      form.setErrors(newErrors);
       return;
     }
     if (form.values.ticketType === 'External' && isExternalFull) {
-      form.setFieldError('name', 'External ticket slots are completely full.');
+      newErrors.name = 'External ticket slots are completely full.';
+      form.setErrors(newErrors);
       return;
     }
 
     // Stop if any client-side format checks fail
-    if (!isValid) {
+    if (Object.keys(newErrors).length > 0) {
+      form.setErrors(newErrors);
       if (firstErrorField) {
-        const errorElement = document.getElementById(firstErrorField);
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        setTimeout(() => {
+          const errorElement = document.getElementById(firstErrorField);
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorElement.focus?.();
+          }
+        }, 50);
       }
       return;
     }
@@ -284,36 +343,41 @@ const AttendeeApply = () => {
       });
 
       const availability = res.data?.data;
-      let duplicateFound = false;
+      const dupErrors = {};
+      let firstDupField = null;
 
       if (availability?.emailExists) {
-        form.setFieldError('email', 'An attendee with this email is already registered.');
-        duplicateFound = true;
-        if (!firstErrorField) firstErrorField = 'email';
+        dupErrors.email = 'An attendee with this email is already registered.';
+        if (!firstDupField) firstDupField = 'email';
       }
 
       if (availability?.registrationNumberExists) {
-        form.setFieldError('registrationNumber', 'A student with this registration number is already registered.');
-        duplicateFound = true;
-        if (!firstErrorField) firstErrorField = 'registrationNumber';
+        dupErrors.registrationNumber = 'A student with this registration number is already registered.';
+        if (!firstDupField) firstDupField = 'registrationNumber';
       }
 
-      if (duplicateFound) {
-        if (firstErrorField) {
-          const errorElement = document.getElementById(firstErrorField);
-          if (errorElement) {
-            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+      if (Object.keys(dupErrors).length > 0) {
+        form.setErrors(dupErrors);
+        if (firstDupField) {
+          setTimeout(() => {
+            const errorElement = document.getElementById(firstDupField);
+            if (errorElement) {
+              errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              errorElement.focus?.();
+            }
+          }, 50);
         }
         return; // BLOCK MOVING TO PAYMENT PAGE
       }
 
       // Valid and unique - proceed to payment
+      form.setErrors({});
       setStep(2);
       window.scrollTo(0, 0);
     } catch (err) {
       console.error('Error verifying registration availability:', err);
       // Fallback on network timeout
+      form.setErrors({});
       setStep(2);
       window.scrollTo(0, 0);
     } finally {
@@ -449,17 +513,90 @@ const AttendeeApply = () => {
           </motion.div>
         )}
 
-        {error && (
+        {/* ERROR NOTIFICATION BANNER */}
+        {(error || Object.keys(form.errors).length > 0) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300 flex justify-between items-center"
+            className="mb-8 p-5 bg-red-950/40 border border-red-500/50 rounded-2xl text-red-200 backdrop-blur-md shadow-2xl shadow-red-950/40"
           >
-            <div>
-              <p className="font-semibold">Error</p>
-              <p className="text-sm mt-1">{error}</p>
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0 text-red-400 font-bold text-sm">
+                  ⚠️
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-base">
+                    {Object.keys(form.errors).length > 0
+                      ? 'Please Check the Highlighted Fields'
+                      : 'Registration Error'}
+                  </h4>
+                  <p className="text-xs text-red-300/90 mt-0.5">
+                    {error || 'Some required information is missing or invalid. Please correct the fields below.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (error) clearError();
+                  form.setErrors({});
+                }}
+                className="text-gray-400 hover:text-white transition-colors p-1 text-sm font-semibold rounded-md hover:bg-white/10"
+                title="Dismiss"
+              >
+                ✕
+              </button>
             </div>
-            <button onClick={clearError} className="text-red-300 hover:text-red-200 font-bold text-lg">✕</button>
+
+            {Object.keys(form.errors).length > 0 && (
+              <div className="mt-4 pt-3 border-t border-red-500/20">
+                <p className="text-[11px] uppercase tracking-wider font-semibold text-red-400 mb-2">
+                  Click a field below to jump directly to it:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {Object.entries(form.errors).map(([field, msg]) => {
+                    const label = FIELD_LABELS[field] || field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+                    return (
+                      <button
+                        key={field}
+                        type="button"
+                        onClick={() => {
+                          const step1Fields = [
+                            'name', 'email', 'phone', 'linkedin', 'registrationNumber',
+                            'department', 'hostelDayScholar', 'hostelName', 'wardenContact',
+                            'roomNumber', 'address', 'category', 'organization'
+                          ];
+                          if (step1Fields.includes(field) && step !== 1) {
+                            setStep(1);
+                          } else if (!step1Fields.includes(field) && step !== 2) {
+                            setStep(2);
+                          }
+                          setTimeout(() => {
+                            const el = document.getElementById(field);
+                            if (el) {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              el.focus?.();
+                            }
+                          }, 100);
+                        }}
+                        className="flex items-start gap-2 p-2.5 rounded-xl bg-red-900/20 hover:bg-red-900/40 border border-red-500/30 text-left transition-all group cursor-pointer"
+                      >
+                        <span className="text-red-400 font-bold shrink-0 text-xs mt-0.5">✕</span>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-white block text-xs group-hover:text-red-300">
+                            {label}
+                          </span>
+                          <span className="text-red-300 text-[11px] block break-words">
+                            {msg}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -579,7 +716,7 @@ const AttendeeApply = () => {
                         type="text"
                         id="name"
                         name="name"
-                        className={`input-field ${form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.name ? 'input-error' : ''}`}
                         value={form.values.name}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -597,7 +734,7 @@ const AttendeeApply = () => {
                         type="text"
                         id="registrationNumber"
                         name="registrationNumber"
-                        className={`input-field ${form.errors.registrationNumber ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.registrationNumber ? 'input-error' : ''}`}
                         value={form.values.registrationNumber}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -615,7 +752,7 @@ const AttendeeApply = () => {
                         type="email"
                         id="email"
                         name="email"
-                        className={`input-field ${form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.email ? 'input-error' : ''}`}
                         value={form.values.email}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -633,7 +770,7 @@ const AttendeeApply = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        className={`input-field ${form.errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.phone ? 'input-error' : ''}`}
                         value={form.values.phone}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -651,7 +788,7 @@ const AttendeeApply = () => {
                         id="department"
                         name="department"
                         className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
-                          form.errors.department ? 'border-red-500 ring-1 ring-red-500' : ''
+                          form.errors.department ? 'input-error' : ''
                         }`}
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
@@ -673,7 +810,7 @@ const AttendeeApply = () => {
                     </div>
 
                     {/* Hostel / Day Scholar Selector */}
-                    <div className="form-group md:col-span-2">
+                    <div id="hostelDayScholar" className="form-group md:col-span-2">
                       <label className="form-label mb-2 block">Hostel / Day Scholar *</label>
                       <div className="grid grid-cols-2 gap-4">
                         <button
@@ -721,7 +858,7 @@ const AttendeeApply = () => {
                               type="text"
                               id="hostelName"
                               name="hostelName"
-                              className={`input-field ${form.errors.hostelName ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                              className={`input-field ${form.errors.hostelName ? 'input-error' : ''}`}
                               value={form.values.hostelName}
                               onChange={handleInputChange}
                               onBlur={form.handleBlur}
@@ -738,7 +875,7 @@ const AttendeeApply = () => {
                               type="text"
                               id="roomNumber"
                               name="roomNumber"
-                              className={`input-field ${form.errors.roomNumber ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                              className={`input-field ${form.errors.roomNumber ? 'input-error' : ''}`}
                               value={form.values.roomNumber}
                               onChange={handleInputChange}
                               onBlur={form.handleBlur}
@@ -755,7 +892,7 @@ const AttendeeApply = () => {
                               type="tel"
                               id="wardenContact"
                               name="wardenContact"
-                              className={`input-field ${form.errors.wardenContact ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                              className={`input-field ${form.errors.wardenContact ? 'input-error' : ''}`}
                               value={form.values.wardenContact}
                               onChange={handleInputChange}
                               onBlur={form.handleBlur}
@@ -778,7 +915,7 @@ const AttendeeApply = () => {
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className={`input-field ${form.errors.linkedin ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.linkedin ? 'input-error' : ''}`}
                         value={form.values.linkedin}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -807,7 +944,7 @@ const AttendeeApply = () => {
                         type="text"
                         id="name"
                         name="name"
-                        className={`input-field ${form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.name ? 'input-error' : ''}`}
                         value={form.values.name}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -825,7 +962,7 @@ const AttendeeApply = () => {
                         type="email"
                         id="email"
                         name="email"
-                        className={`input-field ${form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.email ? 'input-error' : ''}`}
                         value={form.values.email}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -843,7 +980,7 @@ const AttendeeApply = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        className={`input-field ${form.errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.phone ? 'input-error' : ''}`}
                         value={form.values.phone}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -861,7 +998,7 @@ const AttendeeApply = () => {
                         id="address"
                         name="address"
                         rows="3"
-                        className={`input-field resize-none ${form.errors.address ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field resize-none ${form.errors.address ? 'input-error' : ''}`}
                         value={form.values.address}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -879,7 +1016,7 @@ const AttendeeApply = () => {
                         id="category"
                         name="category"
                         className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
-                          form.errors.category ? 'border-red-500 ring-1 ring-red-500' : ''
+                          form.errors.category ? 'input-error' : ''
                         }`}
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
@@ -909,7 +1046,7 @@ const AttendeeApply = () => {
                         type="text"
                         id="organization"
                         name="organization"
-                        className={`input-field ${form.errors.organization ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.organization ? 'input-error' : ''}`}
                         value={form.values.organization}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -929,7 +1066,7 @@ const AttendeeApply = () => {
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className={`input-field ${form.errors.linkedin ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                        className={`input-field ${form.errors.linkedin ? 'input-error' : ''}`}
                         value={form.values.linkedin}
                         onChange={handleInputChange}
                         onBlur={form.handleBlur}
@@ -978,7 +1115,7 @@ const AttendeeApply = () => {
                       type="text"
                       id="transactionId"
                       name="transactionId"
-                      className={`input-field ${form.errors.transactionId ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      className={`input-field ${form.errors.transactionId ? 'input-error' : ''}`}
                       value={form.values.transactionId}
                       onChange={handleInputChange}
                       onBlur={form.handleBlur}
@@ -1040,7 +1177,7 @@ const AttendeeApply = () => {
                           name="paymentScreenshot"
                           accept="image/*"
                           className={`input-field file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-ted-red file:text-white hover:file:bg-red-700 cursor-pointer ${
-                            form.errors.paymentScreenshot ? 'border-red-500 ring-1 ring-red-500' : ''
+                            form.errors.paymentScreenshot ? 'input-error' : ''
                           }`}
                           onChange={handleFileChange}
                           disabled={loading}

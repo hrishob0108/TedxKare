@@ -25,15 +25,25 @@ export const useApi = () => {
       
       if (err.response?.status === 409) {
         // Duplicate submission
-        errorMessage = err.response?.data?.message || 'This email has already been submitted';
+        errorMessage = err.response?.data?.message || 'This email or registration number has already been registered';
       } else if (err.response?.status === 429) {
         // Rate limit
         errorMessage = err.response?.data?.message || 'Too many requests. Please try again later';
+      } else if (Array.isArray(err.response?.data?.details) && err.response.data.details.length > 0) {
+        // Specific field validation details from backend
+        const detailList = Array.from(
+          new Set(
+            err.response.data.details
+              .map((d) => (d.field ? `${d.field}: ${d.message}` : d.message))
+              .filter(Boolean)
+          )
+        );
+        errorMessage = detailList.join(' | ') || err.response?.data?.message || err.response?.data?.error || 'Validation failed';
       } else {
         errorMessage =
           err.response?.data?.message ||
+          err.response?.data?.userMessage ||
           err.response?.data?.error ||
-          err.response?.data?.details?.[0]?.message ||
           err.message ||
           'An error occurred';
       }

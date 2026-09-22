@@ -82,8 +82,13 @@ export const getAttendeeById = async (req, res, next) => {
 // ==================== IN-MEMORY MUTEX ====================
 // This prevents race conditions when multiple users submit exactly at the same time
 let isRegistering = false;
-const waitForLock = async () => {
+const waitForLock = async (timeoutMs = 5000) => {
+  const start = Date.now();
   while (isRegistering) {
+    if (Date.now() - start > timeoutMs) {
+      isRegistering = false;
+      break;
+    }
     await new Promise(resolve => setTimeout(resolve, 50));
   }
   isRegistering = true;
@@ -162,7 +167,6 @@ export const createRegistration = async (req, res, next) => {
           status: { $ne: 'Rejected' },
         });
         if (internalCount >= internalLimit) {
-          releaseLock();
           return res.status(403).json({
             error: 'Internal ticket limit reached',
             message: `All ${internalLimit} internal ticket slots for KARE students have been filled. Registration is full.`,
@@ -174,7 +178,6 @@ export const createRegistration = async (req, res, next) => {
           status: { $ne: 'Rejected' },
         });
         if (externalCount >= externalLimit) {
-          releaseLock();
           return res.status(403).json({
             error: 'External ticket limit reached',
             message: `All ${externalLimit} external ticket slots have been filled. Registration is full.`,
@@ -186,6 +189,7 @@ export const createRegistration = async (req, res, next) => {
       if (!errors.isEmpty()) {
         return res.status(400).json({
           error: 'Validation failed',
+          userMessage: 'Please correct the highlighted fields and try again.',
           details: errors.array().map((err) => ({
             field: err.path || err.param,
             message: err.msg,
@@ -207,7 +211,6 @@ export const createRegistration = async (req, res, next) => {
         status: { $ne: 'Rejected' },
       });
       if (existingAttendee) {
-        releaseLock();
         return res.status(409).json({
           error: 'Email already registered',
           message: 'An attendee with this email address has already registered for this event.',
@@ -221,7 +224,6 @@ export const createRegistration = async (req, res, next) => {
           status: { $ne: 'Rejected' },
         });
         if (existingRegNo) {
-          releaseLock();
           return res.status(409).json({
             error: 'Registration number already registered',
             message: 'A student with this registration number has already registered for this event.',
@@ -244,7 +246,6 @@ export const createRegistration = async (req, res, next) => {
         });
 
         if (recentRegs >= 10) {
-          releaseLock();
           return res.status(429).json({
             error: 'Too many registrations from your network',
             message: 'Please try again later.',
@@ -262,9 +263,6 @@ export const createRegistration = async (req, res, next) => {
       const attendee = new Attendee(attendeeData);
       await attendee.save();
 
-      // Release lock so the next person in line can register
-      releaseLock();
-
       res.status(201).json({
         success: true,
         message: 'Registration submitted successfully',
@@ -276,10 +274,9 @@ export const createRegistration = async (req, res, next) => {
           ticketType: attendee.ticketType,
         },
       });
-    } catch (err) {
-      // In case of a database error or validation crash, release the lock
+    } finally {
+      // Always release lock under every circumstance
       releaseLock();
-      throw err;
     }
   } catch (error) {
     next(error);
