@@ -1,6 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import {
+  checkAvailability,
   getAllAttendees,
   getAttendeeById,
   createRegistration,
@@ -104,6 +105,7 @@ const registrationValidation = [
 ];
 
 // Public
+router.post('/check-availability', checkAvailability);
 router.post('/', registrationLimiter, registrationValidation, createRegistration);
 
 // Admin Only

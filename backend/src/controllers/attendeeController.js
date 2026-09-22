@@ -92,6 +92,48 @@ const releaseLock = () => {
   isRegistering = false;
 };
 
+// ==================== CHECK AVAILABILITY ====================
+// Public: Pre-flight check to verify if email or registration number is already registered
+export const checkAvailability = async (req, res, next) => {
+  try {
+    const { email, registrationNumber, ticketType } = req.body;
+
+    const results = {
+      emailExists: false,
+      registrationNumberExists: false,
+    };
+
+    if (email) {
+      const normalizedEmail = email.toLowerCase().trim();
+      const existingEmail = await Attendee.findOne({
+        email: normalizedEmail,
+        status: { $ne: 'Rejected' },
+      });
+      if (existingEmail) {
+        results.emailExists = true;
+      }
+    }
+
+    if (ticketType === 'Internal' && registrationNumber) {
+      const normalizedRegNo = registrationNumber.trim();
+      const existingRegNo = await Attendee.findOne({
+        registrationNumber: { $regex: new RegExp(`^${normalizedRegNo}$`, 'i') },
+        status: { $ne: 'Rejected' },
+      });
+      if (existingRegNo) {
+        results.registrationNumberExists = true;
+      }
+    }
+
+    res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ==================== CREATE NEW ATTENDEE REGISTRATION ====================
 export const createRegistration = async (req, res, next) => {
   try {
@@ -159,13 +201,32 @@ export const createRegistration = async (req, res, next) => {
         });
       }
 
-      const existingAttendee = await Attendee.findOne({ email: req.body.email });
+      const normalizedEmail = req.body.email ? req.body.email.toLowerCase().trim() : '';
+      const existingAttendee = await Attendee.findOne({
+        email: normalizedEmail,
+        status: { $ne: 'Rejected' },
+      });
       if (existingAttendee) {
         releaseLock();
         return res.status(409).json({
           error: 'Email already registered',
-          message: 'You have already registered for this event with this email address.',
+          message: 'An attendee with this email address has already registered for this event.',
         });
+      }
+
+      if (ticketType === 'Internal' && req.body.registrationNumber) {
+        const normalizedRegNo = req.body.registrationNumber.trim();
+        const existingRegNo = await Attendee.findOne({
+          registrationNumber: { $regex: new RegExp(`^${normalizedRegNo}$`, 'i') },
+          status: { $ne: 'Rejected' },
+        });
+        if (existingRegNo) {
+          releaseLock();
+          return res.status(409).json({
+            error: 'Registration number already registered',
+            message: 'A student with this registration number has already registered for this event.',
+          });
+        }
       }
 
       const ipAddress =
@@ -334,6 +395,7 @@ export const getStatistics = async (req, res, next) => {
 };
 
 export default {
+  checkAvailability,
   getAllAttendees,
   getAttendeeById,
   createRegistration,

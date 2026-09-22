@@ -72,14 +72,14 @@ export const useForm = (initialValues, onSubmit) => {
       [name]: val,
     }));
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
-  }, [errors]);
+    // Instantly remove field error when user starts typing
+    setErrors((prev) => {
+      if (!prev || !prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }, []);
 
   const handleBlur = useCallback((e) => {
     const { name } = e.target;
@@ -110,6 +110,14 @@ export const useForm = (initialValues, onSubmit) => {
       ...prev,
       [name]: value,
     }));
+
+    // Instantly remove field error when field value is updated
+    setErrors((prev) => {
+      if (!prev || !prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
   }, []);
 
   const setFieldError = useCallback((name, error) => {

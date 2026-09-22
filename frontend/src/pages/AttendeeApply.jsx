@@ -47,6 +47,7 @@ const AttendeeApply = () => {
   const [externalSlots, setExternalSlots] = useState(40);
   const [isInternalFull, setIsInternalFull] = useState(false);
   const [isExternalFull, setIsExternalFull] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
   const checkStatus = async () => {
     setConnectionError(false);
@@ -185,6 +186,24 @@ const AttendeeApply = () => {
             if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 100);
         }
+      } else if (error.response?.status === 409) {
+        const errorMsg = error.response?.data?.message || 'Already registered';
+        const errType = error.response?.data?.error;
+        if (errType?.includes('Registration number') || errorMsg?.toLowerCase().includes('registration number')) {
+          form.setFieldError('registrationNumber', errorMsg);
+          setStep(1);
+          setTimeout(() => {
+            const element = document.getElementById('registrationNumber');
+            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        } else {
+          form.setFieldError('email', errorMsg);
+          setStep(1);
+          setTimeout(() => {
+            const element = document.getElementById('email');
+            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
       }
       console.error('Error submitting registration:', error);
     }
@@ -192,7 +211,13 @@ const AttendeeApply = () => {
 
   const form = useForm(initialValues, onSubmit);
 
-  const handleNext = () => {
+  const handleInputChange = (e) => {
+    if (error) clearError();
+    form.handleChange(e);
+  };
+
+  const handleNext = async () => {
+    if (error) clearError();
     form.setErrors({});
     let isValid = true;
     let firstErrorField = null;
@@ -238,19 +263,66 @@ const AttendeeApply = () => {
       return;
     }
 
-    if (isValid) {
+    // Stop if any client-side format checks fail
+    if (!isValid) {
+      if (firstErrorField) {
+        const errorElement = document.getElementById(firstErrorField);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return;
+    }
+
+    // Pre-flight check: verify email and registration number uniqueness
+    try {
+      setIsCheckingAvailability(true);
+      const res = await attendeeAPI.checkAvailability({
+        email: form.values.email,
+        registrationNumber: form.values.ticketType === 'Internal' ? form.values.registrationNumber : undefined,
+        ticketType: form.values.ticketType,
+      });
+
+      const availability = res.data?.data;
+      let duplicateFound = false;
+
+      if (availability?.emailExists) {
+        form.setFieldError('email', 'An attendee with this email is already registered.');
+        duplicateFound = true;
+        if (!firstErrorField) firstErrorField = 'email';
+      }
+
+      if (availability?.registrationNumberExists) {
+        form.setFieldError('registrationNumber', 'A student with this registration number is already registered.');
+        duplicateFound = true;
+        if (!firstErrorField) firstErrorField = 'registrationNumber';
+      }
+
+      if (duplicateFound) {
+        if (firstErrorField) {
+          const errorElement = document.getElementById(firstErrorField);
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+        return; // BLOCK MOVING TO PAYMENT PAGE
+      }
+
+      // Valid and unique - proceed to payment
       setStep(2);
       window.scrollTo(0, 0);
-    } else if (firstErrorField) {
-      const errorElement = document.getElementById(firstErrorField);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    } catch (err) {
+      console.error('Error verifying registration availability:', err);
+      // Fallback on network timeout
+      setStep(2);
+      window.scrollTo(0, 0);
+    } finally {
+      setIsCheckingAvailability(false);
     }
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -261,7 +333,7 @@ const AttendeeApply = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       form.setFieldValue('paymentScreenshot', reader.result);
-      form.setFieldError('paymentScreenshot', '');
+      if (error) clearError();
     };
     reader.readAsDataURL(file);
   };
@@ -409,6 +481,7 @@ const AttendeeApply = () => {
                     disabled={isInternalFull}
                     onClick={() => {
                       if (isInternalFull) return;
+                      if (error) clearError();
                       form.setFieldValue('ticketType', 'Internal');
                       form.setErrors({});
                     }}
@@ -450,6 +523,7 @@ const AttendeeApply = () => {
                     disabled={isExternalFull}
                     onClick={() => {
                       if (isExternalFull) return;
+                      if (error) clearError();
                       form.setFieldValue('ticketType', 'External');
                       form.setErrors({});
                     }}
@@ -505,9 +579,9 @@ const AttendeeApply = () => {
                         type="text"
                         id="name"
                         name="name"
-                        className="input-field"
+                        className={`input-field ${form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.name}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -523,9 +597,9 @@ const AttendeeApply = () => {
                         type="text"
                         id="registrationNumber"
                         name="registrationNumber"
-                        className="input-field"
+                        className={`input-field ${form.errors.registrationNumber ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.registrationNumber}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -541,9 +615,9 @@ const AttendeeApply = () => {
                         type="email"
                         id="email"
                         name="email"
-                        className="input-field"
+                        className={`input-field ${form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.email}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -559,9 +633,9 @@ const AttendeeApply = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        className="input-field"
+                        className={`input-field ${form.errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.phone}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -576,12 +650,14 @@ const AttendeeApply = () => {
                       <select
                         id="department"
                         name="department"
-                        className="input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10"
+                        className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
+                          form.errors.department ? 'border-red-500 ring-1 ring-red-500' : ''
+                        }`}
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
                         }}
                         value={form.values.department}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -602,7 +678,10 @@ const AttendeeApply = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <button
                           type="button"
-                          onClick={() => form.setFieldValue('hostelDayScholar', 'Hostel')}
+                          onClick={() => {
+                            if (error) clearError();
+                            form.setFieldValue('hostelDayScholar', 'Hostel');
+                          }}
                           className={`py-3 px-4 rounded-xl border text-center font-semibold transition-all ${
                             form.values.hostelDayScholar === 'Hostel'
                               ? 'bg-ted-red text-white border-ted-red shadow-lg shadow-ted-red/20'
@@ -613,7 +692,10 @@ const AttendeeApply = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => form.setFieldValue('hostelDayScholar', 'Day Scholar')}
+                          onClick={() => {
+                            if (error) clearError();
+                            form.setFieldValue('hostelDayScholar', 'Day Scholar');
+                          }}
                           className={`py-3 px-4 rounded-xl border text-center font-semibold transition-all ${
                             form.values.hostelDayScholar === 'Day Scholar'
                               ? 'bg-ted-red text-white border-ted-red shadow-lg shadow-ted-red/20'
@@ -639,9 +721,9 @@ const AttendeeApply = () => {
                               type="text"
                               id="hostelName"
                               name="hostelName"
-                              className="input-field"
+                              className={`input-field ${form.errors.hostelName ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                               value={form.values.hostelName}
-                              onChange={form.handleChange}
+                              onChange={handleInputChange}
                               onBlur={form.handleBlur}
                               required
                               disabled={loading}
@@ -656,9 +738,9 @@ const AttendeeApply = () => {
                               type="text"
                               id="roomNumber"
                               name="roomNumber"
-                              className="input-field"
+                              className={`input-field ${form.errors.roomNumber ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                               value={form.values.roomNumber}
-                              onChange={form.handleChange}
+                              onChange={handleInputChange}
                               onBlur={form.handleBlur}
                               required
                               disabled={loading}
@@ -673,9 +755,9 @@ const AttendeeApply = () => {
                               type="tel"
                               id="wardenContact"
                               name="wardenContact"
-                              className="input-field"
+                              className={`input-field ${form.errors.wardenContact ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                               value={form.values.wardenContact}
-                              onChange={form.handleChange}
+                              onChange={handleInputChange}
                               onBlur={form.handleBlur}
                               required
                               disabled={loading}
@@ -696,9 +778,9 @@ const AttendeeApply = () => {
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className="input-field"
+                        className={`input-field ${form.errors.linkedin ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.linkedin}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         disabled={loading}
                         placeholder="https://linkedin.com/in/yourprofile (optional)"
@@ -725,9 +807,9 @@ const AttendeeApply = () => {
                         type="text"
                         id="name"
                         name="name"
-                        className="input-field"
+                        className={`input-field ${form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.name}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -743,9 +825,9 @@ const AttendeeApply = () => {
                         type="email"
                         id="email"
                         name="email"
-                        className="input-field"
+                        className={`input-field ${form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.email}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -761,9 +843,9 @@ const AttendeeApply = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        className="input-field"
+                        className={`input-field ${form.errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.phone}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -779,9 +861,9 @@ const AttendeeApply = () => {
                         id="address"
                         name="address"
                         rows="3"
-                        className="input-field resize-none"
+                        className={`input-field resize-none ${form.errors.address ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.address}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -796,12 +878,14 @@ const AttendeeApply = () => {
                       <select
                         id="category"
                         name="category"
-                        className="input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10"
+                        className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
+                          form.errors.category ? 'border-red-500 ring-1 ring-red-500' : ''
+                        }`}
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
                         }}
                         value={form.values.category}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -825,9 +909,9 @@ const AttendeeApply = () => {
                         type="text"
                         id="organization"
                         name="organization"
-                        className="input-field"
+                        className={`input-field ${form.errors.organization ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.organization}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
@@ -845,9 +929,9 @@ const AttendeeApply = () => {
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className="input-field"
+                        className={`input-field ${form.errors.linkedin ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         value={form.values.linkedin}
-                        onChange={form.handleChange}
+                        onChange={handleInputChange}
                         onBlur={form.handleBlur}
                         disabled={loading}
                         placeholder="https://linkedin.com/in/yourprofile (optional)"
@@ -894,9 +978,9 @@ const AttendeeApply = () => {
                       type="text"
                       id="transactionId"
                       name="transactionId"
-                      className="input-field"
+                      className={`input-field ${form.errors.transactionId ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                       value={form.values.transactionId}
-                      onChange={form.handleChange}
+                      onChange={handleInputChange}
                       onBlur={form.handleBlur}
                       required
                       disabled={loading}
@@ -907,22 +991,63 @@ const AttendeeApply = () => {
 
                   <div className="form-group">
                     <label htmlFor="paymentScreenshot" className="form-label">Payment Screenshot *</label>
-                    <input
-                      type="file"
-                      id="paymentScreenshot"
-                      name="paymentScreenshot"
-                      accept="image/*"
-                      className="input-field file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-ted-red file:text-white hover:file:bg-red-700 cursor-pointer"
-                      onChange={handleFileChange}
-                      required
-                      disabled={loading}
-                    />
-                    {form.errors.paymentScreenshot && <p className="form-error">{form.errors.paymentScreenshot}</p>}
-                    {form.values.paymentScreenshot && (
-                      <p className="text-green-400 text-xs mt-1.5 flex items-center gap-1 font-semibold">
-                        ✓ Screenshot successfully attached
-                      </p>
+                    {form.values.paymentScreenshot ? (
+                      <div className="border border-green-500/40 bg-black/60 p-4 rounded-xl flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <img
+                            src={form.values.paymentScreenshot}
+                            alt="Payment Proof"
+                            className="w-16 h-16 object-cover rounded-lg border border-gray-700 shadow-md shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-green-400 font-semibold text-sm flex items-center gap-1">
+                              ✓ Screenshot Attached
+                            </p>
+                            <p className="text-gray-400 text-xs truncate mt-0.5">Image proof ready for verification</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <label
+                            htmlFor="paymentScreenshot"
+                            className="cursor-pointer px-3 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors"
+                          >
+                            Change File
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => form.setFieldValue('paymentScreenshot', '')}
+                            className="px-2.5 py-2 text-xs font-semibold rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-800/40 transition-colors"
+                            title="Remove attached screenshot"
+                          >
+                            ✕
+                          </button>
+                          <input
+                            type="file"
+                            id="paymentScreenshot"
+                            name="paymentScreenshot"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange}
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          type="file"
+                          id="paymentScreenshot"
+                          name="paymentScreenshot"
+                          accept="image/*"
+                          className={`input-field file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-ted-red file:text-white hover:file:bg-red-700 cursor-pointer ${
+                            form.errors.paymentScreenshot ? 'border-red-500 ring-1 ring-red-500' : ''
+                          }`}
+                          onChange={handleFileChange}
+                          disabled={loading}
+                        />
+                      </div>
                     )}
+                    {form.errors.paymentScreenshot && <p className="form-error">{form.errors.paymentScreenshot}</p>}
                   </div>
                 </div>
               </div>
@@ -947,10 +1072,18 @@ const AttendeeApply = () => {
               <>
                 <button
                   type="button"
+                  disabled={isCheckingAvailability}
                   onClick={handleNext}
-                  className="btn-primary flex-1 py-4 text-lg font-semibold bg-ted-red hover:bg-red-700 text-white rounded-xl transition-all shadow-lg shadow-ted-red/20"
+                  className="btn-primary flex-1 py-4 text-lg font-semibold bg-ted-red hover:bg-red-700 text-white rounded-xl transition-all shadow-lg shadow-ted-red/20 disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  Proceed to Payment →
+                  {isCheckingAvailability ? (
+                    <>
+                      <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      Checking details...
+                    </>
+                  ) : (
+                    'Proceed to Payment →'
+                  )}
                 </button>
                 <button
                   type="button"
