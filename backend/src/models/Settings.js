@@ -20,8 +20,16 @@ const settingsSchema = new mongoose.Schema(
     },
     attendeeLimit: {
       type: Number,
-      default: 90,
-    }
+      default: 100,
+    },
+    internalAttendeeLimit: {
+      type: Number,
+      default: 60,
+    },
+    externalAttendeeLimit: {
+      type: Number,
+      default: 40,
+    },
   },
   {
     timestamps: true,

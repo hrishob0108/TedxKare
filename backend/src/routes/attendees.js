@@ -23,20 +23,84 @@ const registrationLimiter = rateLimit({
 });
 
 const registrationValidation = [
-  body('name').trim().notEmpty().withMessage('Name is required').isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
-  body('age').isNumeric().withMessage('Age must be a number'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('phone').trim().notEmpty().withMessage('Phone number is required'),
-  body('linkedin').trim().notEmpty().withMessage('LinkedIn profile is required'),
-  body('address').trim().notEmpty().withMessage('Address is required'),
-  body('occupation').trim().notEmpty().withMessage('Occupation is required'),
-  body('organization').trim().notEmpty().withMessage('Organization is required'),
-  body('designation').trim().notEmpty().withMessage('Designation is required'),
-  body('year').if((val, { req }) => req.body.occupation === 'Student').trim().notEmpty().withMessage('Year of study is required for students'),
-  body('registrationNumber').if((val, { req }) => req.body.occupation === 'Student').trim().notEmpty().withMessage('Registration number is required for students'),
-  body('source').trim().notEmpty().withMessage('Source is required'),
-  body('transactionId').trim().notEmpty().withMessage('Transaction ID is required'),
-  body('paymentScreenshot').notEmpty().withMessage('Payment screenshot is required'),
+  body('ticketType')
+    .optional()
+    .isIn(['Internal', 'External'])
+    .withMessage('Ticket type must be Internal or External'),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Full name is required')
+    .isLength({ min: 2 })
+    .withMessage('Full name must be at least 2 characters'),
+  body('email')
+    .isEmail()
+    .withMessage('Valid email ID is required'),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Mobile number is required')
+    .matches(/^[0-9+\s()-]{10,15}$/)
+    .withMessage('Please enter a valid mobile number (at least 10 digits)'),
+  body('linkedin')
+    .optional({ checkFalsy: true })
+    .trim(),
+
+  // Internal ticket validations
+  body('registrationNumber')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal')
+    .trim()
+    .notEmpty()
+    .withMessage('Registration number is required'),
+  body('department')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal')
+    .trim()
+    .notEmpty()
+    .withMessage('Department is required'),
+  body('hostelDayScholar')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal')
+    .isIn(['Hostel', 'Day Scholar'])
+    .withMessage('Please select Hostel or Day Scholar'),
+  body('hostelName')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal' && req.body.hostelDayScholar === 'Hostel')
+    .trim()
+    .notEmpty()
+    .withMessage('Hostel name is required'),
+  body('wardenContact')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal' && req.body.hostelDayScholar === 'Hostel')
+    .trim()
+    .notEmpty()
+    .withMessage('Warden contact number is required'),
+  body('roomNumber')
+    .if((val, { req }) => (req.body.ticketType || 'Internal') === 'Internal' && req.body.hostelDayScholar === 'Hostel')
+    .trim()
+    .notEmpty()
+    .withMessage('Room number is required'),
+
+  // External ticket validations
+  body('address')
+    .if((val, { req }) => req.body.ticketType === 'External')
+    .trim()
+    .notEmpty()
+    .withMessage('Address is required'),
+  body('category')
+    .if((val, { req }) => req.body.ticketType === 'External')
+    .isIn(['Student', 'Founder', 'Faculty', 'Business Professional', 'Other'])
+    .withMessage('Valid category is required'),
+  body('organization')
+    .if((val, { req }) => req.body.ticketType === 'External')
+    .trim()
+    .notEmpty()
+    .withMessage('Organization / Startup / Company Name is required'),
+
+  // Payment validations
+  body('transactionId')
+    .trim()
+    .notEmpty()
+    .withMessage('Transaction ID is required'),
+  body('paymentScreenshot')
+    .notEmpty()
+    .withMessage('Payment screenshot is required'),
 ];
 
 // Public

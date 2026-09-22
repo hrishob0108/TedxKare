@@ -13,9 +13,13 @@ export const getAllAttendees = async (req, res, next) => {
       });
     }
 
-    const { occupation, status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { ticketType, occupation, status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
     const filter = {};
+
+    if (ticketType && ticketType !== 'All') {
+      filter.ticketType = ticketType;
+    }
 
     if (occupation && occupation !== 'All') {
       filter.occupation = occupation;
@@ -29,7 +33,12 @@ export const getAllAttendees = async (req, res, next) => {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
+        { registrationNumber: { $regex: search, $options: 'i' } },
+        { department: { $regex: search, $options: 'i' } },
+        { organization: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
+        { transactionId: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -100,15 +109,35 @@ export const createRegistration = async (req, res, next) => {
     await waitForLock();
 
     try {
-      // Check attendee limit (excluding rejected applications)
-      const attendeeCount = await Attendee.countDocuments({ status: { $ne: 'Rejected' } });
-      const attendeeLimit = settings?.attendeeLimit ?? 90;
-      
-      if (attendeeCount >= attendeeLimit) {
-        return res.status(403).json({
-          error: 'Registration full',
-          message: `We have reached our maximum capacity of ${attendeeLimit} attendees. Registration is now closed.`,
+      // Check attendee limit for specific ticket type (excluding rejected applications)
+      const ticketType = req.body.ticketType || 'Internal';
+      const internalLimit = settings?.internalAttendeeLimit ?? 60;
+      const externalLimit = settings?.externalAttendeeLimit ?? 40;
+
+      if (ticketType === 'Internal') {
+        const internalCount = await Attendee.countDocuments({
+          ticketType: { $ne: 'External' },
+          status: { $ne: 'Rejected' },
         });
+        if (internalCount >= internalLimit) {
+          releaseLock();
+          return res.status(403).json({
+            error: 'Internal ticket limit reached',
+            message: `All ${internalLimit} internal ticket slots for KARE students have been filled. Registration is full.`,
+          });
+        }
+      } else {
+        const externalCount = await Attendee.countDocuments({
+          ticketType: 'External',
+          status: { $ne: 'Rejected' },
+        });
+        if (externalCount >= externalLimit) {
+          releaseLock();
+          return res.status(403).json({
+            error: 'External ticket limit reached',
+            message: `All ${externalLimit} external ticket slots have been filled. Registration is full.`,
+          });
+        }
       }
 
       const errors = validationResult(req);
@@ -164,6 +193,7 @@ export const createRegistration = async (req, res, next) => {
 
       const attendeeData = {
         ...req.body,
+        ticketType: req.body.ticketType || 'Internal',
         ipAddress,
         userAgent,
       };
@@ -181,6 +211,8 @@ export const createRegistration = async (req, res, next) => {
           id: attendee._id,
           name: attendee.name,
           email: attendee.email,
+          phone: attendee.phone,
+          ticketType: attendee.ticketType,
         },
       });
     } catch (err) {
@@ -264,6 +296,8 @@ export const getStatistics = async (req, res, next) => {
     const pendingAttendees = await Attendee.countDocuments({ status: 'Pending' });
     const approvedAttendees = await Attendee.countDocuments({ status: 'Approved' });
     const rejectedAttendees = await Attendee.countDocuments({ status: 'Rejected' });
+    const internalTickets = await Attendee.countDocuments({ ticketType: { $ne: 'External' } });
+    const externalTickets = await Attendee.countDocuments({ ticketType: 'External' });
 
     const attendeesByOccupation = await Attendee.aggregate([
       {
@@ -283,6 +317,10 @@ export const getStatistics = async (req, res, next) => {
           pending: pendingAttendees,
           approved: approvedAttendees,
           rejected: rejectedAttendees,
+        },
+        byTicketType: {
+          internal: internalTickets,
+          external: externalTickets,
         },
         occupations: attendeesByOccupation.map(item => ({
           type: item._id || 'Unknown',
