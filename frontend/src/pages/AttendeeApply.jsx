@@ -125,6 +125,7 @@ const AttendeeApply = () => {
     email: '',
     phone: '',
     linkedin: '',
+    agreeToCommunications: false,
 
     // Internal Ticket Specific
     registrationNumber: '',
@@ -366,6 +367,7 @@ const AttendeeApply = () => {
     checkError(!emailRegex.test(form.values.email), 'email', 'Valid email ID is required');
     const phoneRegex = /^[0-9+\s()-]{10,15}$/;
     checkError(!form.values.phone.trim() || !phoneRegex.test(form.values.phone.trim()), 'phone', 'Valid 10-digit mobile number is required');
+    checkError(!form.values.agreeToCommunications, 'agreeToCommunications', 'You must agree to provide your email address to TEDx.com');
 
     // Conditional validations based on Ticket Type
     if (form.values.ticketType === 'Internal') {
@@ -1161,8 +1163,35 @@ const AttendeeApply = () => {
                 </motion.div>
               )}
 
+              {/* TEDx.com Communications Agreement */}
+              <motion.div variants={itemVariants} className="mt-8 pt-6 border-t border-gray-800">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-1">
+                    <input
+                      type="checkbox"
+                      id="agreeToCommunications"
+                      name="agreeToCommunications"
+                      checked={form.values.agreeToCommunications}
+                      onChange={handleInputChange}
+                      className="peer sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border transition-all ${form.errors.agreeToCommunications ? 'border-red-500 bg-red-500/10' : 'border-gray-500 bg-gray-800 peer-checked:bg-ted-red peer-checked:border-ted-red'} flex items-center justify-center`}>
+                      {form.values.agreeToCommunications && (
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-gray-300 text-sm leading-relaxed select-none">
+                    I agree to provide my email address to <a href="http://TEDx.com" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline" onClick={e => e.stopPropagation()}>TEDx.com</a> to receive event feedback, event updates, and other related communications.
+                  </div>
+                </label>
+                {form.errors.agreeToCommunications && <p className="form-error mt-2">{form.errors.agreeToCommunications}</p>}
+              </motion.div>
+
               {/* ACTION BUTTON */}
-              <motion.div variants={itemVariants} className="flex justify-end pt-4">
+              <motion.div variants={itemVariants} className="flex justify-end pt-8">
                 <button
                   type="button"
                   onClick={handleNext}
