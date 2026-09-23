@@ -317,7 +317,7 @@ const AdminDashboard = () => {
       let filtered = attendees;
 
       if (filters.ticketType && filters.ticketType !== 'All') {
-        filtered = filtered.filter((att) => (att.ticketType || 'Internal') === filters.ticketType);
+        filtered = filtered.filter((att) => (filters.ticketType === 'Internal' ? att.ticketType !== 'External' : att.ticketType === 'External'));
       }
 
       if (filters.status !== 'All') {
@@ -488,8 +488,9 @@ const AdminDashboard = () => {
       exportToCSV(exportData, `tedxkare-applicants-${Date.now()}.csv`);
     } else if (activeTab === 'attendees') {
       const exportData = filteredAttendees.map((att) => ({
-        'Ticket Type': att.ticketType || 'Internal',
+        'Ticket Type': att.ticketType !== 'External' ? 'Internal' : 'External',
         Name: att.name,
+        Gender: att.gender || 'N/A',
         Email: att.email,
         'Mobile Number': att.phone || 'N/A',
         'Registration Number': att.registrationNumber || 'N/A',
@@ -1145,7 +1146,7 @@ const AdminDashboard = () => {
                 speakers.filter((s) => s.status === 'Pending').length
               ) : (
                 <>
-                  {attendees.filter((a) => (a.ticketType || 'Internal') === 'Internal' && a.status !== 'Rejected').length}
+                  {attendees.filter((a) => a.ticketType !== 'External' && a.status !== 'Rejected').length}
                   <span className="text-xl text-gray-500 font-medium">/ {internalAttendeeLimit}</span>
                 </>
               )}
@@ -1155,7 +1156,7 @@ const AdminDashboard = () => {
                 {Math.max(
                   0,
                   internalAttendeeLimit -
-                    attendees.filter((a) => (a.ticketType || 'Internal') === 'Internal' && a.status !== 'Rejected').length
+                    attendees.filter((a) => a.ticketType !== 'External' && a.status !== 'Rejected').length
                 )}{' '}
                 slots remaining
               </p>
@@ -1597,12 +1598,12 @@ const AdminDashboard = () => {
                       <div className="absolute top-2 left-2">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-bold border backdrop-blur-md ${
-                            (att.ticketType || 'Internal') === 'Internal'
+                            att.ticketType !== 'External'
                               ? 'bg-red-950/80 text-ted-red border-ted-red/40'
                               : 'bg-blue-950/80 text-blue-400 border-blue-500/40'
                           }`}
                         >
-                          {(att.ticketType || 'Internal') === 'Internal' ? '🎓 Internal' : '🌐 External'}
+                          {att.ticketType !== 'External' ? '🎓 Internal' : '🌐 External'}
                         </span>
                       </div>
                       <div className="absolute top-2 right-2">
@@ -1625,7 +1626,7 @@ const AdminDashboard = () => {
                         </p>
                       )}
                       
-                      {(att.ticketType || 'Internal') === 'Internal' ? (
+                      {att.ticketType !== 'External' ? (
                         <div className="mb-3 text-xs text-gray-400 space-y-0.5">
                           <p className="font-mono text-gray-300 font-semibold">{att.registrationNumber || 'N/A'}</p>
                           <p className="truncate text-gray-400">{att.department || 'N/A'}</p>
@@ -2381,7 +2382,7 @@ const AdminDashboard = () => {
               )}
 
               {/* TICKET DETAILS: INTERNAL VS EXTERNAL */}
-              {(selectedAttendee.ticketType || 'Internal') === 'Internal' ? (
+              {selectedAttendee.ticketType !== 'External' ? (
                 <>
                   {/* Internal Student Information */}
                   <div>
@@ -2390,6 +2391,10 @@ const AdminDashboard = () => {
                       <div>
                         <p className="text-gray-400">Full Name</p>
                         <p className="font-semibold text-white text-base">{selectedAttendee.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Gender</p>
+                        <p className="font-semibold text-white text-base">{selectedAttendee.gender || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-gray-400">Registration Number</p>
@@ -2455,6 +2460,10 @@ const AdminDashboard = () => {
                     <div>
                       <p className="text-gray-400">Full Name</p>
                       <p className="font-semibold text-white text-base">{selectedAttendee.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Gender</p>
+                      <p className="font-semibold text-white text-base">{selectedAttendee.gender || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-gray-400">Category</p>

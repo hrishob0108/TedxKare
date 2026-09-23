@@ -1,5 +1,7 @@
 import Attendee from '../models/Attendee.js';
 import Settings from '../models/Settings.js';
+import Reservation from '../models/Reservation.js';
+import QueueItem from '../models/QueueItem.js';
 import { validationResult } from 'express-validator';
 
 // ==================== GET ALL ATTENDEES ====================
@@ -130,10 +132,85 @@ export const checkAvailability = async (req, res, next) => {
       }
     }
 
+    if (email && !results.emailExists && !results.registrationNumberExists) {
+      const settings = await Settings.findOne();
+      const tType = ticketType || 'Internal';
+      const limit = tType === 'Internal' ? (settings?.internalAttendeeLimit ?? 60) : (settings?.externalAttendeeLimit ?? 40);
+
+      const count = await Attendee.countDocuments({ ticketType: tType === 'Internal' ? { $ne: 'External' } : 'External', status: { $ne: 'Rejected' } });
+      const reservations = await Reservation.countDocuments({ ticketType: tType === 'Internal' ? { $ne: 'External' } : 'External' });
+      const queueCount = await QueueItem.countDocuments({ ticketType: tType === 'Internal' ? { $ne: 'External' } : 'External' });
+      
+      const normalizedEmail = email.toLowerCase().trim();
+      const existingRes = await Reservation.findOne({ email: normalizedEmail });
+      
+      const absoluteAvailable = limit - count - reservations;
+
+      if (count >= limit) {
+        // Event is fully sold out. Evict from queue if present.
+        await QueueItem.deleteOne({ email: normalizedEmail });
+        results.isFull = true;
+        results.message = `We're sorry! All ${tType} tickets have just sold out. Thank you for your interest!`;
+      } else if (existingRes) {
+        // Refresh lock
+        await Reservation.updateOne({ email: normalizedEmail }, { createdAt: Date.now() });
+      } else if (absoluteAvailable <= 0 || queueCount > 0) {
+        // Need to enter or check queue
+        const existingQueueItem = await QueueItem.findOneAndUpdate(
+          { email: normalizedEmail },
+          { lastPolledAt: Date.now(), ticketType: tType },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        const usersAhead = await QueueItem.countDocuments({
+          ticketType: tType === 'Internal' ? { $ne: 'External' } : 'External',
+          createdAt: { $lt: existingQueueItem.createdAt }
+        });
+        
+        if (usersAhead < absoluteAvailable) {
+          // It's their turn!
+          await Reservation.findOneAndUpdate(
+            { email: normalizedEmail },
+            { ticketType: tType, createdAt: Date.now() },
+            { upsert: true }
+          );
+          await QueueItem.deleteOne({ email: normalizedEmail });
+          results.yourTurn = true;
+        } else {
+          // Still waiting
+          results.seatsLocked = true;
+          results.queuePosition = usersAhead + 1;
+          results.message = `You are in the virtual queue. Your position is #${usersAhead + 1}. Please do not close this tab.`;
+        }
+      } else {
+        // No queue, seats available
+        await Reservation.findOneAndUpdate(
+          { email: normalizedEmail },
+          { ticketType: tType, createdAt: Date.now() },
+          { upsert: true }
+        );
+      }
+    }
+
     res.json({
       success: true,
       data: results,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==================== RELEASE RESERVATION ====================
+// Public: Release a seat lock early if the user clicks back or cancels
+export const releaseReservation = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (email) {
+      const normalizedEmail = email.toLowerCase().trim();
+      await Reservation.deleteOne({ email: normalizedEmail });
+    }
+    res.json({ success: true });
   } catch (error) {
     next(error);
   }
@@ -160,12 +237,25 @@ export const createRegistration = async (req, res, next) => {
       const ticketType = req.body.ticketType || 'Internal';
       const internalLimit = settings?.internalAttendeeLimit ?? 60;
       const externalLimit = settings?.externalAttendeeLimit ?? 40;
+      
+      const normalizedEmail = req.body.email ? req.body.email.toLowerCase().trim() : '';
+      const hasReservation = await Reservation.findOne({ email: normalizedEmail });
 
       if (ticketType === 'Internal') {
         const internalCount = await Attendee.countDocuments({
           ticketType: { $ne: 'External' },
           status: { $ne: 'Rejected' },
         });
+        const internalReservations = await Reservation.countDocuments({
+          ticketType: { $ne: 'External' },
+        });
+        
+        if (!hasReservation && internalCount + internalReservations >= internalLimit) {
+          return res.status(403).json({
+            error: 'Seats locked',
+            message: 'All seats are currently locked by other users. Please try again later.',
+          });
+        }
         if (internalCount >= internalLimit) {
           return res.status(403).json({
             error: 'Internal ticket limit reached',
@@ -177,6 +267,16 @@ export const createRegistration = async (req, res, next) => {
           ticketType: 'External',
           status: { $ne: 'Rejected' },
         });
+        const externalReservations = await Reservation.countDocuments({
+          ticketType: 'External',
+        });
+
+        if (!hasReservation && externalCount + externalReservations >= externalLimit) {
+          return res.status(403).json({
+            error: 'Seats locked',
+            message: 'All seats are currently locked by other users. Please try again later.',
+          });
+        }
         if (externalCount >= externalLimit) {
           return res.status(403).json({
             error: 'External ticket limit reached',
@@ -205,7 +305,6 @@ export const createRegistration = async (req, res, next) => {
         });
       }
 
-      const normalizedEmail = req.body.email ? req.body.email.toLowerCase().trim() : '';
       const existingAttendee = await Attendee.findOne({
         email: normalizedEmail,
         status: { $ne: 'Rejected' },
@@ -262,6 +361,11 @@ export const createRegistration = async (req, res, next) => {
 
       const attendee = new Attendee(attendeeData);
       await attendee.save();
+
+      // Consume the lock upon successful registration
+      if (normalizedEmail) {
+        await Reservation.deleteOne({ email: normalizedEmail });
+      }
 
       res.status(201).json({
         success: true,

@@ -1,16 +1,25 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 // ==================== THANK YOU PAGE ====================
 const ThankYou = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const ticketType = location.state?.ticketType;
+  const applicantType = location.state?.applicantType;
 
   useEffect(() => {
+    // Secure Route: Only allow if registration was completed
+    if (!location.state?.registrationComplete) {
+      navigate('/', { replace: true });
+      return;
+    }
+
     // Scroll to top on page load
     window.scrollTo(0, 0);
 
-    // Auto-redirect after 8 seconds
+    // Auto-redirect after 5 minutes
     const FIVE_MINUTES = 5 * 60 * 1000;
 
     const timer = setTimeout(() => {
@@ -18,7 +27,7 @@ const ThankYou = () => {
     }, FIVE_MINUTES);
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -138,7 +147,22 @@ const ThankYou = () => {
             </li>
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>
-              <span>Join our WhatsApp group for updates: <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo</a></span>
+              <span>
+                Join our WhatsApp group for updates:{' '}
+                {ticketType === 'External' ? (
+                  <a href="https://chat.whatsapp.com/LPPtcA3ehEN93UTYDxjKwl" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
+                    https://chat.whatsapp.com/LPPtcA3ehEN93UTYDxjKwl
+                  </a>
+                ) : ticketType === 'Internal' ? (
+                  <a href="https://chat.whatsapp.com/Jsj4sehTFRsDiNFfIsJoba" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
+                    https://chat.whatsapp.com/Jsj4sehTFRsDiNFfIsJoba
+                  </a>
+                ) : (
+                  <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
+                    https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo
+                  </a>
+                )}
+              </span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-ted-red font-bold mt-1">→</span>

@@ -19,6 +19,11 @@ const attendeeSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, 'Name must be at least 2 characters'],
     },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Other'],
+      trim: true,
+    },
     email: {
       type: String,
       required: [true, 'Email is required'],

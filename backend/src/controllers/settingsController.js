@@ -1,5 +1,6 @@
 import Settings from '../models/Settings.js';
 import Attendee from '../models/Attendee.js';
+import Reservation from '../models/Reservation.js';
 
 // ==================== GET SETTINGS ====================
 // Public: Get global settings (like registration status and ticket capacities)
@@ -30,8 +31,20 @@ export const getSettings = async (req, res, next) => {
       status: { $ne: 'Rejected' },
     });
 
+    // Count active locks (reservations)
+    const internalReservations = await Reservation.countDocuments({
+      ticketType: { $ne: 'External' },
+    });
+    const externalReservations = await Reservation.countDocuments({
+      ticketType: 'External',
+    });
+
     const internalLimit = settings.internalAttendeeLimit ?? 60;
     const externalLimit = settings.externalAttendeeLimit ?? 40;
+    
+    // As per user request: only subtract fully completed registrations from the public count
+    const internalAvailable = Math.max(0, internalLimit - internalCount);
+    const externalAvailable = Math.max(0, externalLimit - externalCount);
 
     res.json({
       success: true,
@@ -39,8 +52,12 @@ export const getSettings = async (req, res, next) => {
         ...settings.toObject(),
         internalCount,
         externalCount,
-        isInternalFull: internalCount >= internalLimit,
-        isExternalFull: externalCount >= externalLimit,
+        internalReservations,
+        externalReservations,
+        internalAvailable,
+        externalAvailable,
+        isInternalFull: internalAvailable <= 0,
+        isExternalFull: externalAvailable <= 0,
       },
     });
   } catch (error) {

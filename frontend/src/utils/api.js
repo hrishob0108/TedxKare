@@ -92,6 +92,7 @@ export const applicantAPI = {
 // ==================== ATTENDEE API ====================
 export const attendeeAPI = {
   checkAvailability: (data) => api.post('/attendees/check-availability', data),
+  releaseReservation: (email) => api.post('/attendees/release-reservation', { email }),
   submitRegistration: (data) => api.post('/attendees', data),
   getAllAttendees: (queryParams) => api.get('/attendees', { params: queryParams }),
   getAttendee: (id) => api.get(`/attendees/${id}`),
