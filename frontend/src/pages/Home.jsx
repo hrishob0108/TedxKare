@@ -143,7 +143,8 @@ const Home = () => {
 
   // Countdown clock effect
   useEffect(() => {
-    const target = new Date('October 3, 2026 16:00:00').getTime();
+    const eventDateStr = 'October 3, 2026 16:00:00';
+    const target = new Date(eventDateStr).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;

@@ -109,19 +109,7 @@ const AttendeeApply = () => {
     return () => clearInterval(interval);
   }, [step]);
 
-  useEffect(() => {
-    let timerId;
-    if (step === 2 && timeLeft > 0) {
-      timerId = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (step === 1) {
-      setTimeLeft(300);
-    }
-    return () => {
-      if (timerId) clearInterval(timerId);
-    };
-  }, [step, timeLeft]);
+
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -300,6 +288,28 @@ const AttendeeApply = () => {
   };
 
   const form = useForm(initialValues, onSubmit);
+
+  useEffect(() => {
+    let timerId;
+    if (step === 2 && timeLeft > 0) {
+      timerId = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (step === 2 && timeLeft === 0) {
+      // Time expired! Release lock and go back
+      if (form.values.email) {
+        attendeeAPI.releaseReservation(form.values.email).catch(console.error);
+      }
+      form.setFieldError('email', 'Your payment session has expired. Your seat was released to the next person in line.');
+      setStep(1);
+      window.scrollTo(0, 0);
+    } else if (step === 1) {
+      setTimeLeft(300);
+    }
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [step, timeLeft, form.values.email]);
 
   useEffect(() => {
     let interval;
