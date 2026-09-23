@@ -8,8 +8,8 @@ const seed = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tedxkare');
     
-    const email = 'hrishobp@gmail.com';
-    const password = 'hrishob0108'; // User requested password
+    const email = 'tedx@klu.ac.in';
+    const password = 'tedxkare123'; // User requested password
     
     let admin = await Admin.findOne({ email });
     if (admin) {
