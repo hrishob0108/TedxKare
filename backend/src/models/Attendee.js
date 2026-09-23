@@ -191,6 +191,7 @@ const attendeeSchema = new mongoose.Schema(
 
 // Index for faster queries
 attendeeSchema.index({ email: 1 });
+attendeeSchema.index({ registrationNumber: 1 });
 attendeeSchema.index({ status: 1 });
 attendeeSchema.index({ ticketType: 1 });
 
