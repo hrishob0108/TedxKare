@@ -1206,9 +1206,14 @@ const AttendeeApply = () => {
                 </div>
               </div>
               <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 mb-6">
-                <p className="text-gray-300 mb-6 text-center">
+                <p className="text-gray-300 mb-3 text-center">
                   Please scan the QR code to complete your payment. Submit the transaction details before the timer runs out!
                 </p>
+                <div className="text-center mb-6">
+                  <span className="inline-block bg-ted-red/20 border border-ted-red/50 text-white px-6 py-2 rounded-xl font-bold text-xl shadow-[0_0_15px_rgba(230,43,30,0.3)]">
+                    Registration Fee: ₹300
+                  </span>
+                </div>
 
                 {/* QR Code with reducing border */}
                 <div className="flex justify-center mb-10">
