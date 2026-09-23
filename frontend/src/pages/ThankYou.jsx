@@ -116,60 +116,66 @@ const ThankYou = () => {
 
         {/* Main Message */}
         <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl font-bold mb-4">
-          <span className="text-ted-red">Thank You!</span>
+          <span className="text-white">Welcome to </span>
+          <span className="text-ted-red">TEDxKARE 2026!</span>
         </motion.h1>
 
         {/* Subheading */}
         <motion.h2 variants={itemVariants} className="text-2xl md:text-3xl font-semibold mb-6">
-          Your Application Has Been Received
+          Your registration is confirmed.
         </motion.h2>
 
         {/* Description */}
         <motion.p
           variants={itemVariants}
-          className="text-gray-300 text-lg mb-8 leading-relaxed"
+          className="text-gray-300 text-lg mb-8 leading-relaxed max-w-2xl mx-auto"
         >
-          Your mindset is more important than anything else.
-          See you soon at the interview. All the best! <span className="text-ted-red font-bold">TEDx</span><span className="text-white font-light">KARE</span>
+          We look forward to seeing you on October 3, 2026, at TIFAC-CORE Seminar Hall, Kalasalingam University.
         </motion.p>
 
-        {/* What Happens Next */}
-        <motion.div variants={itemVariants} className="mb-10 p-6 bg-gray-900/50 border border-ted-red/30 rounded-xl">
-          <h3 className="text-xl font-semibold mb-4 text-ted-red">What Happens Next?</h3>
-          <ul className="text-gray-300 space-y-3 text-left max-w-md mx-auto">
+        {/* Stay Connected */}
+        <motion.div variants={itemVariants} className="mb-8 p-6 bg-gray-900/50 border border-ted-red/30 rounded-xl">
+          <h3 className="text-xl font-semibold mb-6 text-ted-red">Stay Connected</h3>
+          <ul className="text-gray-300 space-y-5 text-left max-w-md mx-auto">
             <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <span>Check your email and phone regularly for updates</span>
+              <span className="text-xl mt-0.5">📱</span>
+              <div className="flex-1">
+                <p><strong>Join WhatsApp Group</strong> – For event updates & communication.</p>
+                <div className="mt-2">
+                  {ticketType === 'External' ? (
+                    <a href="https://chat.whatsapp.com/LPPtcA3ehEN93UTYDxjKwl" target="_blank" rel="noopener noreferrer" className="inline-block bg-ted-red/20 text-ted-red border border-ted-red/50 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-ted-red hover:text-white transition-colors">
+                      Join External Group
+                    </a>
+                  ) : ticketType === 'Internal' ? (
+                    <a href="https://chat.whatsapp.com/Jsj4sehTFRsDiNFfIsJoba" target="_blank" rel="noopener noreferrer" className="inline-block bg-ted-red/20 text-ted-red border border-ted-red/50 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-ted-red hover:text-white transition-colors">
+                      Join Internal Group
+                    </a>
+                  ) : (
+                    <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="inline-block bg-ted-red/20 text-ted-red border border-ted-red/50 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-ted-red hover:text-white transition-colors">
+                      Join Group
+                    </a>
+                  )}
+                </div>
+              </div>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <span>Join our journey to spread ideas worth sharing!</span>
+              <span className="text-xl mt-0.5">📧</span>
+              <div className="flex-1">
+                <p><strong>Check Email</strong> – Important updates will be sent to your registered email.</p>
+              </div>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <span>
-                Join our WhatsApp group for updates:{' '}
-                {ticketType === 'External' ? (
-                  <a href="https://chat.whatsapp.com/LPPtcA3ehEN93UTYDxjKwl" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
-                    https://chat.whatsapp.com/LPPtcA3ehEN93UTYDxjKwl
-                  </a>
-                ) : ticketType === 'Internal' ? (
-                  <a href="https://chat.whatsapp.com/Jsj4sehTFRsDiNFfIsJoba" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
-                    https://chat.whatsapp.com/Jsj4sehTFRsDiNFfIsJoba
-                  </a>
-                ) : (
-                  <a href="https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo" target="_blank" rel="noopener noreferrer" className="text-ted-red hover:underline break-all">
-                    https://chat.whatsapp.com/EC6gWhv3uA1GVVTguAySZo
-                  </a>
-                )}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-ted-red font-bold mt-1">→</span>
-              <span>There are still multiple selection stages ahead, and our team will reach out to you.</span>
+              <span className="text-xl mt-0.5">❓</span>
+              <div className="flex-1">
+                <p><strong>Help Page</strong> – For any issues or assistance, visit the Help Page on our website.</p>
+              </div>
             </li>
           </ul>
         </motion.div>
+        
+        <motion.h3 variants={itemVariants} className="text-2xl font-bold mb-8 text-white">
+          See you at <span className="text-ted-red">TEDx</span>KARE!
+        </motion.h3>
 
         {/* CTA Buttons */}
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
