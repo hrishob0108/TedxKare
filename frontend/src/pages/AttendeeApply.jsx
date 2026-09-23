@@ -34,11 +34,10 @@ const externalCategories = [
   'Other',
 ];
 
-
-
 const AttendeeApply = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(300);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const { loading, error, request, clearError } = useApi();
 
@@ -50,19 +49,22 @@ const AttendeeApply = () => {
   const [isInternalFull, setIsInternalFull] = useState(false);
   const [isExternalFull, setIsExternalFull] = useState(false);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [queuePosition, setQueuePosition] = useState(null);
 
-  const checkStatus = async () => {
-    setConnectionError(false);
-    setIsCheckingStatus(true);
-    let attempts = 50;
+  const checkStatus = async (isPolling = false) => {
+    if (!isPolling) {
+      setConnectionError(false);
+      setIsCheckingStatus(true);
+    }
+    let attempts = isPolling ? 1 : 50;
     while (attempts > 0) {
       try {
         const response = await settingsAPI.getSettings({ timeout: 4000 });
         const data = response.data?.data || response.data;
-        setRegistrationOpen(data.attendeeRegistrationOpen ?? data.registrationOpen ?? true);
+        if (!isPolling) setRegistrationOpen(data.attendeeRegistrationOpen ?? data.registrationOpen ?? true);
 
-        const intLimit = data.internalAttendeeLimit ?? 60;
-        const extLimit = data.externalAttendeeLimit ?? 40;
+        const intLimit = data.internalAvailable ?? data.internalAttendeeLimit ?? 60;
+        const extLimit = data.externalAvailable ?? data.externalAttendeeLimit ?? 40;
         setInternalSlots(intLimit);
         setExternalSlots(extLimit);
 
@@ -71,36 +73,67 @@ const AttendeeApply = () => {
         setIsInternalFull(intFull);
         setIsExternalFull(extFull);
 
-        if (intFull && !extFull) {
-          form.setFieldValue('ticketType', 'External');
-        } else if (!intFull && extFull) {
-          form.setFieldValue('ticketType', 'Internal');
+        if (!isPolling) {
+          if (intFull && !extFull) {
+            form.setFieldValue('ticketType', 'External');
+          } else if (!intFull && extFull) {
+            form.setFieldValue('ticketType', 'Internal');
+          }
+          setIsCheckingStatus(false);
         }
-
-        setIsCheckingStatus(false);
         return;
       } catch (err) {
         attempts--;
-        console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
-        if (attempts > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (!isPolling) {
+          console.error(`Failed to fetch registration status. Remaining attempts: ${attempts}`, err);
+          if (attempts > 0) {
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
         }
       }
     }
-    setConnectionError(true);
-    setIsCheckingStatus(false);
+    if (!isPolling) {
+      setConnectionError(true);
+      setIsCheckingStatus(false);
+    }
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
     checkStatus();
-  }, []);
+    
+    // Auto-refresh seat availability for the virtual queue
+    const interval = setInterval(() => {
+      if (step === 1) checkStatus(true);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [step]);
+
+  useEffect(() => {
+    let timerId;
+    if (step === 2 && timeLeft > 0) {
+      timerId = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (step === 1) {
+      setTimeLeft(300);
+    }
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [step, timeLeft]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const isTimeLow = timeLeft <= 120; // 2 minutes or less
+  const progressPercentage = (timeLeft / 300) * 100;
 
   const initialValues = {
     ticketType: 'Internal', // 'Internal' or 'External'
 
     // Common
     name: '',
+    gender: '',
     email: '',
     phone: '',
     linkedin: '',
@@ -158,11 +191,26 @@ const AttendeeApply = () => {
         return;
       }
 
-      await request(() => attendeeAPI.submitRegistration(values));
+      // Clean payload to prevent Mongoose enum/validation errors on empty strings
+      const payload = { ...values };
+      if (payload.ticketType === 'Internal') {
+        delete payload.address;
+        delete payload.category;
+        delete payload.organization;
+      } else {
+        delete payload.registrationNumber;
+        delete payload.department;
+        delete payload.hostelDayScholar;
+        delete payload.hostelName;
+        delete payload.wardenContact;
+        delete payload.roomNumber;
+      }
+
+      await request(() => attendeeAPI.submitRegistration(payload));
       setSubmitSuccess(true);
 
       setTimeout(() => {
-        navigate('/thank-you');
+        navigate('/thank-you', { state: { registrationComplete: true, ticketType: payload.ticketType } });
       }, 1500);
     } catch (error) {
       if (error.response?.status === 400 && error.response?.data?.details) {
@@ -172,6 +220,7 @@ const AttendeeApply = () => {
         let hasStep2Error = false;
         const step1Fields = [
           'name',
+          'gender',
           'email',
           'phone',
           'linkedin',
@@ -252,6 +301,37 @@ const AttendeeApply = () => {
 
   const form = useForm(initialValues, onSubmit);
 
+  useEffect(() => {
+    let interval;
+    if (step === 1.5) {
+      interval = setInterval(async () => {
+        try {
+          const payload = {
+            email: form.values.email,
+            ticketType: form.values.ticketType,
+            registrationNumber: form.values.registrationNumber,
+          };
+          const res = await attendeeAPI.checkAvailability(payload);
+          if (res.data?.data?.isFull) {
+            form.setFieldError('email', res.data.data.message);
+            setStep(1);
+            checkStatus(true); // Update the ticket counts to show SOLD OUT
+            window.scrollTo(0, 0);
+          } else if (res.data?.data?.yourTurn) {
+            setStep(2);
+            if (timeLeft === 0) setTimeLeft(300);
+            window.scrollTo(0, 0);
+          } else if (res.data?.data?.seatsLocked) {
+            setQueuePosition(res.data.data.queuePosition);
+          }
+        } catch (error) {
+          console.error("Queue poll error:", error);
+        }
+      }, 10000);
+    }
+    return () => clearInterval(interval);
+  }, [step, form.values.email, form.values.ticketType, form.values.registrationNumber, timeLeft]);
+
   const handleInputChange = (e) => {
     if (error) clearError();
     form.handleChange(e);
@@ -271,6 +351,7 @@ const AttendeeApply = () => {
 
     // Common validations
     checkError(!form.values.name.trim() || form.values.name.trim().length < 2, 'name', 'Full name is required (min 2 characters)');
+    checkError(!form.values.gender, 'gender', 'Please select your gender');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     checkError(!emailRegex.test(form.values.email), 'email', 'Valid email ID is required');
     const phoneRegex = /^[0-9+\s()-]{10,15}$/;
@@ -342,6 +423,21 @@ const AttendeeApply = () => {
         if (!firstDupField) firstDupField = 'registrationNumber';
       }
 
+      if (res.data?.data?.seatsLocked) {
+        setQueuePosition(res.data.data.queuePosition);
+        setStep(1.5);
+        window.scrollTo(0, 0);
+        return;
+      }
+      
+      if (res.data?.data?.yourTurn) {
+        form.setErrors({});
+        if (timeLeft === 0) setTimeLeft(300);
+        setStep(2);
+        window.scrollTo(0, 0);
+        return;
+      }
+
       if (Object.keys(dupErrors).length > 0) {
         form.setErrors(dupErrors);
         if (firstDupField) {
@@ -358,17 +454,33 @@ const AttendeeApply = () => {
 
       // Valid and unique - proceed to payment
       form.setErrors({});
+      if (timeLeft === 0) setTimeLeft(300);
       setStep(2);
       window.scrollTo(0, 0);
     } catch (err) {
       console.error('Error verifying registration availability:', err);
       // Fallback on network timeout
       form.setErrors({});
+      if (timeLeft === 0) setTimeLeft(300);
       setStep(2);
       window.scrollTo(0, 0);
     } finally {
       setIsCheckingAvailability(false);
     }
+  };
+
+  const handleBack = async () => {
+    if (form.values.email) {
+      try {
+        await attendeeAPI.releaseReservation(form.values.email);
+      } catch (err) {
+        console.error('Failed to release reservation', err);
+      }
+    }
+    form.resetForm();
+    setStep(1);
+    setTimeLeft(300);
+    window.scrollTo(0, 0);
   };
 
   const handleFileChange = (e) => {
@@ -392,7 +504,7 @@ const AttendeeApply = () => {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
-        <p className="text-gray-400 text-xs animate-pulse">Connecting to server, please wait...</p>
+        <p className="text-gray-400 text-xs animate-pulse">TEDxKare Loading....</p>
       </div>
     );
   }
@@ -556,7 +668,7 @@ const AttendeeApply = () => {
                           ? 'bg-red-950/60 text-red-400 border-red-500/40'
                           : 'bg-ted-red/20 text-ted-red border-ted-red/40'
                       }`}>
-                        {isInternalFull ? '🔴 Sold Out (Full)' : `🎓 KARE Students (${internalSlots} Slots)`}
+                        {isInternalFull ? '🔴 Sold Out (Full)' : `🎓 KARE Students (${internalSlots} seats available)`}
                       </span>
                       {form.values.ticketType === 'Internal' && !isInternalFull && (
                         <span className="w-6 h-6 rounded-full bg-ted-red text-white flex items-center justify-center text-xs font-bold shadow-md shadow-ted-red/50">
@@ -572,6 +684,9 @@ const AttendeeApply = () => {
                           : 'For currently enrolled Kalasalingam (KARE) university students.'}
                       </p>
                     </div>
+                    {internalSlots > 0 && internalSlots < 5 && !isInternalFull && (
+                      <p className="mt-3 text-red-500 font-bold animate-pulse text-sm">Hurry up! Only {internalSlots} seats left!</p>
+                    )}
                   </button>
 
                   {/* External Ticket Card */}
@@ -598,7 +713,7 @@ const AttendeeApply = () => {
                           ? 'bg-red-950/60 text-red-400 border-red-500/40'
                           : 'bg-blue-500/20 text-blue-400 border-blue-500/40'
                       }`}>
-                        {isExternalFull ? '🔴 Sold Out (Full)' : `🌐 General / Outside (${externalSlots} Slots)`}
+                        {isExternalFull ? '🔴 Sold Out (Full)' : `🌐 General / Outside (${externalSlots} seats available)`}
                       </span>
                       {form.values.ticketType === 'External' && !isExternalFull && (
                         <span className="w-6 h-6 rounded-full bg-ted-red text-white flex items-center justify-center text-xs font-bold shadow-md shadow-ted-red/50">
@@ -614,11 +729,14 @@ const AttendeeApply = () => {
                           : 'For students of other institutions, founders, faculty, professionals & guests.'}
                       </p>
                     </div>
+                    {externalSlots > 0 && externalSlots < 5 && !isExternalFull && (
+                      <p className="mt-3 text-blue-400 font-bold animate-pulse text-sm">Hurry up! Only {externalSlots} seats left!</p>
+                    )}
                   </button>
                 </div>
               </motion.div>
 
-              {/* INTERNAL TICKET DETAILS */}
+              {/* TICKET DETAILS */}
               {form.values.ticketType === 'Internal' ? (
                 <motion.div variants={itemVariants} className="card">
                   <div className="flex items-center justify-between mb-6">
@@ -642,9 +760,35 @@ const AttendeeApply = () => {
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
-                        placeholder="e.g. John Doe"
+                        placeholder="e.g. Your Name"
                       />
                       {form.errors.name && <p className="form-error">{form.errors.name}</p>}
+                    </div>
+
+                    {/* Gender */}
+                    <div className="form-group">
+                      <label htmlFor="gender" className="form-label">Gender *</label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
+                          form.errors.gender ? 'input-error' : ''
+                        }`}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                        }}
+                        value={form.values.gender}
+                        onChange={handleInputChange}
+                        onBlur={form.handleBlur}
+                        required
+                        disabled={loading}
+                      >
+                        <option value="">Select your gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {form.errors.gender && <p className="form-error">{form.errors.gender}</p>}
                     </div>
 
                     {/* Registration Number */}
@@ -767,92 +911,80 @@ const AttendeeApply = () => {
 
                     {/* Conditional Hostel Fields */}
                     {form.values.hostelDayScholar === 'Hostel' && (
-                      <div className="md:col-span-2 p-5 bg-black/40 border border-gray-800/80 rounded-2xl space-y-4">
-                        <p className="text-xs uppercase tracking-wider font-bold text-gray-400 mb-2">
-                          Hostel Accommodation Details
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="form-group">
-                            <label htmlFor="hostelName" className="form-label">Hostel Name *</label>
-                            <input
-                              type="text"
-                              id="hostelName"
-                              name="hostelName"
-                              className={`input-field ${form.errors.hostelName ? 'input-error' : ''}`}
-                              value={form.values.hostelName}
-                              onChange={handleInputChange}
-                              onBlur={form.handleBlur}
-                              required
-                              disabled={loading}
-                              placeholder="e.g. MH-1 / LH-2"
-                            />
-                            {form.errors.hostelName && <p className="form-error">{form.errors.hostelName}</p>}
-                          </div>
-
-                          <div className="form-group">
-                            <label htmlFor="roomNumber" className="form-label">Room Number *</label>
-                            <input
-                              type="text"
-                              id="roomNumber"
-                              name="roomNumber"
-                              className={`input-field ${form.errors.roomNumber ? 'input-error' : ''}`}
-                              value={form.values.roomNumber}
-                              onChange={handleInputChange}
-                              onBlur={form.handleBlur}
-                              required
-                              disabled={loading}
-                              placeholder="e.g. 304"
-                            />
-                            {form.errors.roomNumber && <p className="form-error">{form.errors.roomNumber}</p>}
-                          </div>
-
-                          <div className="form-group">
-                            <label htmlFor="wardenContact" className="form-label">Warden Contact Number *</label>
-                            <input
-                              type="tel"
-                              id="wardenContact"
-                              name="wardenContact"
-                              className={`input-field ${form.errors.wardenContact ? 'input-error' : ''}`}
-                              value={form.values.wardenContact}
-                              onChange={handleInputChange}
-                              onBlur={form.handleBlur}
-                              required
-                              disabled={loading}
-                              placeholder="10-digit number"
-                            />
-                            {form.errors.wardenContact && <p className="form-error">{form.errors.wardenContact}</p>}
-                          </div>
+                      <>
+                        <div className="form-group">
+                          <label htmlFor="hostelName" className="form-label">Hostel Name *</label>
+                          <input
+                            type="text"
+                            id="hostelName"
+                            name="hostelName"
+                            className={`input-field ${form.errors.hostelName ? 'input-error' : ''}`}
+                            value={form.values.hostelName}
+                            onChange={handleInputChange}
+                            onBlur={form.handleBlur}
+                            required
+                            disabled={loading}
+                            placeholder="e.g. MH A Block"
+                          />
+                          {form.errors.hostelName && <p className="form-error">{form.errors.hostelName}</p>}
                         </div>
-                      </div>
+                        <div className="form-group">
+                          <label htmlFor="roomNumber" className="form-label">Room Number *</label>
+                          <input
+                            type="text"
+                            id="roomNumber"
+                            name="roomNumber"
+                            className={`input-field ${form.errors.roomNumber ? 'input-error' : ''}`}
+                            value={form.values.roomNumber}
+                            onChange={handleInputChange}
+                            onBlur={form.handleBlur}
+                            required
+                            disabled={loading}
+                            placeholder="e.g. 101"
+                          />
+                          {form.errors.roomNumber && <p className="form-error">{form.errors.roomNumber}</p>}
+                        </div>
+                        <div className="form-group md:col-span-2">
+                          <label htmlFor="wardenContact" className="form-label">Warden Contact Number *</label>
+                          <input
+                            type="tel"
+                            id="wardenContact"
+                            name="wardenContact"
+                            className={`input-field ${form.errors.wardenContact ? 'input-error' : ''}`}
+                            value={form.values.wardenContact}
+                            onChange={handleInputChange}
+                            onBlur={form.handleBlur}
+                            required
+                            disabled={loading}
+                            placeholder="10-digit mobile number"
+                          />
+                          {form.errors.wardenContact && <p className="form-error">{form.errors.wardenContact}</p>}
+                        </div>
+                      </>
                     )}
 
                     {/* LinkedIn Profile */}
                     <div className="form-group md:col-span-2">
-                      <label htmlFor="linkedin" className="form-label">
-                        LinkedIn Profile <span className="text-gray-400 font-normal text-xs">(Optional)</span>
-                      </label>
+                      <label htmlFor="linkedin" className="form-label">LinkedIn Profile URL (Optional)</label>
                       <input
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className={`input-field ${form.errors.linkedin ? 'input-error' : ''}`}
+                        className="input-field"
                         value={form.values.linkedin}
                         onChange={handleInputChange}
-                        onBlur={form.handleBlur}
                         disabled={loading}
-                        placeholder="https://linkedin.com/in/yourprofile (optional)"
+                        placeholder="https://linkedin.com/in/yourprofile"
                       />
-                      {form.errors.linkedin && <p className="form-error">{form.errors.linkedin}</p>}
                     </div>
                   </div>
                 </motion.div>
               ) : (
-                /* EXTERNAL TICKET DETAILS */
                 <motion.div variants={itemVariants} className="card">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-2xl font-bold text-ted-red">External Ticket — Attendee Details</h3>
                     <span className="text-xs px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-                      Guest / External
+                      General / Outside
                     </span>
                   </div>
 
@@ -870,9 +1002,35 @@ const AttendeeApply = () => {
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
-                        placeholder="Your full name"
+                        placeholder="e.g. Your Name"
                       />
                       {form.errors.name && <p className="form-error">{form.errors.name}</p>}
+                    </div>
+
+                    {/* Gender */}
+                    <div className="form-group">
+                      <label htmlFor="gender" className="form-label">Gender *</label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        className={`input-field appearance-none bg-gray-900 bg-right bg-no-repeat pr-10 ${
+                          form.errors.gender ? 'input-error' : ''
+                        }`}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                        }}
+                        value={form.values.gender}
+                        onChange={handleInputChange}
+                        onBlur={form.handleBlur}
+                        required
+                        disabled={loading}
+                      >
+                        <option value="">Select your gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {form.errors.gender && <p className="form-error">{form.errors.gender}</p>}
                     </div>
 
                     {/* Email ID */}
@@ -888,7 +1046,7 @@ const AttendeeApply = () => {
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
-                        placeholder="your.email@example.com"
+                        placeholder="yourname@domain.com"
                       />
                       {form.errors.email && <p className="form-error">{form.errors.email}</p>}
                     </div>
@@ -911,26 +1069,8 @@ const AttendeeApply = () => {
                       {form.errors.phone && <p className="form-error">{form.errors.phone}</p>}
                     </div>
 
-                    {/* Address */}
-                    <div className="form-group md:col-span-2">
-                      <label htmlFor="address" className="form-label">Address *</label>
-                      <textarea
-                        id="address"
-                        name="address"
-                        rows="3"
-                        className={`input-field resize-none ${form.errors.address ? 'input-error' : ''}`}
-                        value={form.values.address}
-                        onChange={handleInputChange}
-                        onBlur={form.handleBlur}
-                        required
-                        disabled={loading}
-                        placeholder="Your complete residential or office address"
-                      />
-                      {form.errors.address && <p className="form-error">{form.errors.address}</p>}
-                    </div>
-
                     {/* Category */}
-                    <div className="form-group md:col-span-2">
+                    <div className="form-group">
                       <label htmlFor="category" className="form-label">Category *</label>
                       <select
                         id="category"
@@ -947,7 +1087,7 @@ const AttendeeApply = () => {
                         required
                         disabled={loading}
                       >
-                        <option value="">Select your category</option>
+                        <option value="">Select category</option>
                         {externalCategories.map((cat) => (
                           <option key={cat} value={cat}>
                             {cat}
@@ -957,11 +1097,9 @@ const AttendeeApply = () => {
                       {form.errors.category && <p className="form-error">{form.errors.category}</p>}
                     </div>
 
-                    {/* Organization / Startup / Company Name */}
+                    {/* Organization */}
                     <div className="form-group md:col-span-2">
-                      <label htmlFor="organization" className="form-label">
-                        Organization / Startup / Company Name *
-                      </label>
+                      <label htmlFor="organization" className="form-label">Organization / Startup / Company Name *</label>
                       <input
                         type="text"
                         id="organization"
@@ -972,63 +1110,115 @@ const AttendeeApply = () => {
                         onBlur={form.handleBlur}
                         required
                         disabled={loading}
-                        placeholder="e.g. Acme Tech / University Name"
+                        placeholder="Your organization name"
                       />
                       {form.errors.organization && <p className="form-error">{form.errors.organization}</p>}
                     </div>
 
+                    {/* Address */}
+                    <div className="form-group md:col-span-2">
+                      <label htmlFor="address" className="form-label">Address *</label>
+                      <textarea
+                        id="address"
+                        name="address"
+                        rows="3"
+                        className={`input-field ${form.errors.address ? 'input-error' : ''}`}
+                        value={form.values.address}
+                        onChange={handleInputChange}
+                        onBlur={form.handleBlur}
+                        required
+                        disabled={loading}
+                        placeholder="Your full address"
+                      />
+                      {form.errors.address && <p className="form-error">{form.errors.address}</p>}
+                    </div>
+
                     {/* LinkedIn Profile */}
                     <div className="form-group md:col-span-2">
-                      <label htmlFor="linkedin" className="form-label">
-                        LinkedIn Profile <span className="text-gray-400 font-normal text-xs">(Optional)</span>
-                      </label>
+                      <label htmlFor="linkedin" className="form-label">LinkedIn Profile URL (Optional)</label>
                       <input
                         type="url"
                         id="linkedin"
                         name="linkedin"
-                        className={`input-field ${form.errors.linkedin ? 'input-error' : ''}`}
+                        className="input-field"
                         value={form.values.linkedin}
                         onChange={handleInputChange}
-                        onBlur={form.handleBlur}
                         disabled={loading}
-                        placeholder="https://linkedin.com/in/yourprofile (optional)"
+                        placeholder="https://linkedin.com/in/yourprofile"
                       />
-                      {form.errors.linkedin && <p className="form-error">{form.errors.linkedin}</p>}
                     </div>
                   </div>
                 </motion.div>
               )}
+
+              {/* ACTION BUTTON */}
+              <motion.div variants={itemVariants} className="flex justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isCheckingAvailability || loading}
+                  className="btn-primary py-3 px-8 bg-ted-red text-white font-bold rounded-xl hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckingAvailability ? 'Checking...' : 'Next Step'}
+                  {!isCheckingAvailability && <span>→</span>}
+                </button>
+              </motion.div>
             </>
+          )}
+
+          {/* STEP 1.5: VIRTUAL QUEUE WAITING ROOM */}
+          {step === 1.5 && (
+            <motion.div variants={itemVariants} className="card text-center p-12">
+              <div className="w-24 h-24 bg-ted-red/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-ted-red/30 shadow-[0_0_30px_rgba(230,43,30,0.2)]">
+                <span className="text-5xl animate-pulse">⏳</span>
+              </div>
+              <h3 className="text-3xl font-bold mb-4 text-white">Virtual Queue</h3>
+              <p className="text-gray-400 mb-8 text-lg">
+                All seats are currently locked by other users making payments. You are in line.
+              </p>
+              <div className="inline-block bg-gray-900 border border-gray-700 rounded-xl px-12 py-6 mb-8 shadow-inner shadow-black/50">
+                <p className="text-sm text-gray-400 uppercase tracking-wider font-bold mb-3">Your Position</p>
+                <p className="text-6xl font-bold text-ted-red">#{queuePosition}</p>
+              </div>
+              <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed border-t border-gray-800 pt-6">
+                Please <strong className="text-gray-300">do not close or refresh this tab</strong>. You will be automatically redirected to the payment page when it is your turn.
+              </p>
+            </motion.div>
           )}
 
           {/* STEP 2: PAYMENT VERIFICATION */}
           {step === 2 && (
             <motion.div variants={itemVariants} className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-ted-red">Payment Details</h3>
-                <span className="text-xs px-3 py-1 rounded-full bg-ted-red/20 text-ted-red border border-ted-red/30 font-bold">
-                  {form.values.ticketType === 'Internal' ? 'Internal Ticket' : 'External Ticket'}
-                </span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <h3 className="text-2xl font-bold text-ted-red">Payment Verification</h3>
+                <div className={`px-4 py-2 rounded-xl text-xl font-mono font-bold flex items-center gap-2 border transition-colors duration-500 ${isTimeLow ? 'bg-red-950/40 text-red-500 border-red-500/50' : 'bg-blue-950/40 text-blue-400 border-blue-500/50'}`}>
+                  ⏳ {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+                </div>
               </div>
+              <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 mb-6">
+                <p className="text-gray-300 mb-6 text-center">
+                  Please scan the QR code to complete your payment. Submit the transaction details before the timer runs out!
+                </p>
 
-              <p className="text-gray-300 text-lg mb-6">
-                Ticket Price: <span className="font-bold text-white text-xl">₹399</span>
-              </p>
-
-              <div className="flex flex-col md:flex-row gap-8 items-center">
-                <div className="w-full md:w-1/3 text-center">
-                  <p className="text-gray-300 mb-4 text-sm font-semibold">Scan to Pay via UPI</p>
-                  <div className="bg-white p-2 rounded-xl inline-block shadow-lg">
-                    <img
-                      src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=your-upi-id"
-                      alt="Payment QR Code"
-                      className="w-40 h-40"
-                    />
+                {/* QR Code with reducing border */}
+                <div className="flex justify-center mb-10">
+                  <div className={`relative w-64 h-64 flex items-center justify-center bg-white rounded-2xl p-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-shadow duration-500 ${isTimeLow ? 'shadow-red-900/20' : 'shadow-blue-900/20'}`}>
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <rect x="2" y="2" width="96" height="96" rx="8" fill="none" stroke="#f3f4f6" strokeWidth="4" />
+                      <rect x="2" y="2" width="96" height="96" rx="8" fill="none" 
+                            stroke={isTimeLow ? "#ef4444" : "#3b82f6"} 
+                            strokeWidth="4"
+                            pathLength="100"
+                            strokeDasharray="100"
+                            strokeDashoffset={100 - progressPercentage}
+                            className="transition-all duration-1000 ease-linear" />
+                    </svg>
+                    <img src="/qr.png" alt="Payment QR Code" className="w-full h-full object-contain z-10 rounded-xl" />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Scan with GPay, PhonePe, Paytm or any UPI App</p>
                 </div>
 
-                <div className="w-full md:w-2/3 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Transaction ID */}
                   <div className="form-group">
                     <label htmlFor="transactionId" className="form-label">Transaction ID / UTR *</label>
                     <input
@@ -1041,140 +1231,71 @@ const AttendeeApply = () => {
                       onBlur={form.handleBlur}
                       required
                       disabled={loading}
-                      placeholder="Enter 12-digit UPI reference ID or Transaction ID"
+                      placeholder="e.g. 123456789012"
                     />
                     {form.errors.transactionId && <p className="form-error">{form.errors.transactionId}</p>}
                   </div>
 
+                  {/* Payment Screenshot */}
                   <div className="form-group">
-                    <label htmlFor="paymentScreenshot" className="form-label">Payment Screenshot *</label>
-                    {form.values.paymentScreenshot ? (
-                      <div className="border border-green-500/40 bg-black/60 p-4 rounded-xl flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <img
-                            src={form.values.paymentScreenshot}
-                            alt="Payment Proof"
-                            className="w-16 h-16 object-cover rounded-lg border border-gray-700 shadow-md shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-green-400 font-semibold text-sm flex items-center gap-1">
-                              ✓ Screenshot Attached
-                            </p>
-                            <p className="text-gray-400 text-xs truncate mt-0.5">Image proof ready for verification</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <label
-                            htmlFor="paymentScreenshot"
-                            className="cursor-pointer px-3 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors"
-                          >
-                            Change File
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => form.setFieldValue('paymentScreenshot', '')}
-                            className="px-2.5 py-2 text-xs font-semibold rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-800/40 transition-colors"
-                            title="Remove attached screenshot"
-                          >
-                            ✕
-                          </button>
-                          <input
-                            type="file"
-                            id="paymentScreenshot"
-                            name="paymentScreenshot"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <input
-                          type="file"
-                          id="paymentScreenshot"
-                          name="paymentScreenshot"
-                          accept="image/*"
-                          className={`input-field file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-ted-red file:text-white hover:file:bg-red-700 cursor-pointer ${
-                            form.errors.paymentScreenshot ? 'input-error' : ''
-                          }`}
-                          onChange={handleFileChange}
-                          disabled={loading}
+                    <label htmlFor="paymentScreenshot" className="form-label">Payment Screenshot * (Max 5MB)</label>
+                    <input
+                      type="file"
+                      id="paymentScreenshot"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className={`input-field file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-950 file:text-red-300 hover:file:bg-red-900 ${
+                        form.errors.paymentScreenshot ? 'input-error' : ''
+                      }`}
+                      disabled={loading}
+                    />
+                    {form.errors.paymentScreenshot && <p className="form-error">{form.errors.paymentScreenshot}</p>}
+                    {form.values.paymentScreenshot && (
+                      <div className="mt-4">
+                        <p className="text-xs text-green-400 mb-2">Screenshot attached successfully</p>
+                        <img
+                          src={form.values.paymentScreenshot}
+                          alt="Payment Preview"
+                          className="h-32 object-contain rounded border border-gray-700"
                         />
                       </div>
                     )}
-                    {form.errors.paymentScreenshot && <p className="form-error">{form.errors.paymentScreenshot}</p>}
                   </div>
                 </div>
               </div>
-            </motion.div>
-          )}
 
-          {/* Honeypot for spam bots */}
-          <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
-            <input
-              type="text"
-              name="website"
-              value={form.values.website}
-              onChange={form.handleChange}
-              tabIndex="-1"
-              autoComplete="off"
-            />
-          </div>
+              {/* Honeypot Field */}
+              <input
+                type="text"
+                name="website"
+                value={form.values.website}
+                onChange={handleInputChange}
+                style={{ display: 'none' }}
+                tabIndex="-1"
+                autoComplete="off"
+              />
 
-          {/* Step Actions */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mt-8">
-            {step === 1 ? (
-              <>
+              <div className="flex justify-between pt-4 border-t border-gray-800">
                 <button
                   type="button"
-                  disabled={isCheckingAvailability}
-                  onClick={handleNext}
-                  className="btn-primary flex-1 py-4 text-lg font-semibold bg-ted-red hover:bg-red-700 text-white rounded-xl transition-all shadow-lg shadow-ted-red/20 disabled:opacity-60 flex items-center justify-center gap-2"
+                  onClick={handleBack}
+                  disabled={loading}
+                  className="px-6 py-3 rounded-xl border border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800 transition"
                 >
-                  {isCheckingAvailability ? (
-                    <>
-                      <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                      Checking details...
-                    </>
-                  ) : (
-                    'Proceed to Payment →'
-                  )}
+                  ← Back
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="btn-outline flex-1 py-4 text-lg font-semibold rounded-xl border border-gray-700 hover:border-gray-500"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
                 <button
                   type="submit"
-                  disabled={loading || submitSuccess}
-                  className="btn-primary flex-1 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed bg-ted-red hover:bg-red-700 text-white rounded-xl transition-all shadow-lg shadow-ted-red/20"
+                  disabled={loading}
+                  className="btn-primary py-3 px-8 bg-ted-red text-white font-bold rounded-xl hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? '⏳ Submitting...' : submitSuccess ? '✓ Registered' : 'Confirm Registration'}
+                  {loading ? 'Submitting...' : 'Complete Registration'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    window.scrollTo(0, 0);
-                  }}
-                  className="btn-outline flex-1 py-4 text-lg font-semibold rounded-xl border border-gray-700 hover:border-gray-500"
-                >
-                  ← Back to Details
-                </button>
-              </>
-            )}
-          </motion.div>
+              </div>
+            </motion.div>
+          )}
         </form>
       </motion.div>
-
       <Footer />
     </div>
   );

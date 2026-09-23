@@ -1144,7 +1144,7 @@ const SpeakerApply = () => {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ted-red"></div>
-        <p className="text-gray-400 text-xs animate-pulse">Connecting to server, please wait...</p>
+        <p className="text-gray-400 text-xs animate-pulse">TEDxKare Loading....</p>
       </div>
     );
   }
