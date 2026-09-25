@@ -199,6 +199,7 @@ attendeeSchema.index({ email: 1 });
 attendeeSchema.index({ registrationNumber: 1 });
 attendeeSchema.index({ status: 1 });
 attendeeSchema.index({ ticketType: 1 });
+attendeeSchema.index({ createdAt: -1 });
 
 const Attendee = mongoose.model('Attendee', attendeeSchema);
 

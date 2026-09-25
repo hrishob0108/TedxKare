@@ -47,7 +47,7 @@ export const getAllAttendees = async (req, res, next) => {
     const sortObj = {};
     sortObj[sortBy] = order === 'asc' ? 1 : -1;
 
-    const attendees = await Attendee.find(filter).sort(sortObj).lean();
+    const attendees = await Attendee.find(filter).sort(sortObj).allowDiskUse(true).lean();
 
     res.json({
       success: true,

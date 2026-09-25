@@ -982,7 +982,11 @@ const AdminDashboard = () => {
                 {initialLoading ? (
                   <span className="animate-pulse">...</span>
                 ) : (
-                  activeTab === 'applicants' ? filteredApplicants.length : filteredSpeakers.length
+                  activeTab === 'applicants'
+                    ? filteredApplicants.length
+                    : activeTab === 'attendees'
+                    ? filteredAttendees.length
+                    : filteredSpeakers.length
                 )}
               </span>{' '}
               of{' '}
@@ -990,7 +994,11 @@ const AdminDashboard = () => {
                 {initialLoading ? (
                   <span className="animate-pulse">...</span>
                 ) : (
-                  activeTab === 'applicants' ? applicants.length : speakers.length
+                  activeTab === 'applicants'
+                    ? applicants.length
+                    : activeTab === 'attendees'
+                    ? attendees.length
+                    : speakers.length
                 )}
               </span>{' '}
               records.
