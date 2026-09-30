@@ -47,7 +47,11 @@ export const getAllAttendees = async (req, res, next) => {
     const sortObj = {};
     sortObj[sortBy] = order === 'asc' ? 1 : -1;
 
-    const attendees = await Attendee.find(filter).sort(sortObj).allowDiskUse(true).lean();
+    const attendees = await Attendee.find(filter)
+      .select('-paymentScreenshot')
+      .sort(sortObj)
+      .allowDiskUse(true)
+      .lean();
 
     res.json({
       success: true,
@@ -238,24 +242,12 @@ export const createRegistration = async (req, res, next) => {
       const internalLimit = settings?.internalAttendeeLimit ?? 60;
       const externalLimit = settings?.externalAttendeeLimit ?? 40;
       
-      const normalizedEmail = req.body.email ? req.body.email.toLowerCase().trim() : '';
-      const hasReservation = await Reservation.findOne({ email: normalizedEmail });
-
       if (ticketType === 'Internal') {
         const internalCount = await Attendee.countDocuments({
           ticketType: { $ne: 'External' },
           status: { $ne: 'Rejected' },
         });
-        const internalReservations = await Reservation.countDocuments({
-          ticketType: { $ne: 'External' },
-        });
-        
-        if (!hasReservation && internalCount + internalReservations >= internalLimit) {
-          return res.status(403).json({
-            error: 'Seats locked',
-            message: 'All seats are currently locked by other users. Please try again later.',
-          });
-        }
+
         if (internalCount >= internalLimit) {
           return res.status(403).json({
             error: 'Internal ticket limit reached',
@@ -267,16 +259,7 @@ export const createRegistration = async (req, res, next) => {
           ticketType: 'External',
           status: { $ne: 'Rejected' },
         });
-        const externalReservations = await Reservation.countDocuments({
-          ticketType: 'External',
-        });
 
-        if (!hasReservation && externalCount + externalReservations >= externalLimit) {
-          return res.status(403).json({
-            error: 'Seats locked',
-            message: 'All seats are currently locked by other users. Please try again later.',
-          });
-        }
         if (externalCount >= externalLimit) {
           return res.status(403).json({
             error: 'External ticket limit reached',

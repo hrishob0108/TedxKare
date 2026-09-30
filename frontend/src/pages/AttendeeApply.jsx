@@ -312,6 +312,23 @@ const AttendeeApply = () => {
     };
   }, [step, timeLeft, form.values.email]);
 
+  // Heartbeat to keep reservation actively refreshed in MongoDB while on Step 2 (Payment Verification)
+  useEffect(() => {
+    let heartbeatId;
+    if (step === 2 && form.values.email && timeLeft > 0) {
+      heartbeatId = setInterval(() => {
+        attendeeAPI.checkAvailability({
+          email: form.values.email,
+          ticketType: form.values.ticketType,
+          registrationNumber: form.values.ticketType === 'Internal' ? form.values.registrationNumber : undefined,
+        }).catch((err) => console.warn('Payment session heartbeat failed:', err));
+      }, 25000); // Ping every 25s so the 300s MongoDB TTL never expires while on the payment screen
+    }
+    return () => {
+      if (heartbeatId) clearInterval(heartbeatId);
+    };
+  }, [step, form.values.email, form.values.ticketType, form.values.registrationNumber, timeLeft]);
+
   useEffect(() => {
     let interval;
     if (step === 1.5) {

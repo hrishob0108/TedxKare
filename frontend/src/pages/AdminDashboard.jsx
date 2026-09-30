@@ -23,6 +23,7 @@ const AdminDashboard = () => {
   const [filteredAttendees, setFilteredAttendees] = useState([]);
   const [selectedAttendee, setSelectedAttendee] = useState(null);
   const [showAttendeeModal, setShowAttendeeModal] = useState(false);
+  const [loadingAttendeeDetails, setLoadingAttendeeDetails] = useState(false);
 
   // Speakers state
   const [speakers, setSpeakers] = useState([]);
@@ -128,6 +129,25 @@ const AdminDashboard = () => {
         console.warn('Could not fetch complete speaker attachments:', err);
       } finally {
         setLoadingSpeakerDetails(false);
+      }
+    }
+  };
+
+  const handleOpenAttendeeModal = async (att) => {
+    setSelectedAttendee(att);
+    setShowAttendeeModal(true);
+
+    if (att._id && !att.paymentScreenshot) {
+      try {
+        setLoadingAttendeeDetails(true);
+        const res = await attendeeAPI.getAttendee(att._id);
+        if (res.data?.data) {
+          setSelectedAttendee((prev) => (prev?._id === att._id ? res.data.data : prev));
+        }
+      } catch (err) {
+        console.warn('Could not fetch complete attendee details:', err);
+      } finally {
+        setLoadingAttendeeDetails(false);
       }
     }
   };
@@ -1585,13 +1605,10 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => {
-                      setSelectedAttendee(att);
-                      setShowAttendeeModal(true);
-                    }}
+                    onClick={() => handleOpenAttendeeModal(att)}
                     className="bg-gray-800/50 border border-gray-700 hover:border-ted-red/50 rounded-2xl p-4 cursor-pointer hover:bg-gray-800 transition-all flex flex-col h-full group"
                   >
-                    <div className="w-full h-48 bg-gray-900 rounded-xl mb-4 overflow-hidden relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl mb-4 overflow-hidden relative flex flex-col items-center justify-center p-3 text-center border border-gray-700/60">
                       {att.paymentScreenshot ? (
                         <img 
                           src={att.paymentScreenshot} 
@@ -1599,8 +1616,15 @@ const AdminDashboard = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-600 text-sm">
-                          No Image
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-gray-200 transition-colors">
+                          <span className="text-3xl mb-1">📄</span>
+                          <span className="text-xs font-semibold text-gray-300">Payment Verification</span>
+                          <span className="text-[10px] font-mono text-gray-400 truncate max-w-[170px] mt-0.5">
+                            {att.transactionId || 'Click to view receipt'}
+                          </span>
+                          <span className="text-[10px] text-ted-red font-bold mt-2 group-hover:underline">
+                            View Receipt →
+                          </span>
                         </div>
                       )}
                       <div className="absolute top-2 left-2">
@@ -2372,22 +2396,31 @@ const AdminDashboard = () => {
             <div className="p-6 space-y-6">
               
               {/* Payment Info */}
-              {selectedAttendee.paymentScreenshot && (
-                <div>
-                  <h4 className="text-ted-red font-bold mb-4">Payment Details</h4>
-                  <div className="bg-gray-800/50 p-2 rounded-xl border border-gray-700">
+              <div>
+                <h4 className="text-ted-red font-bold mb-4">Payment Details</h4>
+                <div className="bg-gray-800/50 p-3 rounded-xl border border-gray-700">
+                  {loadingAttendeeDetails ? (
+                    <div className="py-12 flex flex-col items-center justify-center text-gray-400">
+                      <span className="animate-spin text-3xl mb-2">⏳</span>
+                      <p className="text-sm font-semibold">Loading payment receipt...</p>
+                    </div>
+                  ) : selectedAttendee.paymentScreenshot ? (
                     <img 
                       src={selectedAttendee.paymentScreenshot} 
                       alt="Payment Screenshot" 
                       className="w-full max-h-96 object-contain rounded-lg"
                     />
-                    <div className="mt-4 mb-2 text-center">
-                      <p className="text-gray-400 text-sm mb-1 uppercase tracking-wider font-semibold">Transaction ID / UTR</p>
-                      <p className="font-mono text-xl font-bold text-white bg-gray-900 inline-block px-4 py-2 rounded-lg border border-gray-700 break-all">{selectedAttendee.transactionId || 'N/A'}</p>
+                  ) : (
+                    <div className="py-8 text-center text-gray-500 text-sm">
+                      No screenshot available
                     </div>
+                  )}
+                  <div className="mt-4 mb-2 text-center">
+                    <p className="text-gray-400 text-sm mb-1 uppercase tracking-wider font-semibold">Transaction ID / UTR</p>
+                    <p className="font-mono text-xl font-bold text-white bg-gray-900 inline-block px-4 py-2 rounded-lg border border-gray-700 break-all">{selectedAttendee.transactionId || 'N/A'}</p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* TICKET DETAILS: INTERNAL VS EXTERNAL */}
               {selectedAttendee.ticketType !== 'External' ? (
