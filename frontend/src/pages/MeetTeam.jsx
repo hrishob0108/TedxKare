@@ -5,16 +5,27 @@ import Footer from '../components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const teamMembers = [
-  // Leadership & Core Sponsor
+  // Leadership & Faculty Advisors
   {
     id: 1,
     name: 'Syed Ali Fathima',
-    role: 'Faculty Sponsor',
+    role: 'Faculty Advisor',
     category: 'leadership',
     bio: 'Guiding the organising crew and facilitating institutional alignments.',
     linkedin: 'https://www.linkedin.com/in/syed-ali-fathima-b5884393/',
     image: '/images/team/extracted_p2_img30.jpeg',
     avatarSeed: 0,
+    objectPosition: 'center 15%'
+  },
+  {
+    id: 28,
+    name: 'Dr. K. Venkatesh',
+    role: 'Faculty Advisor',
+    category: 'leadership',
+    bio: 'Mentoring student initiatives, steering institutional innovation, and providing academic guidance.',
+    linkedin: 'https://www.linkedin.com/',
+    image: '/images/team/dr_k_venkatesh.png',
+    avatarSeed: 27,
     objectPosition: 'center 15%'
   },
   {
